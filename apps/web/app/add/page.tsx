@@ -26,6 +26,23 @@ const COLORS = [
   "Olive",
 ];
 
+const STYLE_OPTIONS = [
+  "minimalist",
+  "classic",
+  "bold",
+  "trendy",
+  "avant-garde",
+  "casual",
+];
+
+const FIT_OPTIONS = ["oversized", "fitted", "relaxed", "tapered"];
+
+const OCCASION_OPTIONS = ["casual", "formal", "work", "weekend", "night", "smart-casual"];
+
+const VERSATILITY_OPTIONS = ["high", "medium", "low"] as const;
+
+const VIBRANCY_OPTIONS = ["muted", "balanced", "vibrant"] as const;
+
 export default function AddGarmentPage() {
   const [dragActive, setDragActive] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -35,6 +52,11 @@ export default function AddGarmentPage() {
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState("");
+  const [selectedStyles, setSelectedStyles] = useState<string[]>([]);
+  const [selectedFit, setSelectedFit] = useState<string | null>(null);
+  const [selectedOccasions, setSelectedOccasions] = useState<string[]>([]);
+  const [selectedVersatility, setSelectedVersatility] = useState<string | null>(null);
+  const [selectedVibrancy, setSelectedVibrancy] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleDrag = (e: React.DragEvent) => {
@@ -85,6 +107,7 @@ export default function AddGarmentPage() {
   };
 
   const isComplete = previewUrl && selectedCategory && selectedColor;
+  const isTraitsComplete = selectedFit && selectedVersatility && selectedVibrancy;
 
   return (
     <main className="min-h-screen bg-background text-foreground selection:bg-signal-orange selection:text-background">
@@ -122,7 +145,7 @@ export default function AddGarmentPage() {
           {/* Upload area */}
           <section>
             <div
-              className={`relative aspect-[3/4] border-2 border-dashed transition-all duration-100 cursor-pointer ${
+              className={`relative aspect-3/4 border-2 border-dashed transition-all duration-100 cursor-pointer ${
                 dragActive
                   ? "border-signal-orange bg-signal-orange/5"
                   : previewUrl
@@ -265,6 +288,122 @@ export default function AddGarmentPage() {
                 placeholder="Type and press enter"
                 className="w-full bg-transparent border border-border px-4 py-3 text-[11px] uppercase tracking-widest text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-foreground transition-colors duration-100"
               />
+            </div>
+
+            {/* Traits - style, fit, occasion, versatility, vibrancy */}
+            <div>
+              <label className="block text-[10px] uppercase tracking-[0.25em] text-muted-foreground mb-4">
+                Traits
+              </label>
+
+              {/* Styles (multi-select) */}
+              <div className="mb-4">
+                <p className="text-[10px] uppercase tracking-[0.15em] text-muted-foreground mb-2">Style</p>
+                <div className="flex flex-wrap gap-2">
+                  {STYLE_OPTIONS.map((s) => (
+                    <button
+                      key={s}
+                      onClick={() =>
+                        setSelectedStyles((prev) =>
+                          prev.includes(s) ? prev.filter((p) => p !== s) : [...prev, s]
+                        )
+                      }
+                      className={`px-3 py-1.5 text-[10px] uppercase tracking-[0.15em] border transition-all duration-100 ${
+                        selectedStyles.includes(s)
+                          ? "bg-foreground text-background border-foreground"
+                          : "bg-transparent text-muted-foreground border-border hover:border-foreground hover:text-foreground"
+                      }`}
+                    >
+                      {s}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Fit (single-select) */}
+              <div className="mb-4">
+                <p className="text-[10px] uppercase tracking-[0.15em] text-muted-foreground mb-2">Fit</p>
+                <div className="flex flex-wrap gap-2">
+                  {FIT_OPTIONS.map((f) => (
+                    <button
+                      key={f}
+                      onClick={() => setSelectedFit(f)}
+                      className={`px-3 py-1.5 text-[10px] uppercase tracking-[0.15em] border transition-all duration-100 ${
+                        selectedFit === f
+                          ? "bg-foreground text-background border-foreground"
+                          : "bg-transparent text-muted-foreground border-border hover:border-foreground hover:text-foreground"
+                      }`}
+                    >
+                      {f}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Occasion (multi-select) */}
+              <div className="mb-4">
+                <p className="text-[10px] uppercase tracking-[0.15em] text-muted-foreground mb-2">Occasion</p>
+                <div className="flex flex-wrap gap-2">
+                  {OCCASION_OPTIONS.map((o) => (
+                    <button
+                      key={o}
+                      onClick={() =>
+                        setSelectedOccasions((prev) =>
+                          prev.includes(o) ? prev.filter((p) => p !== o) : [...prev, o]
+                        )
+                      }
+                      className={`px-3 py-1.5 text-[10px] uppercase tracking-[0.15em] border transition-all duration-100 ${
+                        selectedOccasions.includes(o)
+                          ? "bg-foreground text-background border-foreground"
+                          : "bg-transparent text-muted-foreground border-border hover:border-foreground hover:text-foreground"
+                      }`}
+                    >
+                      {o}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Versatility + Vibrancy (single-select) */}
+              <div className="flex gap-6">
+                <div>
+                  <p className="text-[10px] uppercase tracking-[0.15em] text-muted-foreground mb-2">Versatility</p>
+                  <div className="flex flex-wrap gap-2">
+                    {VERSATILITY_OPTIONS.map((v) => (
+                      <button
+                        key={v}
+                        onClick={() => setSelectedVersatility(v)}
+                        className={`px-3 py-1.5 text-[10px] uppercase tracking-[0.15em] border transition-all duration-100 ${
+                          selectedVersatility === v
+                            ? "bg-foreground text-background border-foreground"
+                            : "bg-transparent text-muted-foreground border-border hover:border-foreground hover:text-foreground"
+                        }`}
+                      >
+                        {v}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <p className="text-[10px] uppercase tracking-[0.15em] text-muted-foreground mb-2">Vibrancy</p>
+                  <div className="flex flex-wrap gap-2">
+                    {VIBRANCY_OPTIONS.map((v) => (
+                      <button
+                        key={v}
+                        onClick={() => setSelectedVibrancy(v)}
+                        className={`px-3 py-1.5 text-[10px] uppercase tracking-[0.15em] border transition-all duration-100 ${
+                          selectedVibrancy === v
+                            ? "bg-foreground text-background border-foreground"
+                            : "bg-transparent text-muted-foreground border-border hover:border-foreground hover:text-foreground"
+                        }`}
+                      >
+                        {v}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
             </div>
           </section>
         </div>

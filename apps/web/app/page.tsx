@@ -1,57 +1,270 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { OutfitComposition } from "@/components/outfit-composition";
+import { OutfitRecommendationCard } from "@/components/outfit-recommendation-card";
+import { useOutfitRecommendations } from "@/hooks/use-outfit-recommendations";
+import { closetItemsToGarments } from "@/lib/closet-to-garment";
+import { Outfit } from "@/../../shared/types";
 
-const LOOK_A = {
-  label: "Look A",
-  garments: [
-    {
-      src: "/garments/look-a-top.jpg",
-      name: "Oversized wool coat",
-      type: "outerwear" as const,
-    },
-    {
-      src: "/garments/look-a-bottom.jpg",
-      name: "Wide-leg trousers",
-      type: "bottom" as const,
-    },
-    {
-      src: "/garments/look-a-shoes.jpg",
-      name: "Leather Chelsea boots",
-      type: "shoes" as const,
-    },
-  ],
+// Closet items with detailed traits for better recommendations
+type ClosetItemType = {
+  id: string;
+  src: string;
+  name: string;
+  category: "top" | "bottom" | "shoes" | "outerwear";
+  color: string;
+  traits: {
+    style: string[]; // minimalist, bold, classic, trendy, avant-garde, etc.
+    fit: string; // oversized, fitted, relaxed, tapered, etc.
+    occasion: string[]; // casual, formal, work, weekend, night, etc.
+    versatility: "high" | "medium" | "low";
+    vibrancy: "muted" | "balanced" | "vibrant";
+  };
 };
 
-const LOOK_B = {
-  label: "Look B",
-  garments: [
-    {
-      src: "/garments/look-b-top.jpg",
-      name: "Deconstructed blazer",
-      type: "top" as const,
+const CLOSET_ITEMS: ClosetItemType[] = [
+  {
+    id: "1",
+    src: "/garments/look-a-top.jpg",
+    name: "Oversized wool coat",
+    category: "outerwear",
+    color: "Black",
+    traits: {
+      style: ["bold", "classic", "minimalist"],
+      fit: "oversized",
+      occasion: ["casual", "smart-casual", "night"],
+      versatility: "high",
+      vibrancy: "muted",
     },
-    {
-      src: "/garments/look-b-bottom.jpg",
-      name: "Tailored trousers",
-      type: "bottom" as const,
+  },
+  {
+    id: "2",
+    src: "/garments/look-b-top.jpg",
+    name: "Deconstructed blazer",
+    category: "top",
+    color: "Cream",
+    traits: {
+      style: ["bold", "avant-garde", "trendy"],
+      fit: "relaxed",
+      occasion: ["smart-casual", "work", "night"],
+      versatility: "medium",
+      vibrancy: "balanced",
     },
-    {
-      src: "/garments/look-b-shoes.jpg",
-      name: "Platform sneakers",
-      type: "shoes" as const,
+  },
+  {
+    id: "3",
+    src: "/garments/shirt-white.jpg",
+    name: "Cotton oxford",
+    category: "top",
+    color: "White",
+    traits: {
+      style: ["classic", "minimalist"],
+      fit: "fitted",
+      occasion: ["casual", "work", "smart-casual"],
+      versatility: "high",
+      vibrancy: "muted",
     },
-  ],
-};
+  },
+  {
+    id: "4",
+    src: "/garments/sweater-grey.jpg",
+    name: "Cashmere crewneck",
+    category: "top",
+    color: "Grey",
+    traits: {
+      style: ["minimalist", "classic"],
+      fit: "fitted",
+      occasion: ["casual", "smart-casual"],
+      versatility: "high",
+      vibrancy: "muted",
+    },
+  },
+  {
+    id: "5",
+    src: "/garments/jacket-black.jpg",
+    name: "Bomber jacket",
+    category: "outerwear",
+    color: "Black",
+    traits: {
+      style: ["bold", "trendy"],
+      fit: "fitted",
+      occasion: ["casual", "weekend"],
+      versatility: "high",
+      vibrancy: "muted",
+    },
+  },
+  {
+    id: "6",
+    src: "/garments/look-a-bottom.jpg",
+    name: "Wide-leg trousers",
+    category: "bottom",
+    color: "Charcoal",
+    traits: {
+      style: ["bold", "classic"],
+      fit: "oversized",
+      occasion: ["smart-casual", "work", "night"],
+      versatility: "medium",
+      vibrancy: "muted",
+    },
+  },
+  {
+    id: "7",
+    src: "/garments/look-b-bottom.jpg",
+    name: "Tailored trousers",
+    category: "bottom",
+    color: "Black",
+    traits: {
+      style: ["minimalist", "classic"],
+      fit: "tapered",
+      occasion: ["formal", "work", "smart-casual"],
+      versatility: "high",
+      vibrancy: "muted",
+    },
+  },
+  {
+    id: "8",
+    src: "/garments/pants-black.jpg",
+    name: "Dress pants",
+    category: "bottom",
+    color: "Black",
+    traits: {
+      style: ["classic", "minimalist"],
+      fit: "fitted",
+      occasion: ["formal", "work"],
+      versatility: "high",
+      vibrancy: "muted",
+    },
+  },
+  {
+    id: "9",
+    src: "/garments/jeans-indigo.jpg",
+    name: "Selvedge denim",
+    category: "bottom",
+    color: "Indigo",
+    traits: {
+      style: ["classic", "casual"],
+      fit: "fitted",
+      occasion: ["casual", "weekend"],
+      versatility: "high",
+      vibrancy: "vibrant",
+    },
+  },
+  {
+    id: "10",
+    src: "/garments/look-a-shoes.jpg",
+    name: "Chelsea boots",
+    category: "shoes",
+    color: "Black",
+    traits: {
+      style: ["classic", "bold"],
+      fit: "fitted",
+      occasion: ["smart-casual", "formal", "night"],
+      versatility: "high",
+      vibrancy: "muted",
+    },
+  },
+  {
+    id: "11",
+    src: "/garments/look-b-shoes.jpg",
+    name: "Platform sneakers",
+    category: "shoes",
+    color: "White",
+    traits: {
+      style: ["trendy", "bold"],
+      fit: "fitted",
+      occasion: ["casual", "weekend"],
+      versatility: "high",
+      vibrancy: "balanced",
+    },
+  },
+  {
+    id: "12",
+    src: "/garments/loafers-brown.jpg",
+    name: "Penny loafers",
+    category: "shoes",
+    color: "Brown",
+    traits: {
+      style: ["classic"],
+      fit: "fitted",
+      occasion: ["smart-casual", "work"],
+      versatility: "high",
+      vibrancy: "balanced",
+    },
+  },
+];
 
 export default function Home() {
   const [isShuffling, setIsShuffling] = useState(false);
+  const [mood, setMood] = useState<any>("bold");
+  const [weather, setWeather] = useState<any>("cloudy");
+  const [temperature] = useState(12);
+  const [recommendedOutfit, setRecommendedOutfit] = useState<any[]>([]);
 
-  const handleShuffle = () => {
+  const { outfits, loading, generate } = useOutfitRecommendations({
+    userId: "default-user",
+    mood,
+    weather,
+    temperature,
+    limitCount: 6,
+  });
+
+  // Generate recommendations on mount
+  useEffect(() => {
+    const generateRecommendations = async () => {
+      const garments = closetItemsToGarments(CLOSET_ITEMS, "default-user");
+      
+      await generate({
+        garments,
+        mood,
+        weather,
+        temperature,
+        limitCount: 6,
+      });
+    };
+
+    generateRecommendations();
+  }, [mood, weather]);
+
+  // Update displayed outfit when recommendations change
+  useEffect(() => {
+    if (outfits && outfits.length > 0) {
+      const convertedOutfits = outfits.map((outfit, index) => ({
+        label: `Option ${index + 1}`,
+        garments: outfit.garmentIds
+          .map((id) => {
+            const item = CLOSET_ITEMS.find((i) => i.id === id);
+            if (!item) return null;
+            return {
+              id: item.id,
+              src: item.src,
+              name: item.name,
+              category: item.category,
+              type: item.category === "outerwear" ? "outerwear" : item.category === "top" ? "top" : item.category === "bottom" ? "bottom" : "shoes",
+              color: item.color,
+              traits: item.traits,
+            };
+          })
+          .filter(Boolean),
+        explanation: outfit.explanation,
+      }));
+      setRecommendedOutfit(convertedOutfits);
+    }
+  }, [outfits]);
+
+  const handleShuffle = async () => {
     setIsShuffling(true);
     setTimeout(() => setIsShuffling(false), 150);
+    
+    // Regenerate with same settings
+    const garments = closetItemsToGarments(CLOSET_ITEMS, "default-user");
+    await generate({
+      garments,
+      mood,
+      weather,
+      temperature,
+      limitCount: 6,
+    });
   };
 
   return (
@@ -78,7 +291,7 @@ export default function Home() {
           <div className="max-w-4xl">
             {/* Weather context - small, peripheral */}
             <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground mb-6 md:mb-8">
-              12°C · Light Rain
+              {temperature}°C · {weather.charAt(0).toUpperCase() + weather.slice(1)}
             </p>
 
             {/* Mood line - oversized editorial */}
@@ -86,8 +299,39 @@ export default function Home() {
               today feels
             </h2>
             <h2 className="font-serif text-4xl sm:text-5xl md:text-7xl lg:text-8xl italic text-signal-orange leading-[0.9] tracking-tight">
-              bold
+              {mood}
             </h2>
+          </div>
+        </section>
+
+        {/* Mood Selector */}
+        <section className="mb-16 md:mb-24">
+          <div className="space-y-6">
+            {/* Mood Selection */}
+            <div>
+              <p className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground mb-3">
+                Select Mood
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {["casual", "formal", "adventurous", "cozy", "energetic", "minimalist", "bold"].map(
+                  (m) => (
+                    <button
+                      key={m}
+                      onClick={() => setMood(m)}
+                      className={`px-4 py-2 text-[10px] uppercase tracking-[0.2em] border transition-all duration-100 cursor-pointer ${
+                        mood === m
+                          ? "bg-signal-orange text-background border-signal-orange"
+                          : "bg-transparent text-muted-foreground border-border hover:border-foreground hover:text-foreground"
+                      }`}
+                    >
+                      {m}
+                    </button>
+                  )
+                )}
+              </div>
+            </div>
+
+            {/* Weather Selection removed per user request */}
           </div>
         </section>
 
@@ -95,27 +339,35 @@ export default function Home() {
         <div className="flex items-center gap-6 mb-12 md:mb-16">
           <div className="h-px bg-border flex-1" />
           <span className="text-[9px] uppercase tracking-[0.35em] text-muted-foreground">
-            Curated Selection
+            {loading ? "Generating..." : `${recommendedOutfit.length} Options`}
           </span>
           <div className="h-px bg-border flex-1" />
         </div>
 
-        {/* Outfit Compositions - Side by Side */}
+        {/* Recommendation Grid */}
         <section className="mb-16 md:mb-24">
-          <div
-            className={`grid grid-cols-2 gap-4 md:gap-8 lg:gap-12 transition-opacity duration-100 ${
-              isShuffling ? "opacity-30" : "opacity-100"
-            }`}
-          >
-            <OutfitComposition
-              label={LOOK_A.label}
-              garments={LOOK_A.garments}
-            />
-            <OutfitComposition
-              label={LOOK_B.label}
-              garments={LOOK_B.garments}
-            />
-          </div>
+          {recommendedOutfit && recommendedOutfit.length > 0 ? (
+            <div
+              className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 lg:gap-8 transition-opacity duration-100 ${
+                isShuffling ? "opacity-30" : "opacity-100"
+              }`}
+            >
+              {recommendedOutfit.map((outfit, index) => (
+                outfit.garments.length > 0 && (
+                  <OutfitRecommendationCard
+                    key={index}
+                    label={outfit.label}
+                    garments={outfit.garments}
+                    explanation={outfit.explanation}
+                  />
+                )
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12 text-muted-foreground text-[11px] uppercase tracking-[0.2em]">
+              {loading ? "Generating recommendations..." : "No recommendations available"}
+            </div>
+          )}
         </section>
 
         {/* Actions - Typographic, subtle */}
@@ -139,7 +391,8 @@ export default function Home() {
 
           <button
             onClick={handleShuffle}
-            className="text-[11px] uppercase tracking-[0.25em] text-muted-foreground hover:text-foreground transition-colors duration-100 group flex items-center gap-2"
+            disabled={loading}
+            className="text-[11px] uppercase tracking-[0.25em] text-muted-foreground hover:text-foreground transition-colors duration-100 group flex items-center gap-2 disabled:opacity-50"
           >
             <svg
               width="12"

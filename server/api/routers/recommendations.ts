@@ -154,16 +154,39 @@ export const recommendationRouter = router({
         temperature: z.number().min(-50).max(50).optional(),
         occasion: z.string().optional(),
         limitCount: z.number().min(1).max(10).default(5),
+        garments: z
+          .array(
+            z.object({
+              id: z.string(),
+              userId: z.string(),
+              name: z.string(),
+              category: z.enum([
+                "tops",
+                "bottoms",
+                "shoes",
+                "outerwear",
+                "accessories",
+              ]),
+              primaryColor: z.string(),
+              secondaryColor: z.string().optional(),
+              material: z.string().optional(),
+              season: z.enum(["spring", "summer", "fall", "winter", "all-season"]),
+              imageUrl: z.string().optional(),
+              tags: z.array(z.string()),
+              createdAt: z.date().or(z.string()),
+            })
+          )
+          .optional(),
       })
     )
     .query(async ({ input }) => {
-      // TODO: In production, fetch garments from database:
-      // const garments = await db.garment.findMany({
-      //   where: { userId: input.userId }
-      // });
-
-      // For now, use mock data
-      const garments = MOCK_GARMENTS.filter((g) => g.userId === input.userId);
+      // Use provided garments or fall back to mock data
+      let garments = input.garments
+        ? (input.garments as Garment[]).map((g) => ({
+            ...g,
+            createdAt: g.createdAt instanceof Date ? g.createdAt : new Date(g.createdAt),
+          }))
+        : MOCK_GARMENTS.filter((g) => g.userId === input.userId);
 
       const recommendationInput: RecommendationInput = {
         userId: input.userId,
