@@ -1,5 +1,5 @@
-@import 'tailwindcss';
-@import 'tw-animate-css';
+@import "tailwindcss";
+@import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -7,31 +7,31 @@
 /* Light mode - editorial bone-white aesthetic */
 :root {
   /* Core palette - Light mode */
-  --background: #F4F3EF;
-  --foreground: #0A0A0A;
-  --card: #FFFFFF;
-  --card-foreground: #0A0A0A;
-  --popover: #F4F3EF;
-  --popover-foreground: #0A0A0A;
-  --primary: #0A0A0A;
-  --primary-foreground: #F4F3EF;
-  --secondary: #E8E7E3;
-  --secondary-foreground: #0A0A0A;
-  --muted: #E8E7E3;
-  --muted-foreground: #6A6A6A;
-  --accent: #FF4D00;
-  --accent-foreground: #FFFFFF;
-  --destructive: #FF4D00;
-  --destructive-foreground: #FFFFFF;
-  --border: #D4D3CF;
-  --input: #D4D3CF;
-  --ring: #0A0A0A;
-  
+  --background: #f4f3ef;
+  --foreground: #0a0a0a;
+  --card: #ffffff;
+  --card-foreground: #0a0a0a;
+  --popover: #f4f3ef;
+  --popover-foreground: #0a0a0a;
+  --primary: #0a0a0a;
+  --primary-foreground: #f4f3ef;
+  --secondary: #e8e7e3;
+  --secondary-foreground: #0a0a0a;
+  --muted: #e8e7e3;
+  --muted-foreground: #6a6a6a;
+  --accent: #ff4d00;
+  --accent-foreground: #ffffff;
+  --destructive: #ff4d00;
+  --destructive-foreground: #ffffff;
+  --border: #d4d3cf;
+  --input: #d4d3cf;
+  --ring: #0a0a0a;
+
   /* Accent colors */
-  --signal-orange: #FF4D00;
-  --acid-lime: #7ACC00;
-  --electric-blue: #0038FF;
-  --chrome-silver: #8A8A8A;
+  --signal-orange: #ff4d00;
+  --acid-lime: #7acc00;
+  --electric-blue: #0038ff;
+  --chrome-silver: #8a8a8a;
 
   /* Shadcn/ui default chart and sidebar colors - Added from diff */
   --chart-1: oklch(0.646 0.222 41.116);
@@ -47,55 +47,57 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
-  
+
   --radius: 0;
 }
 
 /* Dark mode - near-black cybersigilism aesthetic */
 .dark {
-  --background: #0A0A0A;
-  --foreground: #F4F3EF;
+  --background: #0a0a0a;
+  --foreground: #f4f3ef;
   --card: #111111;
-  --card-foreground: #F4F3EF;
-  --popover: #0A0A0A;
-  --popover-foreground: #F4F3EF;
-  --primary: #F4F3EF;
-  --primary-foreground: #0A0A0A;
-  --secondary: #1A1A1A;
-  --secondary-foreground: #F4F3EF;
-  --muted: #1A1A1A;
-  --muted-foreground: #8A8A8A;
-  --accent: #FF4D00;
-  --accent-foreground: #0A0A0A;
-  --destructive: #FF4D00;
-  --destructive-foreground: #0A0A0A;
-  --border: #2A2A2A;
-  --input: #2A2A2A;
-  --ring: #F4F3EF;
-  --chart-1: #FF4D00;
-  --chart-2: #B6FF00;
-  --chart-3: #0038FF;
-  --chart-4: #C9CCD6;
-  --chart-5: #F4F3EF;
+  --card-foreground: #f4f3ef;
+  --popover: #0a0a0a;
+  --popover-foreground: #f4f3ef;
+  --primary: #f4f3ef;
+  --primary-foreground: #0a0a0a;
+  --secondary: #1a1a1a;
+  --secondary-foreground: #f4f3ef;
+  --muted: #1a1a1a;
+  --muted-foreground: #8a8a8a;
+  --accent: #ff4d00;
+  --accent-foreground: #0a0a0a;
+  --destructive: #ff4d00;
+  --destructive-foreground: #0a0a0a;
+  --border: #2a2a2a;
+  --input: #2a2a2a;
+  --ring: #f4f3ef;
+  --chart-1: #ff4d00;
+  --chart-2: #b6ff00;
+  --chart-3: #0038ff;
+  --chart-4: #c9ccd6;
+  --chart-5: #f4f3ef;
   --sidebar: #111111;
-  --sidebar-foreground: #F4F3EF;
-  --sidebar-primary: #FF4D00;
-  --sidebar-primary-foreground: #0A0A0A;
-  --sidebar-accent: #1A1A1A;
-  --sidebar-accent-foreground: #F4F3EF;
-  --sidebar-border: #2A2A2A;
-  --sidebar-ring: #F4F3EF;
-  
+  --sidebar-foreground: #f4f3ef;
+  --sidebar-primary: #ff4d00;
+  --sidebar-primary-foreground: #0a0a0a;
+  --sidebar-accent: #1a1a1a;
+  --sidebar-accent-foreground: #f4f3ef;
+  --sidebar-border: #2a2a2a;
+  --sidebar-ring: #f4f3ef;
+
   /* Accent colors - brighter for dark mode */
-  --signal-orange: #FF4D00;
-  --acid-lime: #B6FF00;
-  --electric-blue: #0038FF;
-  --chrome-silver: #C9CCD6;
+  --signal-orange: #ff4d00;
+  --acid-lime: #b6ff00;
+  --electric-blue: #0038ff;
+  --chrome-silver: #c9ccd6;
 }
 
 @theme inline {
-  --font-sans: 'Inter', 'Inter Fallback', system-ui, sans-serif; /* Preserved from existing */
-  --font-serif: 'Instrument Serif', Georgia, serif; /* Preserved from existing */
+  --font-sans:
+    "Inter", "Inter Fallback", system-ui, sans-serif; /* Preserved from existing */
+  --font-serif:
+    "Instrument Serif", Georgia, serif; /* Preserved from existing */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -119,7 +121,7 @@
   --color-acid-lime: var(--acid-lime); /* Preserved from existing */
   --color-electric-blue: var(--electric-blue); /* Preserved from existing */
   --color-chrome-silver: var(--chrome-silver); /* Preserved from existing */
-  
+
   --radius-sm: 0;
   --radius-md: 0;
   --radius-lg: 0;

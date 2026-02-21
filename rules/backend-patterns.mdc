@@ -1,0 +1,351 @@
+---
+description: Backend resource pattern — 4-layer architecture for every server-side resource
+globs:
+  - server/**/*.ts
+  - shared/schemas/**/*.ts
+alwaysApply: true
+---
+
+# Backend Resource Pattern
+
+Every backend "resource" (garments, outfits, recommendations, weather, etc.) MUST follow this 4-layer structure. No exceptions.
+
+## Layer Overview
+
+```
+Layer 1: Router          server/api/routers/{resource}.ts
+Layer 2: Service         server/services/{resource}Service.ts
+Layer 3: Actions         server/actions/{resource}Actions.ts
+Layer 4: Shared Schema   shared/schemas/{resource}.ts
+```
+
+### Layer responsibilities
+
+| Layer | Does | Does NOT |
+|-------|------|----------|
+| **Router** | Defines tRPC endpoints, validates input via Zod, calls service, returns response | Contain business logic, call DB directly, call external APIs |
+| **Service** | Orchestrates workflows, coordinates multiple actions, enforces business rules | Import Prisma/DB client, make HTTP calls, throw tRPC errors |
+| **Actions** | Execute DB reads/writes (Prisma), call external APIs, handle retries | Contain business rules, validate input, know about tRPC |
+| **Shared Schema** | Export Zod schemas and inferred TypeScript types used by FE and BE | Contain runtime logic |
+
+### Data flow
+
+```
+Request → Router (validate + parse) → Service (orchestrate) → Actions (DB/API) → Service → Router → Response
+```
+
+---
+
+## Folder Conventions
+
+```
+server/
+  api/
+    trpc.ts                          # tRPC init, context, procedures
+    routers/
+      _app.ts                        # Root router — merges all sub-routers
+      garments.ts                    # Garment endpoints
+      recommendations.ts            # Recommendation endpoints
+      outfits.ts                     # Outfit endpoints
+  services/
+    garmentService.ts               # Garment business logic
+    outfitRecommendationService.ts  # Recommendation pipeline
+    outfitService.ts                # Outfit orchestration
+  actions/
+    garmentActions.ts               # Garment DB operations
+    outfitActions.ts                # Outfit DB operations
+    weatherActions.ts               # Weather API calls
+    storageActions.ts               # File upload operations
+  db/
+    client.ts                       # PrismaClient singleton
+
+shared/
+  schemas/
+    garments.ts                     # Garment Zod schemas + types
+    outfits.ts                      # Outfit Zod schemas + types
+    common.ts                       # Shared enums, base schemas
+  types/
+    index.ts                        # Legacy types (migrate to schemas/)
+  utils/
+    index.ts                        # Shared utilities
+```
+
+---
+
+## Canonical Example: `garments`
+
+### Layer 4 — Shared Schema (`shared/schemas/garments.ts`)
+
+```typescript
+import { z } from "zod";
+
+export const garmentCategorySchema = z.enum([
+  "tops", "bottoms", "shoes", "outerwear", "accessories",
+]);
+
+export const seasonSchema = z.enum([
+  "spring", "summer", "fall", "winter", "all-season",
+]);
+
+export const createGarmentSchema = z.object({
+  name: z.string().min(1).max(100),
+  category: garmentCategorySchema,
+  primaryColor: z.string().min(1),
+  secondaryColor: z.string().optional(),
+  material: z.string().optional(),
+  season: seasonSchema,
+  imageUrl: z.string().url().optional(),
+  tags: z.array(z.string()).default([]),
+});
+
+export const updateGarmentSchema = createGarmentSchema.partial();
+
+export const garmentFilterSchema = z.object({
+  category: garmentCategorySchema.optional(),
+  season: seasonSchema.optional(),
+  search: z.string().optional(),
+});
+
+export type CreateGarmentInput = z.infer<typeof createGarmentSchema>;
+export type UpdateGarmentInput = z.infer<typeof updateGarmentSchema>;
+export type GarmentFilter = z.infer<typeof garmentFilterSchema>;
+```
+
+### Layer 3 — Actions (`server/actions/garmentActions.ts`)
+
+```typescript
+import { db } from "../db/client";
+import type { CreateGarmentInput, UpdateGarmentInput, GarmentFilter } from "@shared/schemas/garments";
+
+export async function createGarment(userId: string, data: CreateGarmentInput) {
+  return db.garment.create({
+    data: { ...data, userId, tags: JSON.stringify(data.tags) },
+  });
+}
+
+export async function listGarments(userId: string, filter?: GarmentFilter) {
+  return db.garment.findMany({
+    where: {
+      userId,
+      ...(filter?.category && { category: filter.category }),
+      ...(filter?.season && { season: filter.season }),
+      ...(filter?.search && { name: { contains: filter.search, mode: "insensitive" } }),
+    },
+    orderBy: { createdAt: "desc" },
+  });
+}
+
+export async function getGarmentById(userId: string, garmentId: string) {
+  return db.garment.findFirst({
+    where: { id: garmentId, userId },
+    include: { tags: true },
+  });
+}
+
+export async function updateGarment(userId: string, garmentId: string, data: UpdateGarmentInput) {
+  return db.garment.updateMany({
+    where: { id: garmentId, userId },
+    data,
+  });
+}
+
+export async function deleteGarment(userId: string, garmentId: string) {
+  return db.garment.deleteMany({
+    where: { id: garmentId, userId },
+  });
+}
+```
+
+### Layer 2 — Service (`server/services/garmentService.ts`)
+
+```typescript
+import * as garmentActions from "../actions/garmentActions";
+import type { CreateGarmentInput, UpdateGarmentInput, GarmentFilter } from "@shared/schemas/garments";
+
+export async function createGarment(userId: string, input: CreateGarmentInput) {
+  const defaultTags = deriveDefaultTags(input.category, input.primaryColor);
+  const mergedTags = [...new Set([...defaultTags, ...input.tags])];
+
+  return garmentActions.createGarment(userId, { ...input, tags: mergedTags });
+}
+
+export async function listGarments(userId: string, filter?: GarmentFilter) {
+  return garmentActions.listGarments(userId, filter);
+}
+
+export async function getGarment(userId: string, garmentId: string) {
+  const garment = await garmentActions.getGarmentById(userId, garmentId);
+  if (!garment) throw new Error("GARMENT_NOT_FOUND");
+  return garment;
+}
+
+export async function updateGarment(userId: string, garmentId: string, input: UpdateGarmentInput) {
+  await getGarment(userId, garmentId); // ensure exists + owned
+  return garmentActions.updateGarment(userId, garmentId, input);
+}
+
+export async function deleteGarment(userId: string, garmentId: string) {
+  await getGarment(userId, garmentId);
+  return garmentActions.deleteGarment(userId, garmentId);
+}
+
+function deriveDefaultTags(category: string, color: string): string[] {
+  const tags: string[] = [];
+  if (category === "outerwear") tags.push("layering");
+  if (["black", "white", "gray", "beige", "navy"].includes(color)) tags.push("neutral");
+  return tags;
+}
+```
+
+### Layer 1 — Router (`server/api/routers/garments.ts`)
+
+```typescript
+import { router, protectedProcedure } from "../trpc";
+import { z } from "zod";
+import { TRPCError } from "@trpc/server";
+import { createGarmentSchema, updateGarmentSchema, garmentFilterSchema } from "@shared/schemas/garments";
+import * as garmentService from "../../services/garmentService";
+
+export const garmentRouter = router({
+  list: protectedProcedure
+    .input(garmentFilterSchema.optional())
+    .query(async ({ ctx, input }) => {
+      return garmentService.listGarments(ctx.userId, input ?? undefined);
+    }),
+
+  getById: protectedProcedure
+    .input(z.object({ id: z.string() }))
+    .query(async ({ ctx, input }) => {
+      try {
+        return await garmentService.getGarment(ctx.userId, input.id);
+      } catch (e) {
+        if (e instanceof Error && e.message === "GARMENT_NOT_FOUND") {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Garment not found" });
+        }
+        throw e;
+      }
+    }),
+
+  create: protectedProcedure
+    .input(createGarmentSchema)
+    .mutation(async ({ ctx, input }) => {
+      return garmentService.createGarment(ctx.userId, input);
+    }),
+
+  update: protectedProcedure
+    .input(z.object({ id: z.string(), data: updateGarmentSchema }))
+    .mutation(async ({ ctx, input }) => {
+      try {
+        return await garmentService.updateGarment(ctx.userId, input.id, input.data);
+      } catch (e) {
+        if (e instanceof Error && e.message === "GARMENT_NOT_FOUND") {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Garment not found" });
+        }
+        throw e;
+      }
+    }),
+
+  delete: protectedProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      try {
+        await garmentService.deleteGarment(ctx.userId, input.id);
+        return { success: true };
+      } catch (e) {
+        if (e instanceof Error && e.message === "GARMENT_NOT_FOUND") {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Garment not found" });
+        }
+        throw e;
+      }
+    }),
+});
+```
+
+---
+
+## Naming Conventions
+
+| Item | Convention | Example |
+|------|-----------|---------|
+| Router file | `{resource}.ts` (plural, lowercase) | `garments.ts` |
+| Router export | `{resource}Router` (camelCase) | `garmentRouter` |
+| Service file | `{resource}Service.ts` (singular + "Service") | `garmentService.ts` |
+| Actions file | `{resource}Actions.ts` (singular + "Actions") | `garmentActions.ts` |
+| Schema file | `{resource}.ts` (plural, in `shared/schemas/`) | `garments.ts` |
+| Zod schema | `{verb}{Resource}Schema` (camelCase) | `createGarmentSchema` |
+| Inferred type | `{Verb}{Resource}Input` (PascalCase) | `CreateGarmentInput` |
+| DB model | `PascalCase` (Prisma convention) | `Garment`, `GarmentTag` |
+| tRPC endpoint | `{resource}.{verb}` (dot notation) | `garments.create` |
+
+---
+
+## Error Handling
+
+1. **Actions** throw raw errors or return `null` for not-found.
+2. **Services** throw domain errors with string codes (e.g., `throw new Error("GARMENT_NOT_FOUND")`).
+3. **Routers** catch domain errors and translate them to `TRPCError` with appropriate HTTP codes:
+
+| Domain error | tRPC code |
+|-------------|-----------|
+| `*_NOT_FOUND` | `NOT_FOUND` |
+| `*_UNAUTHORIZED` | `FORBIDDEN` |
+| `*_INVALID` | `BAD_REQUEST` |
+| `*_CONFLICT` | `CONFLICT` |
+| Unexpected | `INTERNAL_SERVER_ERROR` |
+
+4. **Never** throw `TRPCError` from services or actions — they must stay transport-agnostic.
+
+---
+
+## Transaction Guidance
+
+- **Actions** own individual DB transactions when a single operation needs atomicity:
+  ```typescript
+  export async function createGarmentWithTags(userId: string, data: CreateGarmentInput) {
+    return db.$transaction(async (tx) => {
+      const garment = await tx.garment.create({ data: { ...data, userId } });
+      await tx.garmentTag.createMany({ data: tags.map(t => ({ garmentId: garment.id, tag: t, source: "auto" })) });
+      return garment;
+    });
+  }
+  ```
+- **Services** coordinate multi-step workflows by calling multiple actions. If cross-resource atomicity is needed, pass the `tx` handle down:
+  ```typescript
+  export async function deleteGarmentCascade(userId: string, garmentId: string) {
+    await garmentActions.deleteGarmentWithTags(userId, garmentId);
+    await storageActions.deleteImage(garmentId);
+  }
+  ```
+- **Routers** never manage transactions.
+
+---
+
+## What NOT To Do
+
+| Anti-pattern | Why it's wrong | Do this instead |
+|-------------|---------------|-----------------|
+| DB calls in router | Router becomes untestable, mixes I/O with business logic | Move to actions, call through service |
+| Business logic in actions | Actions become bloated, rules scatter across files | Keep actions as pure data access; rules live in service |
+| `TRPCError` in service | Couples service to transport layer; breaks if you add REST or GraphQL later | Throw plain `Error` with a code string; router translates |
+| Importing Prisma client in service | Service becomes untestable without DB | Service calls actions; actions import Prisma |
+| Zod schemas defined only in router | Frontend can't reuse validation; types drift | Define in `shared/schemas/`, import everywhere |
+| Inline mock data in router | Mocks rot, production code interleaves with test data | Use a separate seed script or test fixtures |
+| Fat service that does everything | Violates single responsibility | Split into focused services per resource |
+| Skipping `userId` filtering | Security hole — users see each other's data | Always filter by `userId` from `ctx`, never trust client |
+
+---
+
+## PR Checklist
+
+Every backend PR that adds or modifies a resource must satisfy:
+
+- [ ] **Schema:** Zod schemas live in `shared/schemas/{resource}.ts` with exported inferred types
+- [ ] **Actions:** DB/API operations in `server/actions/{resource}Actions.ts` — no business logic
+- [ ] **Service:** Orchestration in `server/services/{resource}Service.ts` — no direct DB or tRPC imports
+- [ ] **Router:** Endpoints in `server/api/routers/{resource}.ts` — input validated via shared schema, errors translated to `TRPCError`
+- [ ] **Root router:** New router registered in `server/api/routers/_app.ts`
+- [ ] **Auth:** All endpoints use `protectedProcedure` (unless explicitly public)
+- [ ] **userId filter:** Every query/mutation scopes to `ctx.userId`
+- [ ] **Error mapping:** Service errors mapped to appropriate tRPC error codes in router
+- [ ] **No inline mocks:** Production code contains zero hardcoded test data
+- [ ] **Types exported:** Any new types are importable by the frontend via `@shared/`

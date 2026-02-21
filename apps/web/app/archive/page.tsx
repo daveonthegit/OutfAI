@@ -1,18 +1,18 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import Image from "next/image"
-import Link from "next/link"
+import { useState } from "react";
+import Image from "next/image";
+import Link from "next/link";
 
 interface SavedLook {
-  id: string
-  date: string
-  mood: string
+  id: string;
+  date: string;
+  mood: string;
   garments: {
-    src: string
-    name: string
-    type: string
-  }[]
+    src: string;
+    name: string;
+    type: string;
+  }[];
 }
 
 const SAVED_LOOKS: SavedLook[] = [
@@ -22,8 +22,16 @@ const SAVED_LOOKS: SavedLook[] = [
     mood: "Bold",
     garments: [
       { src: "/garments/look-a-top.jpg", name: "Wool coat", type: "outerwear" },
-      { src: "/garments/look-a-bottom.jpg", name: "Wide trousers", type: "bottom" },
-      { src: "/garments/look-a-shoes.jpg", name: "Chelsea boots", type: "shoes" },
+      {
+        src: "/garments/look-a-bottom.jpg",
+        name: "Wide trousers",
+        type: "bottom",
+      },
+      {
+        src: "/garments/look-a-shoes.jpg",
+        name: "Chelsea boots",
+        type: "shoes",
+      },
     ],
   },
   {
@@ -42,7 +50,11 @@ const SAVED_LOOKS: SavedLook[] = [
     mood: "Relaxed",
     garments: [
       { src: "/garments/sweater-grey.jpg", name: "Cashmere knit", type: "top" },
-      { src: "/garments/jeans-indigo.jpg", name: "Selvedge denim", type: "bottom" },
+      {
+        src: "/garments/jeans-indigo.jpg",
+        name: "Selvedge denim",
+        type: "bottom",
+      },
       { src: "/garments/look-b-shoes.jpg", name: "Sneakers", type: "shoes" },
     ],
   },
@@ -52,42 +64,58 @@ const SAVED_LOOKS: SavedLook[] = [
     mood: "Sharp",
     garments: [
       { src: "/garments/look-b-top.jpg", name: "Blazer", type: "top" },
-      { src: "/garments/look-b-bottom.jpg", name: "Tailored pants", type: "bottom" },
-      { src: "/garments/look-a-shoes.jpg", name: "Chelsea boots", type: "shoes" },
+      {
+        src: "/garments/look-b-bottom.jpg",
+        name: "Tailored pants",
+        type: "bottom",
+      },
+      {
+        src: "/garments/look-a-shoes.jpg",
+        name: "Chelsea boots",
+        type: "shoes",
+      },
     ],
   },
-]
+];
 
 // Group looks by month
 const groupByMonth = (looks: SavedLook[]) => {
-  const groups: { [key: string]: SavedLook[] } = {}
+  const groups: { [key: string]: SavedLook[] } = {};
   looks.forEach((look) => {
-    const month = look.date.split(" ").slice(0, 2).join(" ")
+    const month = look.date.split(" ").slice(0, 2).join(" ");
     if (!groups[month]) {
-      groups[month] = []
+      groups[month] = [];
     }
-    groups[month].push(look)
-  })
-  return groups
-}
+    groups[month].push(look);
+  });
+  return groups;
+};
 
 export default function ArchivePage() {
-  const [hoveredId, setHoveredId] = useState<string | null>(null)
-  const groupedLooks = groupByMonth(SAVED_LOOKS)
+  const [hoveredId, setHoveredId] = useState<string | null>(null);
+  const groupedLooks = groupByMonth(SAVED_LOOKS);
 
   return (
     <main className="min-h-screen bg-background text-foreground selection:bg-signal-orange selection:text-background">
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-background border-b border-border">
         <div className="flex items-center justify-between px-4 py-5 md:px-8 lg:px-12">
-          <Link href="/" className="text-base md:text-lg tracking-tight font-medium hover:text-signal-orange transition-colors duration-100">
+          <Link
+            href="/"
+            className="text-base md:text-lg tracking-tight font-medium hover:text-signal-orange transition-colors duration-100"
+          >
             OutfAI
           </Link>
           <nav className="flex items-center gap-6">
-            <Link href="/closet" className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground hover:text-foreground transition-colors duration-100">
+            <Link
+              href="/closet"
+              className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground hover:text-foreground transition-colors duration-100"
+            >
               Closet
             </Link>
-            <span className="text-[10px] uppercase tracking-[0.2em] text-foreground">Archive</span>
+            <span className="text-[10px] uppercase tracking-[0.2em] text-foreground">
+              Archive
+            </span>
           </nav>
         </div>
       </header>
@@ -128,7 +156,8 @@ export default function ArchivePage() {
                   onMouseEnter={() => setHoveredId(look.id)}
                   onMouseLeave={() => setHoveredId(null)}
                   style={{
-                    opacity: hoveredId !== null && hoveredId !== look.id ? 0.5 : 1,
+                    opacity:
+                      hoveredId !== null && hoveredId !== look.id ? 0.5 : 1,
                     transition: "opacity 100ms",
                   }}
                 >
@@ -162,7 +191,7 @@ export default function ArchivePage() {
                   </div>
 
                   {/* Hover indicator line */}
-                  <div 
+                  <div
                     className="h-[2px] mt-3 bg-signal-orange transition-all duration-100"
                     style={{
                       width: hoveredId === look.id ? "100%" : "0%",
@@ -200,7 +229,6 @@ export default function ArchivePage() {
           </section>
         )}
       </div>
-
-      </main>
-  )
+    </main>
+  );
 }

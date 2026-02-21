@@ -1,25 +1,25 @@
-"use client"
+"use client";
 
-import React from "react"
+import React from "react";
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/utils";
 
 interface BrutalistButtonProps {
-  children: React.ReactNode
-  variant?: "solid" | "outline" | "ghost"
-  size?: "sm" | "md" | "lg"
-  className?: string
-  onClick?: () => void
-  disabled?: boolean
+  children: React.ReactNode;
+  variant?: "solid" | "outline" | "ghost";
+  size?: "sm" | "md" | "lg";
+  className?: string;
+  onClick?: () => void;
+  disabled?: boolean;
 }
 
-export function BrutalistButton({ 
-  children, 
-  variant = "solid", 
+export function BrutalistButton({
+  children,
+  variant = "solid",
   size = "md",
   className,
   onClick,
-  disabled 
+  disabled,
 }: BrutalistButtonProps) {
   return (
     <button
@@ -32,9 +32,12 @@ export function BrutalistButton({
         size === "md" && "text-xs px-5 py-3",
         size === "lg" && "text-sm px-6 py-4",
         // Style variants
-        variant === "solid" && "bg-foreground text-background hover:bg-foreground/90",
-        variant === "outline" && "bg-transparent border border-foreground text-foreground hover:bg-foreground hover:text-background",
-        variant === "ghost" && "bg-transparent text-foreground hover:text-signal-orange",
+        variant === "solid" &&
+          "bg-foreground text-background hover:bg-foreground/90",
+        variant === "outline" &&
+          "bg-transparent border border-foreground text-foreground hover:bg-foreground hover:text-background",
+        variant === "ghost" &&
+          "bg-transparent text-foreground hover:text-signal-orange",
         // Disabled state
         disabled && "opacity-50 cursor-not-allowed",
         className
@@ -42,5 +45,5 @@ export function BrutalistButton({
     >
       {children}
     </button>
-  )
+  );
 }

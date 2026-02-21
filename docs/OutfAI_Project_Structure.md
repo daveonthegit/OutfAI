@@ -1,6 +1,7 @@
 # OutfAI — Project Structure
 
 ## Overview
+
 This document describes the recommended project structure for OutfAI. The goal is clarity, scalability, and low overhead while following real-world best practices.
 
 ---

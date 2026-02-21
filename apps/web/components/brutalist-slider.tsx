@@ -1,38 +1,38 @@
-"use client"
+"use client";
 
-import React, { useState } from "react"
-import { cn } from "@/lib/utils"
+import React, { useState } from "react";
+import { cn } from "@/lib/utils";
 
 interface BrutalistSliderProps {
-  min?: number
-  max?: number
-  value?: number
-  onChange?: (value: number) => void
-  label?: string
-  showValue?: boolean
+  min?: number;
+  max?: number;
+  value?: number;
+  onChange?: (value: number) => void;
+  label?: string;
+  showValue?: boolean;
 }
 
-export function BrutalistSlider({ 
+export function BrutalistSlider({
   min = 0,
   max = 100,
   value = 50,
   onChange,
   label,
-  showValue = true
+  showValue = true,
 }: BrutalistSliderProps) {
-  const [internalValue, setInternalValue] = useState(value)
-  const currentValue = onChange ? value : internalValue
+  const [internalValue, setInternalValue] = useState(value);
+  const currentValue = onChange ? value : internalValue;
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = Number(e.target.value)
+    const newValue = Number(e.target.value);
     if (onChange) {
-      onChange(newValue)
+      onChange(newValue);
     } else {
-      setInternalValue(newValue)
+      setInternalValue(newValue);
     }
-  }
+  };
 
-  const percentage = ((currentValue - min) / (max - min)) * 100
+  const percentage = ((currentValue - min) / (max - min)) * 100;
 
   return (
     <div className="flex flex-col gap-2">
@@ -51,7 +51,7 @@ export function BrutalistSlider({
         </div>
       )}
       <div className="relative h-1 bg-secondary border border-border">
-        <div 
+        <div
           className="absolute top-0 left-0 h-full bg-foreground transition-all duration-100"
           style={{ width: `${percentage}%` }}
         />
@@ -65,11 +65,11 @@ export function BrutalistSlider({
             "absolute top-1/2 -translate-y-1/2 w-full h-4 opacity-0 cursor-pointer"
           )}
         />
-        <div 
+        <div
           className="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-foreground border border-foreground transition-all duration-100 pointer-events-none"
           style={{ left: `calc(${percentage}% - 6px)` }}
         />
       </div>
     </div>
-  )
+  );
 }

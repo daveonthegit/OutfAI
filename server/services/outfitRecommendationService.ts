@@ -206,19 +206,16 @@ export class OutfitRecommendationService {
 
         for (const shoe of shoesToTry) {
           const garmentIds = [top.id, bottom.id];
-          if (shoe.id !== "barefoot") {
+          const isBarefoot = shoe.id === "barefoot";
+          if (!isBarefoot) {
             garmentIds.push(shoe.id);
           }
 
-          const score = this.scoreOutfit(
-            [top, bottom, shoe],
-            mood,
-            garments
-          );
-          const reasons = this.generateReasons(
-            [top, bottom, shoe],
-            mood
-          );
+          const outfitPieces = isBarefoot
+            ? [top, bottom]
+            : [top, bottom, shoe as Garment];
+          const score = this.scoreOutfit(outfitPieces, mood, garments);
+          const reasons = this.generateReasons(outfitPieces, mood);
 
           candidates.push({
             garmentIds,
@@ -441,7 +438,8 @@ export class OutfitRecommendationService {
     }
 
     return (
-      "Outfit recommendations " + parts.join(" ") +
+      "Outfit recommendations " +
+      parts.join(" ") +
       ". Mix and match pieces or shuffle for more options."
     );
   }

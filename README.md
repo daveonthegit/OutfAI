@@ -11,19 +11,19 @@
 - **Explainable** — Recommendations are transparent and trustworthy, not black-box.
 - **Optional commerce** — Suggested purchases justify how they fit your existing wardrobe.
 
-*Currently in MVP: UI and project scaffold are in place; recommendation engine and backend integrations are planned.*
+_Currently in MVP: UI and project scaffold are in place; recommendation engine and backend integrations are planned._
 
 ---
 
 ## Tech Stack
 
-| Layer        | Stack |
-|-------------|--------|
-| **Frontend** | Next.js 15 (App Router), React 19, TypeScript |
+| Layer        | Stack                                                          |
+| ------------ | -------------------------------------------------------------- |
+| **Frontend** | Next.js 15 (App Router), React 19, TypeScript                  |
 | **Styling**  | Tailwind CSS 4, Radix UI, custom “cybersigilism” design system |
-| **API**      | tRPC (type-safe, shared with backend) |
-| **Backend**  | Node/TypeScript, service layer, Prisma + PostgreSQL (planned) |
-| **Storage**  | Object storage for images (R2/S3 planned) |
+| **API**      | tRPC (type-safe, shared with backend)                          |
+| **Backend**  | Node/TypeScript, service layer, Prisma + PostgreSQL (planned)  |
+| **Storage**  | Object storage for images (R2/S3 planned)                      |
 
 ---
 
@@ -54,11 +54,11 @@ Open [http://localhost:3000](http://localhost:3000). The app runs with Turbopack
 
 ### Other scripts
 
-| Command        | Description              |
-|----------------|--------------------------|
+| Command         | Description                 |
+| --------------- | --------------------------- |
 | `npm run build` | Production build (apps/web) |
 | `npm run start` | Start production server     |
-| `npm run lint`   | Lint apps/web               |
+| `npm run lint`  | Lint apps/web               |
 
 ---
 
@@ -87,12 +87,12 @@ See [docs/OutfAI_Project_Structure.md](docs/OutfAI_Project_Structure.md) for the
 
 ## Documentation
 
-| Document | Description |
-|----------|-------------|
-| [OutfAI_PRD.md](docs/OutfAI_PRD.md) | Product requirements, goals, and strategy |
-| [OutfAI_Architecture.md](docs/OutfAI_Architecture.md) | System architecture and key decisions |
-| [OutfAI_Database_Design.md](docs/OutfAI_Database_Design.md) | Database schema and design |
-| [OutfAI_Project_Structure.md](docs/OutfAI_Project_Structure.md) | Repository layout and conventions |
+| Document                                                        | Description                               |
+| --------------------------------------------------------------- | ----------------------------------------- |
+| [OutfAI_PRD.md](docs/OutfAI_PRD.md)                             | Product requirements, goals, and strategy |
+| [OutfAI_Architecture.md](docs/OutfAI_Architecture.md)           | System architecture and key decisions     |
+| [OutfAI_Database_Design.md](docs/OutfAI_Database_Design.md)     | Database schema and design                |
+| [OutfAI_Project_Structure.md](docs/OutfAI_Project_Structure.md) | Repository layout and conventions         |
 
 ---
 

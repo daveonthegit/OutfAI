@@ -1,9 +1,9 @@
-import React from "react"
-import { cn } from "@/lib/utils"
+import React from "react";
+import { cn } from "@/lib/utils";
 
 interface BrutalistDividerProps {
-  label?: string
-  className?: string
+  label?: string;
+  className?: string;
 }
 
 export function BrutalistDivider({ label, className }: BrutalistDividerProps) {
@@ -16,8 +16,8 @@ export function BrutalistDivider({ label, className }: BrutalistDividerProps) {
         </span>
         <div className="flex-1 h-px bg-border" />
       </div>
-    )
+    );
   }
 
-  return <div className={cn("h-px bg-border", className)} />
+  return <div className={cn("h-px bg-border", className)} />;
 }

@@ -1,25 +1,25 @@
-"use client"
+"use client";
 
-import React, { useState } from "react"
-import { cn } from "@/lib/utils"
+import React, { useState } from "react";
+import { cn } from "@/lib/utils";
 
 interface Tab {
-  id: string
-  label: string
+  id: string;
+  label: string;
 }
 
 interface BrutalistTabsProps {
-  tabs?: Tab[]
-  defaultTab?: string
-  onChange?: (tabId: string) => void
-  className?: string
-  children?: React.ReactNode
+  tabs?: Tab[];
+  defaultTab?: string;
+  onChange?: (tabId: string) => void;
+  className?: string;
+  children?: React.ReactNode;
 }
 
 interface BrutalistTabProps {
-  active?: boolean
-  onClick?: () => void
-  children?: React.ReactNode
+  active?: boolean;
+  onClick?: () => void;
+  children?: React.ReactNode;
 }
 
 export function BrutalistTab({ active, onClick, children }: BrutalistTabProps) {
@@ -29,7 +29,9 @@ export function BrutalistTab({ active, onClick, children }: BrutalistTabProps) {
       onClick={onClick}
       className={cn(
         "px-4 py-3 text-[11px] uppercase tracking-widest font-medium transition-all duration-100 relative",
-        active ? "text-foreground" : "text-muted-foreground hover:text-foreground"
+        active
+          ? "text-foreground"
+          : "text-muted-foreground hover:text-foreground"
       )}
     >
       {children}
@@ -37,29 +39,29 @@ export function BrutalistTab({ active, onClick, children }: BrutalistTabProps) {
         <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-signal-orange" />
       )}
     </button>
-  )
+  );
 }
 
-export function BrutalistTabs({ 
-  tabs, 
+export function BrutalistTabs({
+  tabs,
   defaultTab,
   onChange,
   className,
-  children 
+  children,
 }: BrutalistTabsProps) {
-  const [activeTab, setActiveTab] = useState(defaultTab || tabs?.[0]?.id)
+  const [activeTab, setActiveTab] = useState(defaultTab || tabs?.[0]?.id);
 
   const handleTabClick = (tabId: string) => {
-    setActiveTab(tabId)
-    onChange?.(tabId)
-  }
+    setActiveTab(tabId);
+    onChange?.(tabId);
+  };
 
   if (children) {
     return (
       <div className={cn("flex border-b border-border", className)}>
         {children}
       </div>
-    )
+    );
   }
 
   return (
@@ -70,8 +72,8 @@ export function BrutalistTabs({
           onClick={() => handleTabClick(tab.id)}
           className={cn(
             "px-4 py-3 text-[11px] uppercase tracking-widest font-medium transition-all duration-100 relative",
-            activeTab === tab.id 
-              ? "text-foreground" 
+            activeTab === tab.id
+              ? "text-foreground"
               : "text-muted-foreground hover:text-foreground"
           )}
         >
@@ -82,5 +84,5 @@ export function BrutalistTabs({
         </button>
       ))}
     </div>
-  )
+  );
 }

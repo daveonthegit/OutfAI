@@ -89,7 +89,9 @@ export function OutfitRecommendationPanel({
             </label>
             <select
               value={selectedWeather}
-              onChange={(e) => setSelectedWeather(e.target.value as WeatherCondition)}
+              onChange={(e) =>
+                setSelectedWeather(e.target.value as WeatherCondition)
+              }
               className="w-full px-3 py-2 border rounded-md"
             >
               {WEATHER_CONDITIONS.map((weather) => (
@@ -162,7 +164,9 @@ export function OutfitRecommendationPanel({
                   </div>
                 </div>
 
-                <p className="text-sm text-gray-700 mb-4">{outfit.explanation}</p>
+                <p className="text-sm text-gray-700 mb-4">
+                  {outfit.explanation}
+                </p>
 
                 {/* Garment IDs (would be expanded to show full garment details in real app) */}
                 <div className="mb-4">

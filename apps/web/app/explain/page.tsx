@@ -1,26 +1,36 @@
-"use client"
+"use client";
 
-import Image from "next/image"
-import Link from "next/link"
+import Image from "next/image";
+import Link from "next/link";
 
 const OUTFIT = {
   garments: [
-    { src: "/garments/look-a-top.jpg", name: "Oversized wool coat", type: "Outerwear" },
+    {
+      src: "/garments/look-a-top.jpg",
+      name: "Oversized wool coat",
+      type: "Outerwear",
+    },
     { src: "/garments/shirt-white.jpg", name: "Cotton oxford", type: "Top" },
-    { src: "/garments/look-a-bottom.jpg", name: "Wide-leg trousers", type: "Bottom" },
+    {
+      src: "/garments/look-a-bottom.jpg",
+      name: "Wide-leg trousers",
+      type: "Bottom",
+    },
     { src: "/garments/look-a-shoes.jpg", name: "Chelsea boots", type: "Shoes" },
   ],
   explanation: {
-    weather: "The structured wool coat provides warmth against the 12°C temperature while maintaining a sharp silhouette. Layering allows for temperature adaptation throughout the day.",
+    weather:
+      "The structured wool coat provides warmth against the 12°C temperature while maintaining a sharp silhouette. Layering allows for temperature adaptation throughout the day.",
     mood: "Bold energy translated through oversized proportions and strong shoulders. The monochrome palette projects confidence without visual noise.",
-    styling: "Wide-leg trousers balance the coat's volume, creating an intentional column of proportion. Chelsea boots add height and a slight edge without competing with the outerwear statement.",
+    styling:
+      "Wide-leg trousers balance the coat's volume, creating an intentional column of proportion. Chelsea boots add height and a slight edge without competing with the outerwear statement.",
   },
   notes: [
     "Consider rolling sleeves slightly for a more relaxed interpretation",
     "Bag recommendation: structured black leather tote",
     "Works for: meetings, gallery visits, evening dinners",
   ],
-}
+};
 
 export default function ExplainPage() {
   return (
@@ -28,11 +38,14 @@ export default function ExplainPage() {
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-background border-b border-border">
         <div className="flex items-center justify-between px-4 py-5 md:px-8 lg:px-12">
-          <Link href="/" className="text-base md:text-lg tracking-tight font-medium hover:text-signal-orange transition-colors duration-100">
+          <Link
+            href="/"
+            className="text-base md:text-lg tracking-tight font-medium hover:text-signal-orange transition-colors duration-100"
+          >
             OutfAI
           </Link>
-          <Link 
-            href="/" 
+          <Link
+            href="/"
             className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground hover:text-foreground transition-colors duration-100 flex items-center gap-2"
           >
             <svg
@@ -170,7 +183,6 @@ export default function ExplainPage() {
           </section>
         </div>
       </div>
-
-      </main>
-  )
+    </main>
+  );
 }

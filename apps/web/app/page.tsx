@@ -1,34 +1,58 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import Link from "next/link"
-import { OutfitComposition } from "@/components/outfit-composition"
+import { useState } from "react";
+import Link from "next/link";
+import { OutfitComposition } from "@/components/outfit-composition";
 
 const LOOK_A = {
   label: "Look A",
   garments: [
-    { src: "/garments/look-a-top.jpg", name: "Oversized wool coat", type: "outerwear" as const },
-    { src: "/garments/look-a-bottom.jpg", name: "Wide-leg trousers", type: "bottom" as const },
-    { src: "/garments/look-a-shoes.jpg", name: "Leather Chelsea boots", type: "shoes" as const },
+    {
+      src: "/garments/look-a-top.jpg",
+      name: "Oversized wool coat",
+      type: "outerwear" as const,
+    },
+    {
+      src: "/garments/look-a-bottom.jpg",
+      name: "Wide-leg trousers",
+      type: "bottom" as const,
+    },
+    {
+      src: "/garments/look-a-shoes.jpg",
+      name: "Leather Chelsea boots",
+      type: "shoes" as const,
+    },
   ],
-}
+};
 
 const LOOK_B = {
   label: "Look B",
   garments: [
-    { src: "/garments/look-b-top.jpg", name: "Deconstructed blazer", type: "top" as const },
-    { src: "/garments/look-b-bottom.jpg", name: "Tailored trousers", type: "bottom" as const },
-    { src: "/garments/look-b-shoes.jpg", name: "Platform sneakers", type: "shoes" as const },
+    {
+      src: "/garments/look-b-top.jpg",
+      name: "Deconstructed blazer",
+      type: "top" as const,
+    },
+    {
+      src: "/garments/look-b-bottom.jpg",
+      name: "Tailored trousers",
+      type: "bottom" as const,
+    },
+    {
+      src: "/garments/look-b-shoes.jpg",
+      name: "Platform sneakers",
+      type: "shoes" as const,
+    },
   ],
-}
+};
 
 export default function Home() {
-  const [isShuffling, setIsShuffling] = useState(false)
+  const [isShuffling, setIsShuffling] = useState(false);
 
   const handleShuffle = () => {
-    setIsShuffling(true)
-    setTimeout(() => setIsShuffling(false), 150)
-  }
+    setIsShuffling(true);
+    setTimeout(() => setIsShuffling(false), 150);
+  };
 
   return (
     <main className="min-h-screen bg-background text-foreground selection:bg-signal-orange selection:text-background">
@@ -78,27 +102,31 @@ export default function Home() {
 
         {/* Outfit Compositions - Side by Side */}
         <section className="mb-16 md:mb-24">
-          <div 
+          <div
             className={`grid grid-cols-2 gap-4 md:gap-8 lg:gap-12 transition-opacity duration-100 ${
               isShuffling ? "opacity-30" : "opacity-100"
             }`}
           >
-            <OutfitComposition label={LOOK_A.label} garments={LOOK_A.garments} />
-            <OutfitComposition label={LOOK_B.label} garments={LOOK_B.garments} />
+            <OutfitComposition
+              label={LOOK_A.label}
+              garments={LOOK_A.garments}
+            />
+            <OutfitComposition
+              label={LOOK_B.label}
+              garments={LOOK_B.garments}
+            />
           </div>
         </section>
 
         {/* Actions - Typographic, subtle */}
         <section className="flex items-center justify-center gap-8 md:gap-12 mb-20 md:mb-28">
-          <button 
-            className="text-[11px] uppercase tracking-[0.25em] text-foreground hover:text-signal-orange transition-colors duration-100 group flex items-center gap-2"
-          >
-            <svg 
-              width="12" 
-              height="12" 
-              viewBox="0 0 24 24" 
-              fill="none" 
-              stroke="currentColor" 
+          <button className="text-[11px] uppercase tracking-[0.25em] text-foreground hover:text-signal-orange transition-colors duration-100 group flex items-center gap-2">
+            <svg
+              width="12"
+              height="12"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
               strokeWidth="1.5"
               className="transition-transform duration-100 group-hover:scale-110"
             >
@@ -109,16 +137,16 @@ export default function Home() {
 
           <div className="w-px h-4 bg-border" />
 
-          <button 
+          <button
             onClick={handleShuffle}
             className="text-[11px] uppercase tracking-[0.25em] text-muted-foreground hover:text-foreground transition-colors duration-100 group flex items-center gap-2"
           >
-            <svg 
-              width="12" 
-              height="12" 
-              viewBox="0 0 24 24" 
-              fill="none" 
-              stroke="currentColor" 
+            <svg
+              width="12"
+              height="12"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
               strokeWidth="1.5"
               className="transition-transform duration-100 group-hover:rotate-180"
             >
@@ -134,19 +162,19 @@ export default function Home() {
 
         {/* Explanation Entry Point */}
         <section className="border-t border-border pt-10 md:pt-14">
-          <Link 
-            href="/explain" 
+          <Link
+            href="/explain"
             className="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.2em] text-muted-foreground hover:text-foreground transition-colors duration-100 group"
           >
             Why this works
-            <svg 
-              width="14" 
-              height="14" 
-              viewBox="0 0 24 24" 
-              fill="none" 
-              stroke="currentColor" 
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
               strokeWidth="1.5"
-className="transition-transform duration-100 group-hover:translate-x-1"
+              className="transition-transform duration-100 group-hover:translate-x-1"
             >
               <line x1="5" y1="12" x2="19" y2="12" />
               <polyline points="12 5 19 12 12 19" />
@@ -154,7 +182,6 @@ className="transition-transform duration-100 group-hover:translate-x-1"
           </Link>
         </section>
       </div>
-
-      </main>
-  )
+    </main>
+  );
 }

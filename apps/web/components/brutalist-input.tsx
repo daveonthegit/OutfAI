@@ -1,14 +1,14 @@
-import React from "react"
-import { cn } from "@/lib/utils"
+import React from "react";
+import { cn } from "@/lib/utils";
 
 interface BrutalistInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
-  label?: string
+  label?: string;
 }
 
-export function BrutalistInput({ 
-  label, 
+export function BrutalistInput({
+  label,
   className,
-  ...props 
+  ...props
 }: BrutalistInputProps) {
   return (
     <div className="flex flex-col gap-2">
@@ -28,5 +28,5 @@ export function BrutalistInput({
         {...props}
       />
     </div>
-  )
+  );
 }

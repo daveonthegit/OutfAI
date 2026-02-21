@@ -1,20 +1,20 @@
-"use client"
+"use client";
 
-import React from "react"
-import { cn } from "@/lib/utils"
+import React from "react";
+import { cn } from "@/lib/utils";
 
 interface BrutalistToggleProps {
-  checked: boolean
-  onChange: (checked: boolean) => void
-  label?: string
-  disabled?: boolean
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+  label?: string;
+  disabled?: boolean;
 }
 
-export function BrutalistToggle({ 
-  checked, 
-  onChange, 
+export function BrutalistToggle({
+  checked,
+  onChange,
   label,
-  disabled 
+  disabled,
 }: BrutalistToggleProps) {
   return (
     <button
@@ -26,16 +26,20 @@ export function BrutalistToggle({
         disabled && "opacity-50 cursor-not-allowed"
       )}
     >
-      <div 
+      <div
         className={cn(
           "w-10 h-5 border transition-colors duration-100 relative",
-          checked ? "bg-acid-lime border-acid-lime" : "bg-secondary border-border"
+          checked
+            ? "bg-acid-lime border-acid-lime"
+            : "bg-secondary border-border"
         )}
       >
-        <div 
+        <div
           className={cn(
             "absolute top-0.5 w-3.5 h-3.5 transition-all duration-100",
-            checked ? "left-[calc(100%-16px)] bg-background" : "left-0.5 bg-foreground"
+            checked
+              ? "left-[calc(100%-16px)] bg-background"
+              : "left-0.5 bg-foreground"
           )}
         />
       </div>
@@ -45,5 +49,5 @@ export function BrutalistToggle({
         </span>
       )}
     </button>
-  )
+  );
 }

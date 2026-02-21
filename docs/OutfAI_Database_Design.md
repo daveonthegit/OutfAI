@@ -1,16 +1,18 @@
 # OutfAI — Database Design
 
 ## Overview
+
 The database is designed to be wardrobe-first, extensible, and friendly to future recommendation improvements.
 
 **Database:** PostgreSQL  
-**ORM:** Prisma  
+**ORM:** Prisma
 
 ---
 
 ## Core Tables
 
 ### users
+
 Stores basic user identity information.
 
 ```sql
@@ -23,6 +25,7 @@ created_at
 ---
 
 ### garments
+
 Represents individual clothing items owned by users.
 
 ```sql
@@ -43,6 +46,7 @@ created_at
 ---
 
 ### garment_tags
+
 Stores tags assigned by AI or user corrections.
 
 ```sql
@@ -55,6 +59,7 @@ source (auto | user)
 ---
 
 ### outfits
+
 Represents a generated outfit instance.
 
 ```sql
@@ -68,6 +73,7 @@ created_at
 ---
 
 ### outfit_items
+
 Links garments to outfits.
 
 ```sql
@@ -80,6 +86,7 @@ position
 ---
 
 ### recommendation_logs
+
 Tracks user interactions with recommendations.
 
 ```sql
@@ -95,6 +102,7 @@ timestamp
 ## Optional Commerce Tables
 
 ### external_products
+
 Represents storefront items.
 
 ```sql
@@ -111,6 +119,7 @@ product_url
 ---
 
 ### product_matches
+
 Explains why a product fits a wardrobe.
 
 ```sql

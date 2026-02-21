@@ -1,0 +1,155 @@
+---
+description: Frontend patterns — Next.js App Router conventions for OutfAI UI development
+globs:
+  - apps/web/**/*.tsx
+  - apps/web/**/*.ts
+  - apps/web/hooks/**/*.ts
+alwaysApply: true
+---
+
+# Frontend Patterns (Next.js App Router) — OutfAI
+
+Purpose: enforce consistent, fast-to-build UI patterns for OutfAI using Next.js App Router + React + TypeScript.
+This file should be treated as an always-on rule when generating or editing frontend features.
+
+## Non-negotiables
+- Use **Next.js App Router** under `apps/web/app/**`.
+- Keep pages thin: pages compose components + hooks; they do not contain heavy business logic.
+- All server calls go through **tRPC client hooks** (or a single typed API wrapper), not fetch sprinkled everywhere.
+- Every feature must define:
+  - UI states: `loading`, `empty`, `error`, `success`
+  - A clear "happy path" for demo reliability
+
+## Directory conventions
+- Pages (routes): `apps/web/app/<route>/page.tsx`
+- Shared layout: `apps/web/app/layout.tsx`
+- Route-specific UI components: `apps/web/components/<feature>/*`
+- Generic shared components: `apps/web/components/ui/*` (buttons, dialogs, cards, inputs)
+- Hooks: `apps/web/hooks/use-<thing>.ts`
+- Client utilities: `apps/web/lib/*`
+- Shared types: `shared/types/*`
+
+## Routing patterns (App Router)
+- Routes should represent user-visible pages, not internal state machines.
+- Use route groups when helpful:
+  - `apps/web/app/(authed)/...` for authenticated pages
+  - `apps/web/app/(marketing)/...` for landing pages (optional)
+- Prefer readable, stable routes:
+  - `/onboarding`
+  - `/closet`
+  - `/recommend`
+  - `/outfits/[id]`
+
+## Component patterns
+### 1) Page components
+- Default export in `page.tsx`
+- Compose:
+  - a page header
+  - a single "panel" component that contains the feature UI
+- Example responsibilities:
+  - read search params if needed
+  - pass `userId` (or use auth hook)
+  - render skeleton/error boundary components
+
+### 2) Panel components
+- Example: `ClosetPanel`, `OutfitRecommendationPanel`
+- Own the UI state machine.
+- Uses hooks (`useGarments`, `useOutfitRecommendations`) to fetch/mutate.
+- Should not know about routing unless necessary.
+
+### 3) Presentational components
+- Stateless if possible.
+- Receive props; no data fetching.
+- Example: `GarmentCard`, `OutfitGrid`, `WeatherBadge`, `MoodPicker`.
+
+## Hooks patterns
+- Every backend resource gets a dedicated hook file:
+  - `use-garments.ts`
+  - `use-outfits.ts`
+  - `use-recommendations.ts`
+- Hook responsibilities:
+  - calling tRPC queries/mutations
+  - managing local UI state where it improves UX (filters, selected items)
+  - returning a consistent API:
+    - `data`, `loading`, `error`
+    - mutations: `create/update/delete` with `mutateAsync`
+    - helpers: `refetch`, `reset`
+
+### Hook return shape (standard)
+- Queries:
+  - `data`
+  - `isLoading`
+  - `error`
+- Mutations:
+  - `mutateAsync`
+  - `isPending`
+  - `error`
+
+## Loading / Error / Empty patterns
+Every page/panel must explicitly implement:
+
+### Loading
+- Render skeletons or lightweight placeholders.
+- Do not show spinners forever without context.
+- Use consistent components:
+  - `LoadingState` or `Skeleton*` components.
+
+### Error
+- User-visible error message, not console-only.
+- Provide a retry action where possible (`refetch()`).
+- Map common failure modes:
+  - unauthenticated
+  - network
+  - validation
+
+### Empty
+- Empty closet: show CTA "Add your first garment"
+- No outfits generated: show guidance + "Generate again"
+- Empty states should include one primary action.
+
+### Success
+- Keep the "demo happy path" visible:
+  - show garments
+  - show generated outfits
+  - show explanation text
+
+## Forms and validation
+- Always validate inputs with shared Zod schemas if available.
+- If no shared schema exists yet, create it in `shared/types` and import it.
+- Keep forms accessible:
+  - labels for inputs
+  - disabled submit while pending
+  - show inline error text
+
+## Styling rules
+- Keep styling consistent with existing UI (Tailwind if already used).
+- Avoid ad-hoc inline styles.
+- Use small reusable UI primitives (Card, Button, Input).
+
+## Data flow rules
+- No direct DB assumptions in UI. UI consumes API models.
+- Never "fake" types with `any`.
+- Keep transformations close to the consuming component (not global utils), unless reused.
+
+## Example: canonical "Closet" page composition
+- Route:
+  - `apps/web/app/closet/page.tsx`
+- Panel:
+  - `apps/web/components/closet/closet-panel.tsx`
+- Hook:
+  - `apps/web/hooks/use-garments.ts`
+- Presentational:
+  - `apps/web/components/closet/garment-card.tsx`
+  - `apps/web/components/closet/garment-grid.tsx`
+- UI states:
+  - `apps/web/components/states/loading-state.tsx`
+  - `apps/web/components/states/error-state.tsx`
+  - `apps/web/components/states/empty-state.tsx`
+
+## PR checklist (frontend)
+- [ ] Page is thin; logic in panel + hooks
+- [ ] All 4 states handled (loading/error/empty/success)
+- [ ] Uses shared types/schemas where applicable
+- [ ] No `any` types added
+- [ ] UI has one clear primary CTA per screen
+- [ ] Feature is demo-stable (can run end-to-end without hidden setup)

@@ -1,83 +1,106 @@
-"use client"
+"use client";
 
-import React from "react"
+import React from "react";
 
-import { useState, useRef } from "react"
-import Image from "next/image"
-import Link from "next/link"
+import { useState, useRef } from "react";
+import Image from "next/image";
+import Link from "next/link";
 
-type Category = "top" | "bottom" | "shoes" | "outerwear" | "accessory"
+type Category = "top" | "bottom" | "shoes" | "outerwear" | "accessory";
 
-const CATEGORIES: Category[] = ["top", "bottom", "shoes", "outerwear", "accessory"]
-const COLORS = ["Black", "White", "Grey", "Navy", "Brown", "Cream", "Indigo", "Olive"]
+const CATEGORIES: Category[] = [
+  "top",
+  "bottom",
+  "shoes",
+  "outerwear",
+  "accessory",
+];
+const COLORS = [
+  "Black",
+  "White",
+  "Grey",
+  "Navy",
+  "Brown",
+  "Cream",
+  "Indigo",
+  "Olive",
+];
 
 export default function AddGarmentPage() {
-  const [dragActive, setDragActive] = useState(false)
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
-  const [selectedCategory, setSelectedCategory] = useState<Category | null>(null)
-  const [selectedColor, setSelectedColor] = useState<string | null>(null)
-  const [tags, setTags] = useState<string[]>([])
-  const [tagInput, setTagInput] = useState("")
-  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [dragActive, setDragActive] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<Category | null>(
+    null
+  );
+  const [selectedColor, setSelectedColor] = useState<string | null>(null);
+  const [tags, setTags] = useState<string[]>([]);
+  const [tagInput, setTagInput] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleDrag = (e: React.DragEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
+    e.preventDefault();
+    e.stopPropagation();
     if (e.type === "dragenter" || e.type === "dragover") {
-      setDragActive(true)
+      setDragActive(true);
     } else if (e.type === "dragleave") {
-      setDragActive(false)
+      setDragActive(false);
     }
-  }
+  };
 
   const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-    setDragActive(false)
-    
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      handleFile(e.dataTransfer.files[0])
+      handleFile(e.dataTransfer.files[0]);
     }
-  }
+  };
 
   const handleFile = (file: File) => {
     if (file.type.startsWith("image/")) {
-      const url = URL.createObjectURL(file)
-      setPreviewUrl(url)
+      const url = URL.createObjectURL(file);
+      setPreviewUrl(url);
     }
-  }
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      handleFile(e.target.files[0])
+      handleFile(e.target.files[0]);
     }
-  }
+  };
 
   const handleAddTag = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && tagInput.trim()) {
-      e.preventDefault()
+      e.preventDefault();
       if (!tags.includes(tagInput.trim().toLowerCase())) {
-        setTags([...tags, tagInput.trim().toLowerCase()])
+        setTags([...tags, tagInput.trim().toLowerCase()]);
       }
-      setTagInput("")
+      setTagInput("");
     }
-  }
+  };
 
   const removeTag = (tagToRemove: string) => {
-    setTags(tags.filter(tag => tag !== tagToRemove))
-  }
+    setTags(tags.filter((tag) => tag !== tagToRemove));
+  };
 
-  const isComplete = previewUrl && selectedCategory && selectedColor
+  const isComplete = previewUrl && selectedCategory && selectedColor;
 
   return (
     <main className="min-h-screen bg-background text-foreground selection:bg-signal-orange selection:text-background">
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-background border-b border-border">
         <div className="flex items-center justify-between px-4 py-5 md:px-8 lg:px-12">
-          <Link href="/" className="text-base md:text-lg tracking-tight font-medium hover:text-signal-orange transition-colors duration-100">
+          <Link
+            href="/"
+            className="text-base md:text-lg tracking-tight font-medium hover:text-signal-orange transition-colors duration-100"
+          >
             OutfAI
           </Link>
-          <Link href="/closet" className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground hover:text-foreground transition-colors duration-100">
+          <Link
+            href="/closet"
+            className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground hover:text-foreground transition-colors duration-100"
+          >
             Back to closet
           </Link>
         </div>
@@ -100,10 +123,10 @@ export default function AddGarmentPage() {
           <section>
             <div
               className={`relative aspect-[3/4] border-2 border-dashed transition-all duration-100 cursor-pointer ${
-                dragActive 
-                  ? "border-signal-orange bg-signal-orange/5" 
-                  : previewUrl 
-                    ? "border-border" 
+                dragActive
+                  ? "border-signal-orange bg-signal-orange/5"
+                  : previewUrl
+                    ? "border-border"
                     : "border-border hover:border-foreground"
               }`}
               onDragEnter={handleDrag}
@@ -211,9 +234,10 @@ export default function AddGarmentPage() {
             {/* Tags */}
             <div>
               <label className="block text-[10px] uppercase tracking-[0.25em] text-muted-foreground mb-4">
-                Tags <span className="text-muted-foreground/50">(optional)</span>
+                Tags{" "}
+                <span className="text-muted-foreground/50">(optional)</span>
               </label>
-              
+
               {tags.length > 0 && (
                 <div className="flex flex-wrap gap-2 mb-3">
                   {tags.map((tag) => (
@@ -265,5 +289,5 @@ export default function AddGarmentPage() {
         </section>
       </div>
     </main>
-  )
+  );
 }

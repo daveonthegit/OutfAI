@@ -1,0 +1,192 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_call:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  # ──────────────────────────────────────────────
+  # Install & cache node_modules for downstream jobs
+  # ──────────────────────────────────────────────
+  setup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - uses: actions/cache@v4
+        id: nm-cache
+        with:
+          path: node_modules
+          key: nm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+      - if: steps.nm-cache.outputs.cache-hit != 'true'
+        run: npm ci
+
+  # ──────────────────────────────────────────────
+  # Prettier — enforces consistent formatting
+  # ──────────────────────────────────────────────
+  format-check:
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: nm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+      - run: npm run format:check
+
+  # ──────────────────────────────────────────────
+  # ESLint — catches code-quality issues
+  # ──────────────────────────────────────────────
+  lint:
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: nm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+      - run: npm run lint
+
+  # ──────────────────────────────────────────────
+  # TypeScript — full project type-check
+  # ──────────────────────────────────────────────
+  typecheck:
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: nm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+      - run: npm run typecheck
+
+  # ──────────────────────────────────────────────
+  # Vitest — unit & integration tests
+  # ──────────────────────────────────────────────
+  test:
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: nm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+      - run: npm run test
+
+  # ──────────────────────────────────────────────
+  # Build — Next.js production build
+  # ──────────────────────────────────────────────
+  build:
+    needs: [format-check, lint, typecheck, test]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: nm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+      - run: npm run build
+
+  # ──────────────────────────────────────────────
+  # Prisma — validate & format check (no DB needed)
+  # ──────────────────────────────────────────────
+  prisma:
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: nm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+      - name: Check for Prisma schema
+        id: check
+        run: |
+          if [ -f prisma/schema.prisma ]; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::No prisma/schema.prisma found — skipping Prisma checks"
+          fi
+      - name: Validate schema
+        if: steps.check.outputs.exists == 'true'
+        run: npx prisma validate
+      - name: Format check
+        if: steps.check.outputs.exists == 'true'
+        run: |
+          npx prisma format
+          git diff --exit-code prisma/schema.prisma \
+            || (echo "::error::Prisma schema is not formatted. Run 'npm run prisma:format' locally and commit." && exit 1)
+
+  # ──────────────────────────────────────────────
+  # Docs consistency — generated docs must be committed
+  # ──────────────────────────────────────────────
+  docs-consistency:
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: nm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+      - name: Regenerate docs
+        run: npm run db:doc
+      - name: Check for uncommitted doc changes
+        run: |
+          git diff --exit-code docs/ \
+            || (echo "::error::Generated docs are out of date. Run 'npm run db:doc' locally and commit the result." && exit 1)
+
+  # ──────────────────────────────────────────────
+  # Security baseline — advisory audit
+  # ──────────────────────────────────────────────
+  security-baseline:
+    needs: setup
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: nm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+      - name: npm audit
+        run: npm audit --audit-level=high

@@ -22,7 +22,9 @@ interface UseOutfitRecommendationsReturn {
   loading: boolean;
   error: string | null;
   explanation: string;
-  generate: (options: Partial<UseOutfitRecommendationsOptions>) => Promise<void>;
+  generate: (
+    options: Partial<UseOutfitRecommendationsOptions>
+  ) => Promise<void>;
   reset: () => void;
 }
 

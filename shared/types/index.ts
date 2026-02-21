@@ -1,30 +1,30 @@
 // Shared types — used by apps/web and server to prevent type drift
 
-export type GarmentCategory = 
-  | "tops" 
-  | "bottoms" 
-  | "shoes" 
-  | "outerwear" 
+export type GarmentCategory =
+  | "tops"
+  | "bottoms"
+  | "shoes"
+  | "outerwear"
   | "accessories";
 
 export type Season = "spring" | "summer" | "fall" | "winter" | "all-season";
 
-export type Mood = 
-  | "casual" 
-  | "formal" 
-  | "adventurous" 
-  | "cozy" 
-  | "energetic" 
-  | "minimalist" 
+export type Mood =
+  | "casual"
+  | "formal"
+  | "adventurous"
+  | "cozy"
+  | "energetic"
+  | "minimalist"
   | "bold";
 
-export type WeatherCondition = 
-  | "sunny" 
-  | "cloudy" 
-  | "rainy" 
-  | "snowy" 
-  | "windy" 
-  | "hot" 
+export type WeatherCondition =
+  | "sunny"
+  | "cloudy"
+  | "rainy"
+  | "snowy"
+  | "windy"
+  | "hot"
   | "cold";
 
 export interface Garment {

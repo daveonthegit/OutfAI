@@ -1,0 +1,58 @@
+---
+description: CI/CD conventions that must be followed when implementing any new feature or resource.
+globs: ["server/**", "apps/web/**", "shared/**", "scripts/**", "prisma/**"]
+alwaysApply: false
+---
+
+# CI/CD Rules
+
+Every change must keep CI green. Follow these conventions so new features
+automatically get the right CI/CD coverage without redesigning anything.
+
+## Backend resources
+
+When creating a new backend resource (router, service, action):
+
+1. **Schema first** — create a Zod schema in `shared/` that validates inputs and outputs.
+2. **Unit tests required** — every `server/services/*.ts` file with business logic must have a corresponding `.test.ts` file covering:
+   - Happy path
+   - Empty / missing input
+   - Edge cases for filtering, scoring, or validation
+3. **Service tests if orchestration exists** — if a service calls other services or external APIs, add integration-level tests that verify the orchestration.
+4. **Wire into the root router** — add the new router to `server/api/routers/_app.ts`.
+
+## Frontend features
+
+When creating a new page, panel, or component:
+
+1. **Handle all states** — every data-fetching component must handle: loading, empty, error, and success states.
+2. **At least one test** — for the feature's pure logic or hook behavior. Place it co-located (`useX.test.ts`) or in `tests/`.
+3. **No `any` types** — use the shared Zod schemas or TypeScript types from `shared/types/`.
+
+## Pull requests
+
+1. **CI must be green** before merge — never bypass required checks.
+2. **Run `npm run ci` locally** before pushing to catch issues early.
+3. **Commit generated docs** — if you changed `prisma/schema.prisma`, run `npm run db:doc` and commit `docs/supabase-structure.md`.
+4. **Commit formatted code** — run `npm run format` before committing, or rely on the pre-commit hook.
+
+## Scripts and tooling
+
+1. New scripts **must** be added to root `package.json`.
+2. If the script is a quality gate (validates something), wire it into `.github/workflows/ci.yml`.
+3. Document the script in `docs/cicd.md` → Scripts Reference table.
+
+## Database changes
+
+1. Update `prisma/schema.prisma` first.
+2. Run `npm run prisma:format` and `npm run prisma:validate`.
+3. Run `npm run db:doc` and commit the updated `docs/supabase-structure.md`.
+4. Run migrations with `npx prisma migrate dev --name <description>`.
+
+## Pre-push checklist
+
+```bash
+npm run ci
+```
+
+This single command validates everything CI will check.
