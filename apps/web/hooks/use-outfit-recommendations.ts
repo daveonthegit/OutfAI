@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import { Mood, WeatherCondition, Outfit } from "@/../../shared/types";
+import { Mood, WeatherCondition, Outfit, Garment } from "@shared/types";
 
 /**
  * useOutfitRecommendations
@@ -23,7 +23,7 @@ interface UseOutfitRecommendationsReturn {
   error: string | null;
   explanation: string;
   generate: (
-    options: Partial<UseOutfitRecommendationsOptions>
+    options: Partial<UseOutfitRecommendationsOptions> & { garments?: Garment[] }
   ) => Promise<void>;
   reset: () => void;
 }
@@ -37,24 +37,38 @@ export function useOutfitRecommendations(
   const [explanation, setExplanation] = useState("");
 
   const generate = useCallback(
-    async (overrides: Partial<UseOutfitRecommendationsOptions> = {}) => {
+    async (
+      overrides: Partial<UseOutfitRecommendationsOptions> & {
+        garments?: Garment[];
+      } = {}
+    ) => {
       setLoading(true);
       setError(null);
 
       try {
         const options = { ...initialOptions, ...overrides };
 
-        // Call the tRPC endpoint
-        // In a real implementation, you would use the tRPC client:
-        // const result = await trpc.recommendations.generate.query(options);
+        // Convert garments to JSON-serializable format
+        const garments =
+          overrides.garments?.map((g) => ({
+            ...g,
+            createdAt:
+              g.createdAt instanceof Date
+                ? g.createdAt.toISOString()
+                : g.createdAt,
+          })) || [];
 
-        // For now, simulate the API call
         const response = await fetch("/api/recommendations", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            method: "recommendations.generate",
-            params: options,
+            userId: options.userId,
+            mood: options.mood,
+            weather: options.weather,
+            temperature: options.temperature,
+            occasion: options.occasion,
+            limitCount: options.limitCount,
+            garments,
           }),
         });
 

@@ -13,6 +13,20 @@ import {
  *
  * Core business logic for generating context-aware outfit recommendations.
  * Uses rule-based constraints and simple scoring to ensure explainable results.
+ *
+ * Scoring System:
+ * - Base Score: 50 points
+ * - Color Harmony: +0-20 points
+ * - Mood Alignment: +0-20 points
+ * - Style Coherence: +0-15 points
+ * - Occasion Matching: +0-12 points
+ * - Versatility: +0-8 points
+ * - Diversity: +5-10 points
+ * - Total Range: 50-100 points
+ * - Minimum Threshold: 60 points (must pass to be recommended)
+ *
+ * Outfits are ranked by score and up to 6 passing suggestions are returned.
+ * If fewer than 6 outfits meet the 60-point threshold, only those are returned.
  */
 
 interface OutfitCandidate {
@@ -56,10 +70,24 @@ export class OutfitRecommendationService {
       input.mood || "casual"
     );
 
-    // Score and rank candidates
+    // Minimum score threshold - outfits must meet this quality bar
+    const MIN_SCORE_THRESHOLD = 60;
+
+    // Score and rank candidates, filter by minimum score
     const rankedCandidates = candidates
       .sort((a, b) => b.score - a.score)
-      .slice(0, input.limitCount || 5);
+      .filter((candidate) => candidate.score >= MIN_SCORE_THRESHOLD)
+      .slice(0, input.limitCount || 6);
+
+    // If no outfits meet the threshold, return empty with explanation
+    if (rankedCandidates.length === 0) {
+      return {
+        outfits: [],
+        explanation:
+          "No high-quality outfit combinations found. Try adjusting your mood, weather, or add more items to your closet.",
+        totalGenerated: 0,
+      };
+    }
 
     // Convert to outfit objects
     const outfits = rankedCandidates.map((candidate, index) => ({
@@ -294,11 +322,128 @@ export class OutfitRecommendationService {
     const moodScore = this.scoreMoodAlignment(garments, mood);
     score += moodScore;
 
+    // Style coherence bonus (new)
+    const styleScore = this.scoreStyleCoherence(garments);
+    score += styleScore;
+
+    // Occasion matching bonus (new)
+    const occasionScore = this.scoreOccasionMatching(garments, mood);
+    score += occasionScore;
+
+    // Versatility bonus (new)
+    const versatilityScore = this.scoreVersatility(garments);
+    score += versatilityScore;
+
     // Diversity bonus (prefer mixing different items)
     const diversityScore = this.scoreDiversity(garments);
     score += diversityScore;
 
     return Math.min(score, 100); // Cap at 100
+  }
+
+  /**
+   * Score style coherence - how well garment styles match each other
+   */
+  private static scoreStyleCoherence(garments: Garment[]): number {
+    if (garments.length < 2) return 0;
+
+    const extractStyles = (tags: string[]): string[] => {
+      const styleKeywords = [
+        "minimalist",
+        "bold",
+        "classic",
+        "trendy",
+        "avant-garde",
+        "casual",
+      ];
+      return tags.filter((tag) =>
+        styleKeywords.some((keyword) => tag.includes(keyword))
+      );
+    };
+
+    const allStyles = garments.flatMap((g) => extractStyles(g.tags));
+
+    if (allStyles.length === 0) return 5; // Neutral score if no style tags
+
+    // Check if garments share at least one style
+    const styleMatches = allStyles.filter((style, index) =>
+      allStyles.slice(index + 1).includes(style)
+    );
+
+    if (styleMatches.length > 0) {
+      return 15; // Strong bonus for matching styles
+    }
+
+    // Bonus if garments have complementary styles
+    const hasMinimalist = allStyles.some((s) => s.includes("minimalist"));
+    const hasBold = allStyles.some((s) => s.includes("bold"));
+    const hasClassic = allStyles.some((s) => s.includes("classic"));
+
+    if ((hasMinimalist && hasClassic) || (hasBold && hasClassic)) {
+      return 10; // Complementary style combo
+    }
+
+    return 5; // Baseline
+  }
+
+  /**
+   * Score occasion matching - ensures outfit is appropriate for contexts
+   */
+  private static scoreOccasionMatching(
+    garments: Garment[],
+    mood: Mood
+  ): number {
+    const moodToOccasion: Record<Mood, string[]> = {
+      casual: ["casual", "weekend"],
+      formal: ["formal", "work", "night"],
+      adventurous: ["weekend", "casual"],
+      cozy: ["casual", "weekend"],
+      energetic: ["casual", "work"],
+      minimalist: ["work", "smart-casual", "formal"],
+      bold: ["night", "weekend", "casual"],
+    };
+
+    const targetOccasions = moodToOccasion[mood] || [];
+    if (targetOccasions.length === 0) return 0;
+
+    let matchScore = 0;
+    for (const garment of garments) {
+      const garmentOccasions = garment.tags.filter((tag) =>
+        [
+          "casual",
+          "formal",
+          "work",
+          "smart-casual",
+          "night",
+          "weekend",
+        ].includes(tag)
+      );
+
+      const matches = garmentOccasions.filter((occ) =>
+        targetOccasions.includes(occ)
+      ).length;
+
+      matchScore += matches * 2;
+    }
+
+    return Math.min(matchScore, 12);
+  }
+
+  /**
+   * Score versatility - prefer outfits with versatile pieces
+   */
+  private static scoreVersatility(garments: Garment[]): number {
+    let versatilityScore = 0;
+
+    for (const garment of garments) {
+      if (garment.tags.includes("versatile-high")) {
+        versatilityScore += 2;
+      } else if (garment.tags.includes("versatile-medium")) {
+        versatilityScore += 1;
+      }
+    }
+
+    return Math.min(versatilityScore, 8);
   }
 
   /**
@@ -391,6 +536,7 @@ export class OutfitRecommendationService {
       reasons.push(`Well-balanced outfit with ${garments.length} pieces`);
     }
 
+    // Color reasoning
     const hasNeutral = garments.some((g) =>
       ["black", "white", "gray", "navy", "beige"].includes(
         g.primaryColor.toLowerCase()
@@ -400,6 +546,53 @@ export class OutfitRecommendationService {
       reasons.push("Neutral base for easy coordination");
     }
 
+    // Style coherence reasoning
+    const allStyles = garments.flatMap((g) =>
+      g.tags.filter((t) =>
+        ["minimalist", "bold", "classic", "trendy", "avant-garde"].includes(t)
+      )
+    );
+    const uniqueStyles = [...new Set(allStyles)];
+
+    if (uniqueStyles.length === 1) {
+      reasons.push(`Cohesive ${uniqueStyles[0]} aesthetic`);
+    } else if (
+      uniqueStyles.includes("classic") &&
+      (uniqueStyles.includes("bold") || uniqueStyles.includes("minimalist"))
+    ) {
+      reasons.push("Classic foundation with modern twist");
+    }
+
+    // Occasion reasoning
+    const allOccasions = garments.flatMap((g) =>
+      g.tags.filter((t) =>
+        [
+          "casual",
+          "formal",
+          "work",
+          "smart-casual",
+          "night",
+          "weekend",
+        ].includes(t)
+      )
+    );
+    const commonOccasions = [...new Set(allOccasions)];
+
+    if (commonOccasions.includes("formal")) {
+      reasons.push("Polished and put-together");
+    } else if (commonOccasions.includes("casual")) {
+      reasons.push("Comfortable and approachable");
+    }
+
+    // Versatility reasoning
+    const versatilePieces = garments.filter((g) =>
+      g.tags.includes("versatile-high")
+    ).length;
+    if (versatilePieces >= 2) {
+      reasons.push("Mix-and-match friendly pieces");
+    }
+
+    // Mood description
     const moodDescriptions: Record<Mood, string> = {
       casual: "Perfect for a relaxed day",
       formal: "Polished and professional",
