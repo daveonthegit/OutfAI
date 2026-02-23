@@ -436,6 +436,19 @@
       .page-card.built {
         border-color: var(--orange);
       }
+      .page-card .card-screenshot {
+        width: 100%;
+        height: 72px;
+        margin: -18px -18px 12px -18px;
+        overflow: hidden;
+        background: var(--mid);
+        border-bottom: 1px solid var(--border);
+      }
+      .page-card .card-screenshot img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
       .page-card .status {
         margin-top: 10px;
         font-family: var(--font-mono);
@@ -457,6 +470,7 @@
         color: var(--dim);
         border-color: var(--border);
       }
+
       .design-callout {
         margin-top: 20px;
         background: var(--grey);
@@ -698,6 +712,36 @@
         color: var(--dim);
         margin-left: auto;
         font-family: var(--font-mono);
+      }
+      /* ─── CI Pipeline (full-slide image) ───────────────────────────────── */
+      .ci-pipeline-slide .slide-body {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 24px 52px;
+      }
+      .ci-pipeline-img-wrap {
+        flex: 1;
+        min-height: 0;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .ci-pipeline-img-wrap img {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+        border: 1px solid var(--border);
+      }
+      .ci-pipeline-img-wrap + .caption {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        letter-spacing: 1px;
+        color: var(--dim);
+        text-align: center;
+        margin-top: 12px;
       }
 
       /* ─── SLIDE 10: Docs ─────────────────────────────────────────────── */
@@ -1030,7 +1074,7 @@
           <div class="label">01</div>
           <h2>The Problem</h2>
           <div class="sep"></div>
-          <div class="num">02 / 12</div>
+          <div class="num">02 / 13</div>
         </div>
         <div class="slide-body">
           <div class="two-col">
@@ -1085,7 +1129,7 @@
           <div class="label">02</div>
           <h2>What is OutfAI?</h2>
           <div class="sep"></div>
-          <div class="num">03 / 12</div>
+          <div class="num">03 / 13</div>
         </div>
         <div class="slide-body">
           <div class="principle-list">
@@ -1145,7 +1189,7 @@
           <div class="label">03</div>
           <h2>Technology Stack</h2>
           <div class="sep"></div>
-          <div class="num">04 / 12</div>
+          <div class="num">04 / 13</div>
         </div>
         <div class="slide-body">
           <div class="stack-grid">
@@ -1252,7 +1296,7 @@
           <div class="label">04</div>
           <h2>System Architecture</h2>
           <div class="sep"></div>
-          <div class="num">05 / 12</div>
+          <div class="num">05 / 13</div>
         </div>
         <div class="slide-body">
           <div class="arch-diagram">
@@ -1342,17 +1386,29 @@
           <div class="label">05</div>
           <h2>Frontend — Pages &amp; Design</h2>
           <div class="sep"></div>
-          <div class="num">06 / 12</div>
+          <div class="num">06 / 13</div>
         </div>
         <div class="slide-body">
           <div class="page-grid">
             <div class="page-card built">
+              <div class="card-screenshot">
+                <img
+                  src="../../images/capstone-progress-update-1/HomePage.png"
+                  alt="Home"
+                />
+              </div>
               <div class="route">/</div>
               <div class="name">Home</div>
               <div class="desc">Mood selector + outfit generation trigger</div>
               <div class="status done">BUILT</div>
             </div>
             <div class="page-card built">
+              <div class="card-screenshot">
+                <img
+                  src="../../images/capstone-progress-update-1/Closet%20Select.png"
+                  alt="Closet"
+                />
+              </div>
               <div class="route">/closet</div>
               <div class="name">Closet</div>
               <div class="desc">Garment grid with category filters</div>
@@ -1367,12 +1423,24 @@
               <div class="status done">BUILT</div>
             </div>
             <div class="page-card built">
+              <div class="card-screenshot">
+                <img
+                  src="../../images/capstone-progress-update-1/Image%20Upload.png"
+                  alt="Add Garment"
+                />
+              </div>
               <div class="route">/add</div>
               <div class="name">Add Garment</div>
               <div class="desc">Form UI for adding new items (UI only)</div>
               <div class="status partial">UI ONLY</div>
             </div>
             <div class="page-card">
+              <div class="card-screenshot">
+                <img
+                  src="../../images/capstone-progress-update-1/Mood%20Select.png"
+                  alt="Mood"
+                />
+              </div>
               <div class="route">/mood</div>
               <div class="name">Mood</div>
               <div class="desc">Detailed mood selection screen</div>
@@ -1385,6 +1453,12 @@
               <div class="status planned">ROUTED</div>
             </div>
             <div class="page-card">
+              <div class="card-screenshot">
+                <img
+                  src="../../images/capstone-progress-update-1/Archive.png"
+                  alt="Archive"
+                />
+              </div>
               <div class="route">/archive</div>
               <div class="name">Archive</div>
               <div class="desc">Saved outfit history</div>
@@ -1416,7 +1490,7 @@
           <div class="label">06</div>
           <h2>Recommendation Engine</h2>
           <div class="sep"></div>
-          <div class="num">07 / 12</div>
+          <div class="num">07 / 13</div>
         </div>
         <div class="slide-body">
           <div class="engine-layout">
@@ -1524,7 +1598,7 @@
           <div class="label">07</div>
           <h2>API Layer — tRPC</h2>
           <div class="sep"></div>
-          <div class="num">08 / 12</div>
+          <div class="num">08 / 13</div>
         </div>
         <div class="slide-body">
           <div class="api-layout">
@@ -1610,14 +1684,14 @@
         </div>
       </div>
 
-      <!-- ═══════ SLIDE 9: DevOps & Tooling ════════════════════════════════ -->
+      <!-- ═══════ SLIDE 9: DevOps & Tooling ══════════════════════════════════ -->
       <div class="slide" id="s9">
         <div class="accent-bar"></div>
         <div class="slide-header">
           <div class="label">08</div>
           <h2>DevOps &amp; Tooling</h2>
           <div class="sep"></div>
-          <div class="num">09 / 12</div>
+          <div class="num">09 / 13</div>
         </div>
         <div class="slide-body">
           <div class="devops-grid">
@@ -1732,14 +1806,34 @@
         </div>
       </div>
 
-      <!-- ═══════ SLIDE 10: Documentation ═══════════════════════════════════ -->
-      <div class="slide" id="s10">
+      <!-- ═══════ SLIDE 10: CI Pipeline ═══════════════════════════════════ -->
+      <div class="slide ci-pipeline-slide" id="s10">
+        <div class="accent-bar"></div>
+        <div class="slide-header">
+          <div class="label">08</div>
+          <h2>CI Pipeline</h2>
+          <div class="sep"></div>
+          <div class="num">10 / 13</div>
+        </div>
+        <div class="slide-body">
+          <div class="ci-pipeline-img-wrap">
+            <img
+              src="../../images/capstone-progress-update-1/CI%20Pipeline%20image.png"
+              alt="CI Pipeline"
+            />
+          </div>
+          <div class="caption">format → lint → typecheck → test → build</div>
+        </div>
+      </div>
+
+      <!-- ═══════ SLIDE 11: Documentation ══════════════════════════════════ -->
+      <div class="slide" id="s11">
         <div class="accent-bar"></div>
         <div class="slide-header">
           <div class="label">09</div>
           <h2>Documentation Suite</h2>
           <div class="sep"></div>
-          <div class="num">10 / 12</div>
+          <div class="num">11 / 13</div>
         </div>
         <div class="slide-body">
           <div class="docs-grid">
@@ -1822,14 +1916,14 @@
         </div>
       </div>
 
-      <!-- ═══════ SLIDE 11: Roadmap ══════════════════════════════════════════ -->
-      <div class="slide" id="s11">
+      <!-- ═══════ SLIDE 12: Roadmap ══════════════════════════════════════════ -->
+      <div class="slide" id="s12">
         <div class="accent-bar"></div>
         <div class="slide-header">
           <div class="label">10</div>
           <h2>Development Roadmap</h2>
           <div class="sep"></div>
-          <div class="num">11 / 12</div>
+          <div class="num">12 / 13</div>
         </div>
         <div class="slide-body">
           <div class="roadmap">
@@ -1990,8 +2084,8 @@
         </div>
       </div>
 
-      <!-- ═══════ SLIDE 12: Summary ══════════════════════════════════════════ -->
-      <div class="slide" id="s12">
+      <!-- ═══════ SLIDE 13: Summary ══════════════════════════════════════════ -->
+      <div class="slide" id="s13">
         <div class="accent-bar"></div>
         <div
           class="slide-body"
@@ -2042,7 +2136,7 @@
     <div id="nav">
       <button id="prev" onclick="go(-1)" disabled>&#8592;</button>
       <div class="dot-nav" id="dots"></div>
-      <span id="counter">1 / 12</span>
+      <span id="counter">1 / 13</span>
       <button id="next" onclick="go(1)">&#8594;</button>
     </div>
     <div id="progress-bar"></div>
@@ -2056,7 +2150,7 @@
     </div>
 
     <script>
-      const TOTAL = 12;
+      const TOTAL = 13;
       let cur = 0;
 
       // Scale deck to viewport
