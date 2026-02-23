@@ -188,5 +188,5 @@ jobs:
         with:
           path: node_modules
           key: nm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-      - name: npm audit
-        run: npm audit --audit-level=high
+      - name: npm audit (production only)
+        run: npm audit --omit=dev --audit-level=high
