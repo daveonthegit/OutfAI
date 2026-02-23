@@ -17,7 +17,15 @@
     "db:doc": "npx tsx scripts/update-supabase-structure.ts",
     "gen:db-docs": "npx tsx scripts/update-supabase-structure.ts",
     "ci": "npm run format:check && npm run lint && npm run typecheck && npm run test && npm run build",
-    "prepare": "husky"
+    "prepare": "husky",
+    "docker:dev": "docker compose up --build",
+    "docker:dev:detach": "docker compose up --build -d",
+    "docker:dev:down": "docker compose down",
+    "docker:dev:logs": "docker compose logs -f web",
+    "docker:prod": "docker compose -f docker-compose.prod.yml up --build",
+    "docker:prod:down": "docker compose -f docker-compose.prod.yml down",
+    "start:local": "powershell -ExecutionPolicy Bypass -File scripts/start.ps1",
+    "stop:local": "powershell -ExecutionPolicy Bypass -File scripts/stop.ps1"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",

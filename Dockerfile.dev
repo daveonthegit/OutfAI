@@ -1,0 +1,23 @@
+# ============================================================
+# OutfAI — Development Dockerfile
+# Used by docker-compose.yml for local hot-reload development.
+# Source code is volume-mounted at runtime; this image only
+# provides the Node runtime + pre-installed node_modules.
+# ============================================================
+
+FROM node:22-alpine
+WORKDIR /app
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV NODE_ENV=development
+
+# Install dependencies into the image layer.
+# The docker-compose volume mount uses an anonymous volume at
+# /app/node_modules so the container's modules are not replaced
+# by whatever is (or isn't) in the host's node_modules folder.
+COPY package*.json ./
+RUN npm ci
+
+EXPOSE 3000
+
+# `npm run dev` executes: cd apps/web && next dev --turbo
+CMD ["npm", "run", "dev"]

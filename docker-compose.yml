@@ -1,0 +1,62 @@
+# ============================================================
+# OutfAI — Local development Docker Compose
+# Usage:
+#   docker compose up --build        # start (rebuilds if needed)
+#   docker compose up --build -d     # start detached
+#   docker compose logs -f web       # tail web logs
+#   docker compose down              # stop and remove containers
+#   docker compose down -v           # also wipe the DB volume
+# ============================================================
+
+services:
+  # ----------------------------------------------------------
+  # Next.js dev server (hot reload via volume mount)
+  # ----------------------------------------------------------
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    ports:
+      - "3000:3000"
+    volumes:
+      # Mount the whole repo so code changes hot-reload
+      - .:/app
+      # Prevent the host's node_modules from shadowing the
+      # container's installed modules
+      - node_modules_cache:/app/node_modules
+    env_file:
+      - .env.local
+    environment:
+      - NODE_ENV=development
+      # Point to the Postgres container when running in Docker
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/outfai
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # ----------------------------------------------------------
+  # Postgres (local stand-in for Supabase DB)
+  # Accessible on the host at localhost:54322 to match the
+  # port Supabase local stack uses by convention.
+  # ----------------------------------------------------------
+  db:
+    image: postgres:16-alpine
+    ports:
+      - "54322:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: outfai
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d outfai"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  node_modules_cache:

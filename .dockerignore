@@ -1,0 +1,43 @@
+# Dependencies
+node_modules
+**/node_modules
+
+# Next.js build output
+apps/web/.next
+apps/web/out
+
+# Environment files — never bake secrets into the image
+.env
+.env.local
+.env.*.local
+
+# Git
+.git
+.github
+.gitignore
+
+# Dev tooling
+.husky
+.eslintcache
+.prettierignore
+.prettierrc
+.editorconfig
+.lintstagedrc.json
+eslint.config.mjs
+vitest.config.ts
+
+# Tests
+tests
+
+# Docs & scripts (not needed at runtime)
+docs
+scripts
+templates
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
