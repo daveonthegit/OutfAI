@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 
-export default function OutfitPage() {
+function OutfitContent() {
   const [hoveredId, setHoveredId] = useState<number | null>(null);
   const [selectedGarment, setSelectedGarment] = useState<any | null>(null);
   const searchParams = useSearchParams();
@@ -253,5 +253,13 @@ export default function OutfitPage() {
         </section>
       </div>
     </main>
+  );
+}
+
+export default function OutfitPage() {
+  return (
+    <Suspense fallback={null}>
+      <OutfitContent />
+    </Suspense>
   );
 }
