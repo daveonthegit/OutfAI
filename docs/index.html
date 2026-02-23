@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>OutfAI — Presentations</title>
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      :root {
+        --orange: #ff4500;
+        --black: #0a0a0a;
+        --white: #f5f0e8;
+        --grey: #1a1a1a;
+        --border: #333;
+        --dim: #888;
+        --font-head: Georgia, "Times New Roman", serif;
+        --font-mono: "Courier New", Courier, monospace;
+        --font-body: "Helvetica Neue", Arial, sans-serif;
+      }
+      html,
+      body {
+        min-height: 100%;
+        background: var(--black);
+        font-family: var(--font-body);
+        color: var(--white);
+      }
+      .page {
+        max-width: 720px;
+        margin: 0 auto;
+        padding: 48px 24px 80px;
+      }
+      .kicker {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        letter-spacing: 4px;
+        color: var(--orange);
+        text-transform: uppercase;
+        margin-bottom: 12px;
+      }
+      h1 {
+        font-family: var(--font-head);
+        font-size: 48px;
+        font-weight: 400;
+        letter-spacing: -1px;
+        line-height: 1.1;
+        margin-bottom: 8px;
+      }
+      h1 span {
+        color: var(--orange);
+      }
+      .tagline {
+        font-size: 16px;
+        color: var(--dim);
+        line-height: 1.6;
+        margin-bottom: 48px;
+      }
+      nav {
+        border-top: 1px solid var(--border);
+        padding-top: 32px;
+      }
+      nav h2 {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        letter-spacing: 3px;
+        color: var(--dim);
+        text-transform: uppercase;
+        margin-bottom: 20px;
+      }
+      .presentation-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+      .presentation-link {
+        display: block;
+        padding: 24px 0;
+        border-bottom: 1px solid var(--border);
+        text-decoration: none;
+        color: inherit;
+        transition:
+          background 0.15s,
+          border-color 0.15s;
+      }
+      .presentation-link:hover {
+        background: var(--grey);
+        border-left: 3px solid var(--orange);
+        padding-left: 20px;
+        margin-left: -20px;
+        padding-right: 20px;
+        margin-right: -20px;
+      }
+      .presentation-link .title {
+        font-family: var(--font-head);
+        font-size: 22px;
+        font-weight: 400;
+        margin-bottom: 6px;
+      }
+      .presentation-link .desc {
+        font-size: 14px;
+        color: var(--dim);
+        line-height: 1.5;
+      }
+      .presentation-link .meta {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        letter-spacing: 1px;
+        color: var(--dim);
+        margin-top: 10px;
+      }
+      footer {
+        margin-top: 64px;
+        padding-top: 24px;
+        border-top: 1px solid var(--border);
+        font-size: 12px;
+        color: var(--dim);
+      }
+      footer a {
+        color: var(--orange);
+        text-decoration: none;
+      }
+      footer a:hover {
+        text-decoration: underline;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <div class="kicker">GitHub Pages</div>
+      <h1>Outf<span>AI</span> Presentations</h1>
+      <p class="tagline">
+        Project updates and capstone progress. Select a presentation below.
+      </p>
+
+      <nav>
+        <h2>Presentations</h2>
+        <div class="presentation-list">
+          <a
+            class="presentation-link"
+            href="presentations/capstone-progress-update-1/"
+          >
+            <span class="title">Capstone Progress Update 1</span>
+            <span class="desc"
+              >Project overview, problem statement, tech stack, architecture,
+              frontend, recommendation engine, API layer, DevOps, documentation,
+              roadmap, and summary.</span
+            >
+            <span class="meta">12 slides · Feb 2026</span>
+          </a>
+          <!-- Add more presentations here as they are created -->
+        </div>
+      </nav>
+
+      <footer>
+        <a href="https://github.com/daveonthegit/OutfAI"
+          >← Back to OutfAI repository</a
+        >
+      </footer>
+    </div>
+  </body>
+</html>

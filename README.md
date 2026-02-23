@@ -94,6 +94,15 @@ See [docs/OutfAI_Project_Structure.md](docs/OutfAI_Project_Structure.md) for the
 | [OutfAI_Database_Design.md](docs/OutfAI_Database_Design.md)     | Database schema and design                |
 | [OutfAI_Project_Structure.md](docs/OutfAI_Project_Structure.md) | Repository layout and conventions         |
 
+### Presentations (GitHub Pages)
+
+Capstone and progress updates are published as a static site. After enabling GitHub Pages from the **docs** folder, the site will be available at:
+
+**https://daveonthegit.github.io/OutfAI/**
+
+- **Enable:** Repo → **Settings** → **Pages** → Source: **Deploy from a branch** → Branch: **main** → Folder: **/docs** → Save.
+- The [docs/index.html](docs/index.html) landing page lists all presentations; add screenshots in [docs/images/](docs/images/) (one subfolder per presentation).
+
 ---
 
 ## License

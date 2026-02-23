@@ -1,0 +1,2129 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Capstone Progress Update 1 — OutfAI</title>
+    <style>
+      /* ─── Reset & Base ───────────────────────────────────────────────── */
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      :root {
+        --orange: #e03c00;
+        --black: #0a0a0a;
+        --white: #fdfbf7;
+        --grey: #ede9e3;
+        --mid: #e2ddd6;
+        --border: #c9c4bc;
+        --dim: #5c5852;
+        --font-head: "Georgia", "Times New Roman", serif;
+        --font-mono: "Courier New", Courier, monospace;
+        --font-body: "Helvetica Neue", Arial, sans-serif;
+        --slide-w: 1280px;
+        --slide-h: 720px;
+      }
+
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        background: #f0ece6;
+        font-family: var(--font-body);
+        color: var(--black);
+        overflow: hidden;
+      }
+
+      /* ─── Deck Container ─────────────────────────────────────────────── */
+      #deck {
+        width: var(--slide-w);
+        height: var(--slide-h);
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) scale(var(--scale, 1));
+        transform-origin: center center;
+      }
+
+      /* ─── Slides ─────────────────────────────────────────────────────── */
+      .slide {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+        background: var(--white);
+        display: none;
+        flex-direction: column;
+        border: 2px solid var(--border);
+        overflow: hidden;
+      }
+      .slide.active {
+        display: flex;
+      }
+
+      /* ─── Shared Layout ──────────────────────────────────────────────── */
+      .slide-header {
+        padding: 32px 52px 20px;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        gap: 16px;
+      }
+      .slide-header .label {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        letter-spacing: 3px;
+        color: var(--orange);
+        text-transform: uppercase;
+      }
+      .slide-header h2 {
+        font-family: var(--font-head);
+        font-size: 28px;
+        font-weight: 400;
+        letter-spacing: -0.5px;
+      }
+      .slide-header .sep {
+        flex: 1;
+        border-bottom: 1px solid var(--border);
+        margin: 0 24px;
+      }
+      .slide-header .num {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        color: var(--dim);
+      }
+      .slide-body {
+        flex: 1;
+        padding: 40px 52px;
+        overflow: hidden;
+      }
+
+      /* ─── Noise Texture Overlay ──────────────────────────────────────── */
+      .slide::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+        pointer-events: none;
+        opacity: 0.25;
+      }
+
+      /* ─── Accent bar (left edge) ─────────────────────────────────────── */
+      .accent-bar {
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 4px;
+        background: var(--orange);
+      }
+
+      /* ─── SLIDE 1: Title ─────────────────────────────────────────────── */
+      #s1 {
+        background: var(--white);
+        justify-content: center;
+        align-items: flex-start;
+        padding: 0 80px;
+      }
+      #s1 .kicker {
+        font-family: var(--font-mono);
+        font-size: 12px;
+        letter-spacing: 4px;
+        color: var(--orange);
+        text-transform: uppercase;
+        margin-bottom: 20px;
+      }
+      #s1 h1 {
+        font-family: var(--font-head);
+        font-size: 128px;
+        line-height: 0.92;
+        font-weight: 400;
+        letter-spacing: -4px;
+        color: var(--black);
+      }
+      #s1 h1 span {
+        color: var(--orange);
+      }
+      #s1 .tagline {
+        margin-top: 28px;
+        font-size: 18px;
+        color: var(--dim);
+        max-width: 560px;
+        line-height: 1.6;
+      }
+      #s1 .meta {
+        margin-top: 40px;
+        font-family: var(--font-mono);
+        font-size: 11px;
+        color: var(--dim);
+        letter-spacing: 2px;
+        display: flex;
+        gap: 40px;
+      }
+      #s1 .meta span {
+        color: var(--black);
+      }
+      #s1 .corner-ornament {
+        position: absolute;
+        right: 80px;
+        bottom: 60px;
+        font-family: var(--font-head);
+        font-size: 180px;
+        color: var(--orange);
+        opacity: 0.12;
+        line-height: 1;
+        pointer-events: none;
+      }
+      #s1 .grid-lines {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+      }
+      #s1 .grid-lines::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        right: 280px;
+        width: 1px;
+        height: 100%;
+        background: var(--border);
+      }
+      #s1 .grid-lines::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 0;
+        width: 100%;
+        height: 1px;
+        background: var(--border);
+        opacity: 0.5;
+      }
+
+      /* ─── SLIDE 2: Problem ───────────────────────────────────────────── */
+      .two-col {
+        display: grid;
+        gap: 40px;
+        grid-template-columns: 1fr 1fr;
+        height: 100%;
+      }
+      .problem-card {
+        background: var(--grey);
+        border: 1px solid var(--border);
+        padding: 32px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+      .problem-card .card-label {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        letter-spacing: 3px;
+        color: var(--orange);
+        text-transform: uppercase;
+      }
+      .problem-card h3 {
+        font-family: var(--font-head);
+        font-size: 22px;
+        font-weight: 400;
+      }
+      .problem-card p {
+        font-size: 14px;
+        line-height: 1.7;
+        color: var(--dim);
+      }
+      .stat-row {
+        display: flex;
+        gap: 12px;
+        margin-top: auto;
+      }
+      .stat {
+        background: var(--mid);
+        border: 1px solid var(--border);
+        padding: 16px 20px;
+        flex: 1;
+        text-align: center;
+      }
+      .stat .value {
+        font-family: var(--font-head);
+        font-size: 36px;
+        color: var(--orange);
+        line-height: 1;
+      }
+      .stat .desc {
+        font-family: var(--font-mono);
+        font-size: 9px;
+        letter-spacing: 2px;
+        color: var(--dim);
+        text-transform: uppercase;
+        margin-top: 6px;
+      }
+
+      /* ─── SLIDE 3: What is OutfAI ────────────────────────────────────── */
+      .principle-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+      .principle {
+        display: flex;
+        align-items: flex-start;
+        gap: 20px;
+        background: var(--grey);
+        border: 1px solid var(--border);
+        padding: 20px 24px;
+      }
+      .principle .icon {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        color: var(--orange);
+        letter-spacing: 2px;
+        white-space: nowrap;
+        margin-top: 2px;
+        min-width: 60px;
+      }
+      .principle h4 {
+        font-size: 15px;
+        font-weight: 600;
+        margin-bottom: 4px;
+      }
+      .principle p {
+        font-size: 13px;
+        color: var(--dim);
+        line-height: 1.5;
+      }
+
+      /* ─── SLIDE 4: Tech Stack ────────────────────────────────────────── */
+      .stack-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+        height: 100%;
+      }
+      .stack-group {
+        background: var(--grey);
+        border: 1px solid var(--border);
+        padding: 24px;
+      }
+      .stack-group .group-label {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        letter-spacing: 3px;
+        color: var(--orange);
+        text-transform: uppercase;
+        margin-bottom: 16px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid var(--border);
+      }
+      .stack-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 0;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+        font-size: 14px;
+      }
+      .stack-item:last-child {
+        border-bottom: none;
+      }
+      .stack-item .dot {
+        width: 6px;
+        height: 6px;
+        background: var(--orange);
+        border-radius: 50%;
+        flex-shrink: 0;
+      }
+      .stack-item .badge {
+        margin-left: auto;
+        font-family: var(--font-mono);
+        font-size: 9px;
+        letter-spacing: 1px;
+        color: var(--black);
+        background: var(--mid);
+        padding: 2px 6px;
+        border: 1px solid var(--border);
+      }
+
+      /* ─── SLIDE 5: Architecture ──────────────────────────────────────── */
+      .arch-diagram {
+        display: flex;
+        gap: 0;
+        height: 100%;
+        align-items: stretch;
+      }
+      .arch-layer {
+        flex: 1;
+        border: 1px solid var(--border);
+        display: flex;
+        flex-direction: column;
+        margin-right: -1px;
+      }
+      .arch-layer-title {
+        padding: 14px 18px;
+        border-bottom: 1px solid var(--border);
+        font-family: var(--font-mono);
+        font-size: 10px;
+        letter-spacing: 3px;
+        color: var(--orange);
+        text-transform: uppercase;
+        background: var(--grey);
+      }
+      .arch-layer-body {
+        padding: 16px 18px;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .arch-box {
+        background: var(--mid);
+        border: 1px solid var(--border);
+        padding: 10px 14px;
+        font-size: 12px;
+        line-height: 1.4;
+      }
+      .arch-box strong {
+        display: block;
+        color: var(--black);
+        margin-bottom: 2px;
+      }
+      .arch-box span {
+        color: var(--dim);
+        font-size: 11px;
+      }
+      .arch-arrow {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 6px;
+        color: var(--orange);
+        font-size: 20px;
+        font-weight: 100;
+      }
+
+      /* ─── SLIDE 6: Frontend ──────────────────────────────────────────── */
+      .page-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 12px;
+      }
+      .page-card {
+        background: var(--grey);
+        border: 1px solid var(--border);
+        padding: 18px;
+      }
+      .page-card .route {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        color: var(--orange);
+        margin-bottom: 8px;
+      }
+      .page-card .name {
+        font-size: 15px;
+        font-weight: 600;
+        margin-bottom: 6px;
+      }
+      .page-card .desc {
+        font-size: 12px;
+        color: var(--dim);
+        line-height: 1.5;
+      }
+      .page-card.built {
+        border-color: var(--orange);
+      }
+      .page-card .status {
+        margin-top: 10px;
+        font-family: var(--font-mono);
+        font-size: 9px;
+        letter-spacing: 1px;
+        padding: 3px 6px;
+        display: inline-block;
+        border: 1px solid;
+      }
+      .status.done {
+        color: #4caf50;
+        border-color: #4caf50;
+      }
+      .status.partial {
+        color: var(--orange);
+        border-color: var(--orange);
+      }
+      .status.planned {
+        color: var(--dim);
+        border-color: var(--border);
+      }
+      .design-callout {
+        margin-top: 20px;
+        background: var(--grey);
+        border: 1px solid var(--border);
+        border-left: 3px solid var(--orange);
+        padding: 16px 20px;
+        display: flex;
+        gap: 20px;
+        align-items: center;
+      }
+      .design-callout .label {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        letter-spacing: 2px;
+        color: var(--orange);
+        white-space: nowrap;
+      }
+      .design-callout p {
+        font-size: 13px;
+        color: var(--dim);
+        line-height: 1.5;
+      }
+
+      /* ─── SLIDE 7: Recommendation Engine ────────────────────────────── */
+      .engine-layout {
+        display: grid;
+        grid-template-columns: 1.1fr 1fr;
+        gap: 24px;
+        height: 100%;
+      }
+      .pipeline {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+      .pipeline-step {
+        display: flex;
+        gap: 0;
+        border: 1px solid var(--border);
+        margin-bottom: -1px;
+      }
+      .step-num {
+        background: var(--orange);
+        color: var(--black);
+        font-family: var(--font-head);
+        font-size: 28px;
+        width: 56px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        font-weight: 400;
+      }
+      .step-content {
+        padding: 16px 20px;
+        background: var(--grey);
+        flex: 1;
+      }
+      .step-content h4 {
+        font-size: 14px;
+        margin-bottom: 4px;
+      }
+      .step-content p {
+        font-size: 12px;
+        color: var(--dim);
+        line-height: 1.5;
+      }
+      .scoring-panel {
+        background: var(--grey);
+        border: 1px solid var(--border);
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .scoring-panel .panel-title {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        letter-spacing: 3px;
+        color: var(--orange);
+        text-transform: uppercase;
+        margin-bottom: 6px;
+      }
+      .score-bar {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .score-bar .factor {
+        font-size: 12px;
+        min-width: 150px;
+      }
+      .score-bar .bar-track {
+        flex: 1;
+        height: 6px;
+        background: var(--mid);
+        border: 1px solid var(--border);
+        position: relative;
+      }
+      .score-bar .bar-fill {
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        background: var(--orange);
+      }
+      .score-bar .pts {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        color: var(--dim);
+        min-width: 36px;
+        text-align: right;
+      }
+      .threshold-note {
+        margin-top: 8px;
+        padding: 10px 14px;
+        background: var(--mid);
+        border: 1px solid var(--border);
+        font-family: var(--font-mono);
+        font-size: 10px;
+        color: var(--dim);
+        letter-spacing: 1px;
+      }
+      .threshold-note span {
+        color: var(--orange);
+      }
+
+      /* ─── SLIDE 8: API Layer ─────────────────────────────────────────── */
+      .api-layout {
+        display: grid;
+        grid-template-columns: 1fr 1.2fr;
+        gap: 24px;
+        height: 100%;
+      }
+      .endpoint-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .endpoint {
+        background: var(--grey);
+        border: 1px solid var(--border);
+        padding: 16px 20px;
+        display: flex;
+        gap: 16px;
+        align-items: flex-start;
+      }
+      .endpoint .method {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        letter-spacing: 1px;
+        background: var(--orange);
+        color: var(--black);
+        padding: 3px 8px;
+        margin-top: 2px;
+        white-space: nowrap;
+      }
+      .endpoint .path {
+        font-family: var(--font-mono);
+        font-size: 13px;
+        color: var(--black);
+        margin-bottom: 4px;
+      }
+      .endpoint .edesc {
+        font-size: 12px;
+        color: var(--dim);
+      }
+      .code-block {
+        background: #edeae4;
+        border: 1px solid var(--border);
+        padding: 20px 24px;
+        font-family: var(--font-mono);
+        font-size: 12px;
+        line-height: 1.7;
+        overflow: auto;
+        height: 100%;
+        color: var(--black);
+      }
+      .code-block .kw {
+        color: #6b21a8;
+      }
+      .code-block .fn {
+        color: #1d4ed8;
+      }
+      .code-block .str {
+        color: #15803d;
+      }
+      .code-block .cm {
+        color: #5c5852;
+      }
+      .code-block .num {
+        color: #c2410c;
+      }
+      .code-block .ty {
+        color: #b45309;
+      }
+
+      /* ─── SLIDE 9: DevOps ────────────────────────────────────────────── */
+      .devops-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: 1fr 1fr;
+        gap: 16px;
+        height: 100%;
+      }
+      .devops-card {
+        background: var(--grey);
+        border: 1px solid var(--border);
+        padding: 24px;
+      }
+      .devops-card .card-title {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        letter-spacing: 3px;
+        color: var(--orange);
+        text-transform: uppercase;
+        margin-bottom: 14px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid var(--border);
+      }
+      .devops-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .devops-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 13px;
+      }
+      .devops-item .bullet {
+        color: var(--orange);
+        font-size: 16px;
+        line-height: 1;
+      }
+      .devops-item .sub {
+        font-size: 11px;
+        color: var(--dim);
+        margin-left: auto;
+        font-family: var(--font-mono);
+      }
+
+      /* ─── SLIDE 10: Docs ─────────────────────────────────────────────── */
+      .docs-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+      }
+      .doc-card {
+        background: var(--grey);
+        border: 1px solid var(--border);
+        padding: 20px;
+      }
+      .doc-card .doc-icon {
+        font-family: var(--font-head);
+        font-size: 32px;
+        color: var(--orange);
+        line-height: 1;
+        margin-bottom: 10px;
+      }
+      .doc-card .doc-name {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        letter-spacing: 1px;
+        color: var(--black);
+        margin-bottom: 6px;
+      }
+      .doc-card .doc-desc {
+        font-size: 12px;
+        color: var(--dim);
+        line-height: 1.5;
+      }
+
+      /* ─── SLIDE 11: Roadmap ──────────────────────────────────────────── */
+      .roadmap {
+        display: flex;
+        gap: 0;
+        height: 100%;
+      }
+      .phase {
+        flex: 1;
+        border: 1px solid var(--border);
+        margin-right: -1px;
+        display: flex;
+        flex-direction: column;
+      }
+      .phase.active {
+        border-color: var(--orange);
+        z-index: 1;
+      }
+      .phase-header {
+        padding: 16px 18px;
+        border-bottom: 1px solid var(--border);
+        background: var(--grey);
+      }
+      .phase-header .phase-num {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        letter-spacing: 2px;
+        color: var(--dim);
+        text-transform: uppercase;
+        margin-bottom: 4px;
+      }
+      .phase-header h4 {
+        font-size: 14px;
+        font-weight: 600;
+      }
+      .phase.active .phase-header {
+        background: var(--orange);
+      }
+      .phase.active .phase-header h4 {
+        color: var(--black);
+      }
+      .phase.active .phase-header .phase-num {
+        color: rgba(0, 0, 0, 0.6);
+      }
+      .phase-body {
+        padding: 14px 18px;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .phase-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        font-size: 12px;
+        line-height: 1.4;
+      }
+      .phase-item .check {
+        color: #4caf50;
+        flex-shrink: 0;
+        margin-top: 1px;
+      }
+      .phase-item .circle {
+        color: var(--orange);
+        flex-shrink: 0;
+        margin-top: 1px;
+      }
+      .phase-item .dash {
+        color: var(--dim);
+        flex-shrink: 0;
+        margin-top: 1px;
+      }
+      .phase-item.done {
+        color: var(--dim);
+      }
+      .phase-item.current {
+        color: var(--black);
+      }
+      .phase-item.todo {
+        color: var(--dim);
+      }
+      .phase-badge {
+        margin-top: auto;
+        padding: 12px 18px;
+        border-top: 1px solid var(--border);
+        font-family: var(--font-mono);
+        font-size: 9px;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+      }
+      .phase-badge.done-badge {
+        color: #4caf50;
+      }
+      .phase-badge.active-badge {
+        color: var(--orange);
+      }
+      .phase-badge.planned-badge {
+        color: var(--dim);
+      }
+
+      /* ─── SLIDE 12: Summary ──────────────────────────────────────────── */
+      #s12 {
+        justify-content: center;
+        align-items: flex-start;
+        padding: 0 80px;
+        position: relative;
+      }
+      #s12 .summary-kicker {
+        font-family: var(--font-mono);
+        font-size: 12px;
+        letter-spacing: 4px;
+        color: var(--orange);
+        text-transform: uppercase;
+        margin-bottom: 28px;
+      }
+      #s12 h2 {
+        font-family: var(--font-head);
+        font-size: 64px;
+        font-weight: 400;
+        letter-spacing: -2px;
+        line-height: 1;
+        margin-bottom: 32px;
+      }
+      .summary-stats {
+        display: flex;
+        gap: 0;
+        border: 1px solid var(--border);
+        margin-bottom: 32px;
+      }
+      .sum-stat {
+        padding: 24px 36px;
+        border-right: 1px solid var(--border);
+        flex: 1;
+      }
+      .sum-stat:last-child {
+        border-right: none;
+      }
+      .sum-stat .val {
+        font-family: var(--font-head);
+        font-size: 48px;
+        color: var(--orange);
+        line-height: 1;
+        margin-bottom: 6px;
+      }
+      .sum-stat .lbl {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        letter-spacing: 2px;
+        color: var(--dim);
+        text-transform: uppercase;
+      }
+      #s12 .next-label {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        letter-spacing: 3px;
+        color: var(--orange);
+        margin-bottom: 12px;
+        text-transform: uppercase;
+      }
+      .next-items {
+        display: flex;
+        gap: 12px;
+      }
+      .next-item {
+        background: var(--grey);
+        border: 1px solid var(--border);
+        padding: 12px 18px;
+        font-size: 13px;
+      }
+      .next-item::before {
+        content: "→ ";
+        color: var(--orange);
+      }
+
+      /* ─── Navigation ─────────────────────────────────────────────────── */
+      #nav {
+        position: fixed;
+        bottom: 28px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        background: rgba(253, 251, 247, 0.98);
+        border: 1px solid var(--border);
+        padding: 10px 20px;
+        z-index: 100;
+        box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.06);
+      }
+      #nav button {
+        background: none;
+        border: 1px solid var(--border);
+        color: var(--black);
+        cursor: pointer;
+        width: 36px;
+        height: 36px;
+        font-size: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.15s;
+      }
+      #nav button:hover {
+        border-color: var(--orange);
+        color: var(--orange);
+      }
+      #nav button:disabled {
+        opacity: 0.3;
+        cursor: default;
+      }
+      #counter {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        color: var(--dim);
+        letter-spacing: 1px;
+        min-width: 52px;
+        text-align: center;
+      }
+      #progress-bar {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        height: 2px;
+        background: var(--orange);
+        transition: width 0.3s ease;
+        z-index: 100;
+      }
+      .dot-nav {
+        display: flex;
+        gap: 6px;
+      }
+      .dot-nav .d {
+        width: 6px;
+        height: 6px;
+        background: var(--border);
+        border-radius: 50%;
+        cursor: pointer;
+        transition: background 0.15s;
+      }
+      .dot-nav .d.active {
+        background: var(--orange);
+        border-radius: 0;
+        width: 18px;
+      }
+      .dot-nav .d:hover {
+        background: var(--dim);
+      }
+
+      /* ─── Keyboard hint ──────────────────────────────────────────────── */
+      #hint {
+        position: fixed;
+        bottom: 28px;
+        right: 28px;
+        font-family: var(--font-mono);
+        font-size: 10px;
+        color: var(--dim);
+        letter-spacing: 1px;
+        z-index: 100;
+      }
+      #hint kbd {
+        border: 1px solid var(--border);
+        padding: 2px 6px;
+        font-size: 9px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="deck">
+      <!-- ═══════ SLIDE 1: Title ═══════════════════════════════════════════ -->
+      <div class="slide active" id="s1">
+        <div class="accent-bar"></div>
+        <div class="grid-lines"></div>
+        <div class="kicker">Project Overview · Feb 2026</div>
+        <h1>Outf<span>AI</span></h1>
+        <p class="tagline">
+          A wardrobe-first outfit recommendation engine that generates
+          context-aware looks from your closet — powered by mood, weather, and
+          explainable scoring.
+        </p>
+        <div class="meta">
+          STACK <span>Next.js 15 · tRPC · TypeScript · Tailwind</span>
+        </div>
+        <div class="meta">
+          STATUS
+          <span
+            >MVP — UI &amp; Engine complete · Backend integration in
+            progress</span
+          >
+        </div>
+        <div class="corner-ornament">✦</div>
+      </div>
+
+      <!-- ═══════ SLIDE 2: The Problem ══════════════════════════════════════ -->
+      <div class="slide" id="s2">
+        <div class="accent-bar"></div>
+        <div class="slide-header">
+          <div class="label">01</div>
+          <h2>The Problem</h2>
+          <div class="sep"></div>
+          <div class="num">02 / 12</div>
+        </div>
+        <div class="slide-body">
+          <div class="two-col">
+            <div class="problem-card">
+              <div class="card-label">The Friction</div>
+              <h3>Getting dressed is a daily decision-fatigue problem</h3>
+              <p>
+                Most people own more clothes than they actually wear. The
+                paradox of choice leads to the same 5 outfits on repeat — while
+                the rest of the wardrobe sits untouched. Existing apps either
+                require manual outfit curation or push you toward buying more.
+              </p>
+              <div class="stat-row">
+                <div class="stat">
+                  <div class="value">80%</div>
+                  <div class="desc">Clothes rarely worn</div>
+                </div>
+                <div class="stat">
+                  <div class="value">20min</div>
+                  <div class="desc">Avg. daily decision</div>
+                </div>
+              </div>
+            </div>
+            <div class="problem-card">
+              <div class="card-label">The Gap</div>
+              <h3>No tool reasons from your wardrobe outward</h3>
+              <p>
+                Current solutions are either commerce-first (pushing purchases)
+                or require significant manual effort (building lookbooks). None
+                start from what you already own, factor in your mood and the
+                weather, and explain <em>why</em> a combination works.
+              </p>
+              <div class="stat-row">
+                <div class="stat">
+                  <div class="value">0</div>
+                  <div class="desc">Explainable closet-first tools</div>
+                </div>
+                <div class="stat">
+                  <div class="value">∞</div>
+                  <div class="desc">Untapped wardrobe potential</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════ SLIDE 3: What is OutfAI ══════════════════════════════════ -->
+      <div class="slide" id="s3">
+        <div class="accent-bar"></div>
+        <div class="slide-header">
+          <div class="label">02</div>
+          <h2>What is OutfAI?</h2>
+          <div class="sep"></div>
+          <div class="num">03 / 12</div>
+        </div>
+        <div class="slide-body">
+          <div class="principle-list">
+            <div class="principle">
+              <div class="icon">P-01</div>
+              <div>
+                <h4>Wardrobe-First</h4>
+                <p>
+                  Your closet is the system of record. Every recommendation
+                  starts from garments you actually own — not products a
+                  retailer wants to sell you.
+                </p>
+              </div>
+            </div>
+            <div class="principle">
+              <div class="icon">P-02</div>
+              <div>
+                <h4>Context-Aware</h4>
+                <p>
+                  Outfits are generated with real context: your mood right now,
+                  today's weather and temperature, and the occasion — work,
+                  casual, social, formal, athletic.
+                </p>
+              </div>
+            </div>
+            <div class="principle">
+              <div class="icon">P-03</div>
+              <div>
+                <h4>Explainable by Design</h4>
+                <p>
+                  A rule-based scoring engine (not a black-box ML model)
+                  produces a 0–100 score with a transparent breakdown: color
+                  harmony, style coherence, mood alignment, occasion fit, and
+                  versatility.
+                </p>
+              </div>
+            </div>
+            <div class="principle">
+              <div class="icon">P-04</div>
+              <div>
+                <h4>Commerce as an Option, Not the Goal</h4>
+                <p>
+                  Purchase suggestions are offered only when a gap in the
+                  wardrobe is identified — and any suggestion must justify how
+                  it integrates with what you already own.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════ SLIDE 4: Tech Stack ═══════════════════════════════════════ -->
+      <div class="slide" id="s4">
+        <div class="accent-bar"></div>
+        <div class="slide-header">
+          <div class="label">03</div>
+          <h2>Technology Stack</h2>
+          <div class="sep"></div>
+          <div class="num">04 / 12</div>
+        </div>
+        <div class="slide-body">
+          <div class="stack-grid">
+            <div class="stack-group">
+              <div class="group-label">Frontend</div>
+              <div class="stack-item">
+                <div class="dot"></div>
+                Next.js 15
+                <div class="badge">App Router</div>
+              </div>
+              <div class="stack-item">
+                <div class="dot"></div>
+                React 19
+              </div>
+              <div class="stack-item">
+                <div class="dot"></div>
+                TypeScript
+              </div>
+              <div class="stack-item">
+                <div class="dot"></div>
+                Tailwind CSS 4
+              </div>
+              <div class="stack-item">
+                <div class="dot"></div>
+                Radix UI
+                <div class="badge">Primitives</div>
+              </div>
+              <div class="stack-item">
+                <div class="dot"></div>
+                Turbopack
+                <div class="badge">Bundler</div>
+              </div>
+            </div>
+            <div class="stack-group">
+              <div class="group-label">Backend &amp; API</div>
+              <div class="stack-item">
+                <div class="dot"></div>
+                tRPC
+                <div class="badge">Type-safe API</div>
+              </div>
+              <div class="stack-item">
+                <div class="dot"></div>
+                Node.js / TypeScript
+              </div>
+              <div class="stack-item">
+                <div class="dot"></div>
+                Zod
+                <div class="badge">Validation</div>
+              </div>
+              <div class="stack-item">
+                <div class="dot"></div>
+                Prisma
+                <div class="badge">Planned</div>
+              </div>
+              <div class="stack-item">
+                <div class="dot"></div>
+                PostgreSQL
+                <div class="badge">via Supabase</div>
+              </div>
+              <div class="stack-item">
+                <div class="dot"></div>
+                Open-Meteo
+                <div class="badge">Weather API</div>
+              </div>
+            </div>
+            <div class="stack-group">
+              <div class="group-label">Tooling &amp; Deployment</div>
+              <div class="stack-item">
+                <div class="dot"></div>
+                Docker + Compose
+              </div>
+              <div class="stack-item">
+                <div class="dot"></div>
+                Vitest
+                <div class="badge">Testing</div>
+              </div>
+              <div class="stack-item">
+                <div class="dot"></div>
+                ESLint + Prettier
+              </div>
+              <div class="stack-item">
+                <div class="dot"></div>
+                Husky
+                <div class="badge">Git Hooks</div>
+              </div>
+              <div class="stack-item">
+                <div class="dot"></div>
+                Vercel
+                <div class="badge">Hosting</div>
+              </div>
+              <div class="stack-item">
+                <div class="dot"></div>
+                Supabase Auth/Storage
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════ SLIDE 5: Architecture ═════════════════════════════════════ -->
+      <div class="slide" id="s5">
+        <div class="accent-bar"></div>
+        <div class="slide-header">
+          <div class="label">04</div>
+          <h2>System Architecture</h2>
+          <div class="sep"></div>
+          <div class="num">05 / 12</div>
+        </div>
+        <div class="slide-body">
+          <div class="arch-diagram">
+            <div class="arch-layer">
+              <div class="arch-layer-title">Client</div>
+              <div class="arch-layer-body">
+                <div class="arch-box">
+                  <strong>Next.js App Router</strong
+                  ><span>Pages, layouts, SSR</span>
+                </div>
+                <div class="arch-box">
+                  <strong>React Components</strong
+                  ><span>Brutalist design system</span>
+                </div>
+                <div class="arch-box">
+                  <strong>Custom Hooks</strong
+                  ><span>State &amp; data fetching</span>
+                </div>
+                <div class="arch-box">
+                  <strong>tRPC Client</strong><span>Type-safe API calls</span>
+                </div>
+              </div>
+            </div>
+            <div class="arch-arrow">→</div>
+            <div class="arch-layer">
+              <div class="arch-layer-title">API Layer</div>
+              <div class="arch-layer-body">
+                <div class="arch-box">
+                  <strong>tRPC Router</strong
+                  ><span>recommendations, garments, auth</span>
+                </div>
+                <div class="arch-box">
+                  <strong>Zod Schemas</strong
+                  ><span>Input/output validation</span>
+                </div>
+                <div class="arch-box">
+                  <strong>Auth Middleware</strong
+                  ><span>Session context (planned)</span>
+                </div>
+              </div>
+            </div>
+            <div class="arch-arrow">→</div>
+            <div class="arch-layer">
+              <div class="arch-layer-title">Services</div>
+              <div class="arch-layer-body">
+                <div class="arch-box">
+                  <strong>OutfitRecommendation<br />Service</strong
+                  ><span>3-stage pipeline &amp; scorer</span>
+                </div>
+                <div class="arch-box">
+                  <strong>Garment Service</strong
+                  ><span>CRUD operations (planned)</span>
+                </div>
+                <div class="arch-box">
+                  <strong>Weather Service</strong
+                  ><span>Open-Meteo integration</span>
+                </div>
+              </div>
+            </div>
+            <div class="arch-arrow">→</div>
+            <div class="arch-layer">
+              <div class="arch-layer-title">Data</div>
+              <div class="arch-layer-body">
+                <div class="arch-box">
+                  <strong>Prisma ORM</strong><span>Type-safe DB access</span>
+                </div>
+                <div class="arch-box">
+                  <strong>PostgreSQL</strong
+                  ><span>Users, garments, outfits</span>
+                </div>
+                <div class="arch-box">
+                  <strong>Supabase Storage</strong><span>Garment images</span>
+                </div>
+                <div class="arch-box">
+                  <strong>Supabase Auth</strong><span>User management</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════ SLIDE 6: Frontend ══════════════════════════════════════════ -->
+      <div class="slide" id="s6">
+        <div class="accent-bar"></div>
+        <div class="slide-header">
+          <div class="label">05</div>
+          <h2>Frontend — Pages &amp; Design</h2>
+          <div class="sep"></div>
+          <div class="num">06 / 12</div>
+        </div>
+        <div class="slide-body">
+          <div class="page-grid">
+            <div class="page-card built">
+              <div class="route">/</div>
+              <div class="name">Home</div>
+              <div class="desc">Mood selector + outfit generation trigger</div>
+              <div class="status done">BUILT</div>
+            </div>
+            <div class="page-card built">
+              <div class="route">/closet</div>
+              <div class="name">Closet</div>
+              <div class="desc">Garment grid with category filters</div>
+              <div class="status done">BUILT</div>
+            </div>
+            <div class="page-card built">
+              <div class="route">/style</div>
+              <div class="name">Style</div>
+              <div class="desc">
+                Generated outfit recommendations &amp; scoring
+              </div>
+              <div class="status done">BUILT</div>
+            </div>
+            <div class="page-card built">
+              <div class="route">/add</div>
+              <div class="name">Add Garment</div>
+              <div class="desc">Form UI for adding new items (UI only)</div>
+              <div class="status partial">UI ONLY</div>
+            </div>
+            <div class="page-card">
+              <div class="route">/mood</div>
+              <div class="name">Mood</div>
+              <div class="desc">Detailed mood selection screen</div>
+              <div class="status planned">ROUTED</div>
+            </div>
+            <div class="page-card">
+              <div class="route">/explain</div>
+              <div class="name">Explain</div>
+              <div class="desc">Score breakdown detail view</div>
+              <div class="status planned">ROUTED</div>
+            </div>
+            <div class="page-card">
+              <div class="route">/archive</div>
+              <div class="name">Archive</div>
+              <div class="desc">Saved outfit history</div>
+              <div class="status planned">ROUTED</div>
+            </div>
+            <div class="page-card">
+              <div class="route">/onboarding</div>
+              <div class="name">Onboarding</div>
+              <div class="desc">First-run wardrobe setup flow</div>
+              <div class="status planned">ROUTED</div>
+            </div>
+          </div>
+          <div class="design-callout">
+            <div class="label">Design System</div>
+            <p>
+              "Cybersigilism" — brutalist editorial aesthetic with large serif
+              headings, signal-orange accents, monospace labels, and a
+              functional minimal layout. Built on Radix UI primitives with
+              custom Tailwind components.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════ SLIDE 7: Recommendation Engine ════════════════════════════ -->
+      <div class="slide" id="s7">
+        <div class="accent-bar"></div>
+        <div class="slide-header">
+          <div class="label">06</div>
+          <h2>Recommendation Engine</h2>
+          <div class="sep"></div>
+          <div class="num">07 / 12</div>
+        </div>
+        <div class="slide-body">
+          <div class="engine-layout">
+            <div>
+              <div class="pipeline">
+                <div class="pipeline-step">
+                  <div class="step-num">1</div>
+                  <div class="step-content">
+                    <h4>Context Filter</h4>
+                    <p>
+                      Filters garments by weather suitability, temperature
+                      range, season, and occasion. Ensures only appropriate
+                      items reach candidate generation.
+                    </p>
+                  </div>
+                </div>
+                <div class="pipeline-step">
+                  <div class="step-num">2</div>
+                  <div class="step-content">
+                    <h4>Candidate Generation</h4>
+                    <p>
+                      Generates all valid combinations: tops × bottoms × shoes,
+                      optionally layered with outerwear and accessories. Applies
+                      hard constraints (e.g. no shorts in winter).
+                    </p>
+                  </div>
+                </div>
+                <div class="pipeline-step">
+                  <div class="step-num">3</div>
+                  <div class="step-content">
+                    <h4>Score &amp; Rank</h4>
+                    <p>
+                      Scores each candidate 0–100 using 6 weighted factors.
+                      Candidates below 60 are discarded. Top 6 results are
+                      returned, diversity-boosted to avoid repetition.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="scoring-panel">
+              <div class="panel-title">Scoring Breakdown (max 100 pts)</div>
+              <div class="score-bar">
+                <div class="factor">Base score</div>
+                <div class="bar-track">
+                  <div class="bar-fill" style="width: 50%"></div>
+                </div>
+                <div class="pts">50 pts</div>
+              </div>
+              <div class="score-bar">
+                <div class="factor">Color harmony</div>
+                <div class="bar-track">
+                  <div class="bar-fill" style="width: 20%"></div>
+                </div>
+                <div class="pts">+20 pts</div>
+              </div>
+              <div class="score-bar">
+                <div class="factor">Mood alignment</div>
+                <div class="bar-track">
+                  <div class="bar-fill" style="width: 20%"></div>
+                </div>
+                <div class="pts">+20 pts</div>
+              </div>
+              <div class="score-bar">
+                <div class="factor">Style coherence</div>
+                <div class="bar-track">
+                  <div class="bar-fill" style="width: 15%"></div>
+                </div>
+                <div class="pts">+15 pts</div>
+              </div>
+              <div class="score-bar">
+                <div class="factor">Occasion matching</div>
+                <div class="bar-track">
+                  <div class="bar-fill" style="width: 12%"></div>
+                </div>
+                <div class="pts">+12 pts</div>
+              </div>
+              <div class="score-bar">
+                <div class="factor">Versatility</div>
+                <div class="bar-track">
+                  <div class="bar-fill" style="width: 8%"></div>
+                </div>
+                <div class="pts">+8 pts</div>
+              </div>
+              <div class="score-bar">
+                <div class="factor">Diversity bonus</div>
+                <div class="bar-track">
+                  <div class="bar-fill" style="width: 10%"></div>
+                </div>
+                <div class="pts">+5–10</div>
+              </div>
+              <div class="threshold-note">
+                Minimum threshold: <span>60 / 100</span> · Returns up to
+                <span>6 outfits</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════ SLIDE 8: API Layer ════════════════════════════════════════ -->
+      <div class="slide" id="s8">
+        <div class="accent-bar"></div>
+        <div class="slide-header">
+          <div class="label">07</div>
+          <h2>API Layer — tRPC</h2>
+          <div class="sep"></div>
+          <div class="num">08 / 12</div>
+        </div>
+        <div class="slide-body">
+          <div class="api-layout">
+            <div class="endpoint-list">
+              <div
+                style="
+                  font-family: var(--font-mono);
+                  font-size: 10px;
+                  letter-spacing: 3px;
+                  color: var(--orange);
+                  text-transform: uppercase;
+                  margin-bottom: 8px;
+                "
+              >
+                Implemented Endpoints
+              </div>
+              <div class="endpoint">
+                <div class="method">QUERY</div>
+                <div>
+                  <div class="path">recommendations.generate</div>
+                  <div class="edesc">
+                    Generate outfit recommendations from closet + context.
+                    Returns scored &amp; ranked outfits.
+                  </div>
+                </div>
+              </div>
+              <div class="endpoint">
+                <div class="method">QUERY</div>
+                <div>
+                  <div class="path">recommendations.getOutfit</div>
+                  <div class="edesc">
+                    Fetch a single outfit by ID with full score breakdown.
+                  </div>
+                </div>
+              </div>
+              <div class="endpoint">
+                <div class="method">MUTATION</div>
+                <div>
+                  <div class="path">recommendations.logInteraction</div>
+                  <div class="edesc">
+                    Log user feedback (save / skip / wear) for future learning.
+                  </div>
+                </div>
+              </div>
+              <div
+                style="
+                  margin-top: 8px;
+                  font-size: 12px;
+                  color: var(--dim);
+                  font-style: italic;
+                "
+              >
+                All inputs validated with Zod. Type-safe end-to-end — no API
+                contract drift.
+              </div>
+            </div>
+            <div class="code-block">
+              <span class="cm">// recommendations.generate input schema</span>
+              <span class="kw">const</span> GenerateInput = z.object({ mood:
+              z.enum([<span class="str">'energetic'</span>,
+              <span class="str">'calm'</span>, <span class="str">'bold'</span>,
+              ...]), occasion: z.enum([<span class="str">'casual'</span>,
+              <span class="str">'work'</span>,
+              <span class="str">'formal'</span>, ...]), weather: z.object({
+              temp: z.number(), condition: z.string(), season: z.enum([<span
+                class="str"
+                >'spring'</span
+              >, <span class="str">'summer'</span>, ...]), }), limit:
+              z.number().optional().default(<span class="num">6</span>), });
+
+              <span class="cm">// Output: scored outfit candidates</span>
+              <span class="kw">interface</span>
+              <span class="ty">OutfitRecommendation</span> { id:
+              <span class="ty">string</span>; items:
+              <span class="ty">Garment</span>[]; score:
+              <span class="ty">number</span>;
+              <span class="cm">// 0–100</span> breakdown:
+              <span class="ty">ScoreBreakdown</span>; explanation:
+              <span class="ty">string</span>; occasion:
+              <span class="ty">Occasion</span>; }
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════ SLIDE 9: DevOps & Tooling ════════════════════════════════ -->
+      <div class="slide" id="s9">
+        <div class="accent-bar"></div>
+        <div class="slide-header">
+          <div class="label">08</div>
+          <h2>DevOps &amp; Tooling</h2>
+          <div class="sep"></div>
+          <div class="num">09 / 12</div>
+        </div>
+        <div class="slide-body">
+          <div class="devops-grid">
+            <div class="devops-card">
+              <div class="card-title">Docker Configuration</div>
+              <div class="devops-list">
+                <div class="devops-item">
+                  <div class="bullet">▸</div>
+                  Multi-stage production Dockerfile
+                  <div class="sub">base → deps → builder → runner</div>
+                </div>
+                <div class="devops-item">
+                  <div class="bullet">▸</div>
+                  Development image with hot-reload
+                </div>
+                <div class="devops-item">
+                  <div class="bullet">▸</div>
+                  docker-compose.yml — full local stack
+                  <div class="sub">Next.js + PostgreSQL 16</div>
+                </div>
+                <div class="devops-item">
+                  <div class="bullet">▸</div>
+                  docker-compose.prod.yml — prod testing
+                </div>
+                <div class="devops-item">
+                  <div class="bullet">▸</div>
+                  DB health checks &amp; volume mounts
+                </div>
+              </div>
+            </div>
+            <div class="devops-card">
+              <div class="card-title">Scripts</div>
+              <div class="devops-list">
+                <div class="devops-item">
+                  <div class="bullet">▸</div>
+                  start.ps1 / start.sh — auto-startup
+                  <div class="sub">Cross-platform</div>
+                </div>
+                <div class="devops-item">
+                  <div class="bullet">▸</div>
+                  Auto-detects &amp; launches Docker Desktop
+                </div>
+                <div class="devops-item">
+                  <div class="bullet">▸</div>
+                  Creates .env.local if missing
+                </div>
+                <div class="devops-item">
+                  <div class="bullet">▸</div>
+                  Runs npm install if needed
+                </div>
+                <div class="devops-item">
+                  <div class="bullet">▸</div>
+                  stop.ps1 / stop.sh — clean shutdown
+                </div>
+              </div>
+            </div>
+            <div class="devops-card">
+              <div class="card-title">Code Quality Pipeline</div>
+              <div class="devops-list">
+                <div class="devops-item">
+                  <div class="bullet">▸</div>
+                  ESLint with TypeScript rules
+                </div>
+                <div class="devops-item">
+                  <div class="bullet">▸</div>
+                  Prettier for formatting
+                </div>
+                <div class="devops-item">
+                  <div class="bullet">▸</div>
+                  Husky — pre-commit hooks
+                </div>
+                <div class="devops-item">
+                  <div class="bullet">▸</div>
+                  lint-staged — staged file checks
+                </div>
+                <div class="devops-item">
+                  <div class="bullet">▸</div>
+                  npm run ci — full pipeline
+                  <div class="sub">
+                    format → lint → typecheck → test → build
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="devops-card">
+              <div class="card-title">Testing &amp; Types</div>
+              <div class="devops-list">
+                <div class="devops-item">
+                  <div class="bullet">▸</div>
+                  Vitest test runner
+                  <div class="sub">npm run test / test:watch</div>
+                </div>
+                <div class="devops-item">
+                  <div class="bullet">▸</div>
+                  TypeScript strict mode
+                </div>
+                <div class="devops-item">
+                  <div class="bullet">▸</div>
+                  Shared types in /shared/types/
+                </div>
+                <div class="devops-item">
+                  <div class="bullet">▸</div>
+                  Zod for runtime validation
+                </div>
+                <div class="devops-item">
+                  <div class="bullet">▸</div>
+                  Prisma schema validation scripts
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════ SLIDE 10: Documentation ═══════════════════════════════════ -->
+      <div class="slide" id="s10">
+        <div class="accent-bar"></div>
+        <div class="slide-header">
+          <div class="label">09</div>
+          <h2>Documentation Suite</h2>
+          <div class="sep"></div>
+          <div class="num">10 / 12</div>
+        </div>
+        <div class="slide-body">
+          <div class="docs-grid">
+            <div class="doc-card">
+              <div class="doc-icon">§</div>
+              <div class="doc-name">OutfAI_PRD.md</div>
+              <div class="doc-desc">
+                Product requirements document. Goals, non-goals, user personas,
+                success metrics, and feature scope.
+              </div>
+            </div>
+            <div class="doc-card">
+              <div class="doc-icon">⌥</div>
+              <div class="doc-name">OutfAI_Architecture.md</div>
+              <div class="doc-desc">
+                System architecture decisions, layer responsibilities, data
+                flow, and key trade-offs.
+              </div>
+            </div>
+            <div class="doc-card">
+              <div class="doc-icon">◫</div>
+              <div class="doc-name">OutfAI_Database_Design.md</div>
+              <div class="doc-desc">
+                Full schema: users, garments, garment_tags, outfits,
+                outfit_items, recommendation_logs.
+              </div>
+            </div>
+            <div class="doc-card">
+              <div class="doc-icon">↯</div>
+              <div class="doc-name">OUTFIT_RECOMMENDATION_ENGINE.md</div>
+              <div class="doc-desc">
+                Algorithm deep-dive, scoring factor documentation, API examples,
+                and customization guide.
+              </div>
+            </div>
+            <div class="doc-card">
+              <div class="doc-icon">⊞</div>
+              <div class="doc-name">implementation-plan.md</div>
+              <div class="doc-desc">
+                5-phase MVP roadmap with acceptance criteria, time estimates,
+                and dependencies per phase.
+              </div>
+            </div>
+            <div class="doc-card">
+              <div class="doc-icon">✦</div>
+              <div class="doc-name">mvp-features.md</div>
+              <div class="doc-desc">
+                Feature priority matrix (P0/P1/P2) and a 3-minute demo script
+                for stakeholder walkthroughs.
+              </div>
+            </div>
+          </div>
+          <div style="margin-top: 16px; display: flex; gap: 12px">
+            <div
+              style="
+                flex: 1;
+                background: var(--grey);
+                border: 1px solid var(--border);
+                padding: 14px 18px;
+                font-size: 12px;
+                color: var(--dim);
+                line-height: 1.6;
+              "
+            >
+              <span
+                style="
+                  color: var(--orange);
+                  font-family: var(--font-mono);
+                  font-size: 10px;
+                  letter-spacing: 2px;
+                "
+                >ALSO INCLUDED</span
+              ><br />
+              cicd.md &amp; cicd-continuation.md — CI/CD pipeline setup ·
+              OutfAI_Project_Structure.md — monorepo layout rationale ·
+              supabase-structure.md — auto-generated DB docs · commit-plan.md —
+              git strategy
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════ SLIDE 11: Roadmap ══════════════════════════════════════════ -->
+      <div class="slide" id="s11">
+        <div class="accent-bar"></div>
+        <div class="slide-header">
+          <div class="label">10</div>
+          <h2>Development Roadmap</h2>
+          <div class="sep"></div>
+          <div class="num">11 / 12</div>
+        </div>
+        <div class="slide-body">
+          <div class="roadmap">
+            <div class="phase">
+              <div class="phase-header">
+                <div class="phase-num">Phase 0</div>
+                <h4>Foundation</h4>
+              </div>
+              <div class="phase-body">
+                <div class="phase-item done">
+                  <div class="check">✓</div>
+                  Monorepo structure
+                </div>
+                <div class="phase-item done">
+                  <div class="check">✓</div>
+                  Next.js 15 setup
+                </div>
+                <div class="phase-item done">
+                  <div class="check">✓</div>
+                  tRPC API layer
+                </div>
+                <div class="phase-item done">
+                  <div class="check">✓</div>
+                  Shared TypeScript types
+                </div>
+                <div class="phase-item done">
+                  <div class="check">✓</div>
+                  Docker dev environment
+                </div>
+                <div class="phase-item current">
+                  <div class="circle">◉</div>
+                  Prisma schema
+                </div>
+                <div class="phase-item current">
+                  <div class="circle">◉</div>
+                  Supabase Auth
+                </div>
+              </div>
+              <div class="phase-badge done-badge">◉ In Progress</div>
+            </div>
+            <div class="phase active">
+              <div class="phase-header">
+                <div class="phase-num">Phase 1</div>
+                <h4>Vertical Slice</h4>
+              </div>
+              <div class="phase-body">
+                <div class="phase-item todo">
+                  <div class="dash">—</div>
+                  User sign up / login
+                </div>
+                <div class="phase-item todo">
+                  <div class="dash">—</div>
+                  Upload first garment
+                </div>
+                <div class="phase-item todo">
+                  <div class="dash">—</div>
+                  Image stored in Supabase
+                </div>
+                <div class="phase-item todo">
+                  <div class="dash">—</div>
+                  Generate first outfit
+                </div>
+                <div class="phase-item todo">
+                  <div class="dash">—</div>
+                  End-to-end flow works
+                </div>
+              </div>
+              <div class="phase-badge active-badge">→ Up Next</div>
+            </div>
+            <div class="phase">
+              <div class="phase-header">
+                <div class="phase-num">Phase 2</div>
+                <h4>Core Closet</h4>
+              </div>
+              <div class="phase-body">
+                <div class="phase-item todo">
+                  <div class="dash">—</div>
+                  Full garment CRUD
+                </div>
+                <div class="phase-item todo">
+                  <div class="dash">—</div>
+                  Image upload flow
+                </div>
+                <div class="phase-item todo">
+                  <div class="dash">—</div>
+                  Tagging system
+                </div>
+                <div class="phase-item todo">
+                  <div class="dash">—</div>
+                  Category filters
+                </div>
+                <div class="phase-item todo">
+                  <div class="dash">—</div>
+                  Closet persistence
+                </div>
+              </div>
+              <div class="phase-badge planned-badge">— Planned</div>
+            </div>
+            <div class="phase">
+              <div class="phase-header">
+                <div class="phase-num">Phase 3</div>
+                <h4>Recommendations</h4>
+              </div>
+              <div class="phase-body">
+                <div class="phase-item todo">
+                  <div class="dash">—</div>
+                  Mood UI connected
+                </div>
+                <div class="phase-item todo">
+                  <div class="dash">—</div>
+                  Live weather API
+                </div>
+                <div class="phase-item todo">
+                  <div class="dash">—</div>
+                  Outfit persistence
+                </div>
+                <div class="phase-item todo">
+                  <div class="dash">—</div>
+                  Save / skip actions
+                </div>
+                <div class="phase-item todo">
+                  <div class="dash">—</div>
+                  Score display UI
+                </div>
+              </div>
+              <div class="phase-badge planned-badge">— Planned</div>
+            </div>
+            <div class="phase">
+              <div class="phase-header">
+                <div class="phase-num">Phase 4</div>
+                <h4>Polish</h4>
+              </div>
+              <div class="phase-body">
+                <div class="phase-item todo">
+                  <div class="dash">—</div>
+                  Onboarding flow
+                </div>
+                <div class="phase-item todo">
+                  <div class="dash">—</div>
+                  Loading states
+                </div>
+                <div class="phase-item todo">
+                  <div class="dash">—</div>
+                  Mobile responsiveness
+                </div>
+                <div class="phase-item todo">
+                  <div class="dash">—</div>
+                  Seed data &amp; demo mode
+                </div>
+                <div class="phase-item todo">
+                  <div class="dash">—</div>
+                  Error boundaries
+                </div>
+              </div>
+              <div class="phase-badge planned-badge">— Planned</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════ SLIDE 12: Summary ══════════════════════════════════════════ -->
+      <div class="slide" id="s12">
+        <div class="accent-bar"></div>
+        <div
+          class="slide-body"
+          style="
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 52px 80px;
+          "
+        >
+          <div class="summary-kicker">Where We Stand · Feb 2026</div>
+          <h2>Solid foundation.<br />Clear path forward.</h2>
+          <div class="summary-stats">
+            <div class="sum-stat">
+              <div class="val">8</div>
+              <div class="lbl">Pages Built</div>
+            </div>
+            <div class="sum-stat">
+              <div class="val">3</div>
+              <div class="lbl">tRPC Endpoints</div>
+            </div>
+            <div class="sum-stat">
+              <div class="val">6</div>
+              <div class="lbl">Scoring Factors</div>
+            </div>
+            <div class="sum-stat">
+              <div class="val">8</div>
+              <div class="lbl">Docs Written</div>
+            </div>
+            <div class="sum-stat">
+              <div class="val">100</div>
+              <div class="lbl">Score Max Points</div>
+            </div>
+          </div>
+          <div class="next-label">Immediate Next Steps</div>
+          <div class="next-items">
+            <div class="next-item">Set up Prisma schema + Supabase</div>
+            <div class="next-item">Connect auth to tRPC context</div>
+            <div class="next-item">Implement garment upload (image + form)</div>
+            <div class="next-item">Wire real closet data to engine</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- /#deck -->
+
+    <!-- Navigation -->
+    <div id="nav">
+      <button id="prev" onclick="go(-1)" disabled>&#8592;</button>
+      <div class="dot-nav" id="dots"></div>
+      <span id="counter">1 / 12</span>
+      <button id="next" onclick="go(1)">&#8594;</button>
+    </div>
+    <div id="progress-bar"></div>
+    <div id="hint">
+      <a
+        href="../../index.html"
+        style="color: var(--orange); text-decoration: none; margin-right: 12px"
+        >← Presentations</a
+      >
+      <kbd>←</kbd> <kbd>→</kbd> to navigate
+    </div>
+
+    <script>
+      const TOTAL = 12;
+      let cur = 0;
+
+      // Scale deck to viewport
+      function scaleToFit() {
+        const scaleX = window.innerWidth / 1280;
+        const scaleY = window.innerHeight / 720;
+        document
+          .getElementById("deck")
+          .style.setProperty("--scale", Math.min(scaleX, scaleY));
+      }
+      window.addEventListener("resize", scaleToFit);
+      scaleToFit();
+
+      // Build dots
+      const dotsEl = document.getElementById("dots");
+      for (let i = 0; i < TOTAL; i++) {
+        const d = document.createElement("div");
+        d.className = "d" + (i === 0 ? " active" : "");
+        d.onclick = () => goto(i);
+        dotsEl.appendChild(d);
+      }
+
+      function goto(n) {
+        document.querySelectorAll(".slide")[cur].classList.remove("active");
+        document.querySelectorAll(".d")[cur].classList.remove("active");
+        cur = Math.max(0, Math.min(TOTAL - 1, n));
+        document.querySelectorAll(".slide")[cur].classList.add("active");
+        document.querySelectorAll(".d")[cur].classList.add("active");
+        document.getElementById("counter").textContent =
+          cur + 1 + " / " + TOTAL;
+        document.getElementById("prev").disabled = cur === 0;
+        document.getElementById("next").disabled = cur === TOTAL - 1;
+        document.getElementById("progress-bar").style.width =
+          ((cur + 1) / TOTAL) * 100 + "%";
+      }
+
+      function go(dir) {
+        goto(cur + dir);
+      }
+
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "ArrowRight" || e.key === "ArrowDown" || e.key === " ")
+          go(1);
+        if (e.key === "ArrowLeft" || e.key === "ArrowUp") go(-1);
+        if (e.key === "Home") goto(0);
+        if (e.key === "End") goto(TOTAL - 1);
+      });
+
+      // Touch support
+      let tx = 0;
+      document.addEventListener(
+        "touchstart",
+        (e) => (tx = e.touches[0].clientX),
+        { passive: true }
+      );
+      document.addEventListener(
+        "touchend",
+        (e) => {
+          const dx = tx - e.changedTouches[0].clientX;
+          if (Math.abs(dx) > 50) go(dx > 0 ? 1 : -1);
+        },
+        { passive: true }
+      );
+
+      // Init progress bar
+      document.getElementById("progress-bar").style.width =
+        (1 / TOTAL) * 100 + "%";
+    </script>
+  </body>
+</html>
