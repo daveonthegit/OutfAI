@@ -199,6 +199,7 @@ export default function Home() {
   const [mood, setMood] = useState<any>("bold");
   const [weather, setWeather] = useState<any>("cloudy");
   const [temperature] = useState(12);
+  const [allRecommendedOutfits, setAllRecommendedOutfits] = useState<any[]>([]);
   const [recommendedOutfit, setRecommendedOutfit] = useState<any[]>([]);
 
   const { outfits, loading, generate } = useOutfitRecommendations({
@@ -206,7 +207,8 @@ export default function Home() {
     mood,
     weather,
     temperature,
-    limitCount: 6,
+    // Fetch a larger pool of high-quality outfits; we'll show 6 at a time
+    limitCount: 30,
   });
 
   // Generate recommendations on mount
@@ -219,7 +221,8 @@ export default function Home() {
         mood,
         weather,
         temperature,
-        limitCount: 6,
+        // Fetch a larger pool of high-quality outfits
+        limitCount: 30,
       });
     };
 
@@ -255,22 +258,43 @@ export default function Home() {
           .filter(Boolean),
         explanation: outfit.explanation,
       }));
-      setRecommendedOutfit(convertedOutfits);
+      // Store full pool and show top 6 by default
+      setAllRecommendedOutfits(convertedOutfits);
+      setRecommendedOutfit(convertedOutfits.slice(0, 6));
     }
   }, [outfits]);
 
-  const handleShuffle = async () => {
+  const handleShuffle = () => {
     setIsShuffling(true);
     setTimeout(() => setIsShuffling(false), 150);
 
-    // Regenerate with same settings
-    const garments = closetItemsToGarments(CLOSET_ITEMS, "default-user");
-    await generate({
-      garments,
-      mood,
-      weather,
-      temperature,
-      limitCount: 6,
+    // Pick a random 6 from the full pool that already passed the threshold
+    setRecommendedOutfit(() => {
+      if (!allRecommendedOutfits || allRecommendedOutfits.length === 0) {
+        return allRecommendedOutfits;
+      }
+
+      // If 6 or fewer, just shuffle them
+      if (allRecommendedOutfits.length <= 6) {
+        const shuffled = [...allRecommendedOutfits];
+        for (let i = shuffled.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        }
+        return shuffled;
+      }
+
+      // Otherwise sample 6 unique random outfits from the pool
+      const indices = Array.from(
+        { length: allRecommendedOutfits.length },
+        (_, i) => i
+      );
+      for (let i = indices.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [indices[i], indices[j]] = [indices[j], indices[i]];
+      }
+      const selected = indices.slice(0, 6).map((idx) => allRecommendedOutfits[idx]);
+      return selected;
     });
   };
 
