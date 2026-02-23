@@ -4,13 +4,13 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 
-type Category = "all" | "top" | "bottom" | "shoes" | "outerwear";
+type Category = "all" | "top" | "bottom" | "shoes" | "outerwear" | "accessory";
 
 interface Garment {
   id: string;
   src: string;
   name: string;
-  category: "top" | "bottom" | "shoes" | "outerwear";
+  category: "top" | "bottom" | "shoes" | "outerwear" | "accessory";
   color: string;
 }
 
@@ -99,6 +99,34 @@ const CLOSET_ITEMS: Garment[] = [
     category: "shoes",
     color: "Brown",
   },
+  {
+    id: "13",
+    src: "/garments/belt.png",
+    name: "Leather belt",
+    category: "accessory",
+    color: "Black",
+  },
+  {
+    id: "14",
+    src: "/garments/tote.png",
+    name: "Leather tote",
+    category: "accessory",
+    color: "Black",
+  },
+  {
+    id: "15",
+    src: "/garments/cap.png",
+    name: "Baseball cap",
+    category: "accessory",
+    color: "Beige",
+  },
+  {
+    id: "16",
+    src: "/garments/necklace.png",
+    name: "Heart necklace",
+    category: "accessory",
+    color: "Gold",
+  },
 ];
 
 const CATEGORIES: { key: Category; label: string }[] = [
@@ -107,6 +135,7 @@ const CATEGORIES: { key: Category; label: string }[] = [
   { key: "bottom", label: "Bottom" },
   { key: "shoes", label: "Shoes" },
   { key: "outerwear", label: "Outerwear" },
+  { key: "accessory", label: "Accessory" },
 ];
 
 export default function ClosetPage() {
