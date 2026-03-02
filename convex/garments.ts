@@ -2,6 +2,15 @@ import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { getAuthUser } from "./auth";
 
+export const generateUploadUrl = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const user = await getAuthUser(ctx);
+    if (!user) throw new Error("Unauthorized");
+    return await ctx.storage.generateUploadUrl();
+  },
+});
+
 export const list = query({
   args: {},
   handler: async (ctx) => {
@@ -28,13 +37,19 @@ export const create = mutation({
     material: v.optional(v.string()),
     season: v.optional(v.string()),
     imageUrl: v.optional(v.string()),
+    storageId: v.optional(v.id("_storage")),
   },
-  handler: async (ctx, args) => {
+  handler: async (ctx, { storageId, ...args }) => {
     const user = await getAuthUser(ctx);
     if (!user) throw new Error("Unauthorized");
+    let imageUrl = args.imageUrl;
+    if (storageId) {
+      imageUrl = (await ctx.storage.getUrl(storageId)) ?? undefined;
+    }
     return ctx.db.insert("garments", {
       userId: user._id,
       ...args,
+      imageUrl,
     });
   },
 });

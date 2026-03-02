@@ -1,11 +1,11 @@
 // Shared types — used by apps/web and server to prevent type drift
 
 export type GarmentCategory =
-  | "tops"
-  | "bottoms"
+  | "top"
+  | "bottom"
   | "shoes"
   | "outerwear"
-  | "accessories";
+  | "accessory";
 
 export type Season = "spring" | "summer" | "fall" | "winter" | "all-season";
 
@@ -23,6 +23,7 @@ export type WeatherCondition =
   | "cloudy"
   | "rainy"
   | "snowy"
+  | "foggy"
   | "windy"
   | "hot"
   | "cold";
@@ -35,9 +36,15 @@ export interface Garment {
   primaryColor: string;
   secondaryColor?: string;
   material?: string;
-  season: Season;
+  season?: Season;
   imageUrl?: string;
+  imageOriginalUrl?: string;
   tags: string[];
+  style?: string[];
+  fit?: string;
+  occasion?: string[];
+  versatility?: "high" | "medium" | "low";
+  vibrancy?: "muted" | "balanced" | "vibrant";
   createdAt: Date;
 }
 

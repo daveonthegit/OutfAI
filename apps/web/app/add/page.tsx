@@ -8,6 +8,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMutation } from "convex/react";
 import { api } from "@convex/_generated/api";
+import type { Id } from "@convex/_generated/dataModel";
 import { useRequireAuth } from "@/hooks/use-require-auth";
 import { UserAvatar } from "@/components/user-avatar";
 
@@ -61,6 +62,10 @@ const VERSATILITY_OPTIONS = ["high", "medium", "low"] as const;
 
 const VIBRANCY_OPTIONS = ["muted", "balanced", "vibrant"] as const;
 
+const MAX_FILE_BYTES = 10 * 1024 * 1024; // 10 MB hard limit before compression
+const TARGET_DIMENSION = 2160; // px on longest side — downscale only, always re-encode
+const JPEG_QUALITY = 0.82;
+
 function fileToBase64(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -74,10 +79,54 @@ function fileToBase64(file: File): Promise<string> {
   });
 }
 
+function compressImage(file: File): Promise<File> {
+  return new Promise((resolve, reject) => {
+    const img = new window.Image();
+    const objectUrl = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(objectUrl);
+      let { width, height } = img;
+      const longest = Math.max(width, height);
+      if (longest > TARGET_DIMENSION) {
+        const scale = TARGET_DIMENSION / longest;
+        width = Math.round(width * scale);
+        height = Math.round(height * scale);
+      }
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) {
+        resolve(file);
+        return;
+      }
+      ctx.drawImage(img, 0, 0, width, height);
+      canvas.toBlob(
+        (blob) => {
+          if (!blob) {
+            resolve(file);
+            return;
+          }
+          resolve(
+            new File([blob], file.name.replace(/\.[^.]+$/, ".jpg"), {
+              type: "image/jpeg",
+            })
+          );
+        },
+        "image/jpeg",
+        JPEG_QUALITY
+      );
+    };
+    img.onerror = reject;
+    img.src = objectUrl;
+  });
+}
+
 export default function AddGarmentPage() {
   useRequireAuth("/add");
   const router = useRouter();
   const createGarment = useMutation(api.garments.create);
+  const generateUploadUrl = useMutation(api.garments.generateUploadUrl);
 
   const [dragActive, setDragActive] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -155,13 +204,19 @@ export default function AddGarmentPage() {
     }
   };
 
-  const handleFile = (file: File) => {
-    if (file.type.startsWith("image/")) {
-      const url = URL.createObjectURL(file);
-      setPreviewUrl(url);
-      setSelectedFile(file);
-      setAnalyzeError(null);
+  const handleFile = async (file: File) => {
+    if (!file.type.startsWith("image/")) return;
+    if (file.size > MAX_FILE_BYTES) {
+      setAnalyzeError(
+        `Image is too large (${(file.size / 1024 / 1024).toFixed(1)} MB). Maximum is 10 MB.`
+      );
+      return;
     }
+    const compressed = await compressImage(file);
+    const url = URL.createObjectURL(compressed);
+    setPreviewUrl(url);
+    setSelectedFile(compressed);
+    setAnalyzeError(null);
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -189,6 +244,20 @@ export default function AddGarmentPage() {
     setSaving(true);
     setSaveError(null);
     try {
+      let storageId: Id<"_storage"> | undefined;
+      if (selectedFile) {
+        const uploadUrl = await generateUploadUrl();
+        const uploadRes = await fetch(uploadUrl, {
+          method: "POST",
+          headers: { "Content-Type": selectedFile.type },
+          body: selectedFile,
+        });
+        if (!uploadRes.ok) {
+          throw new Error(`Image upload failed (${uploadRes.status})`);
+        }
+        const { storageId: id } = await uploadRes.json();
+        storageId = id as Id<"_storage">;
+      }
       await createGarment({
         name: garmentName || `${selectedColor} ${selectedCategory}`,
         category: selectedCategory,
@@ -199,6 +268,7 @@ export default function AddGarmentPage() {
         occasion: selectedOccasions.length > 0 ? selectedOccasions : undefined,
         versatility: selectedVersatility ?? undefined,
         vibrancy: selectedVibrancy ?? undefined,
+        storageId,
       });
       router.push("/closet");
     } catch (err) {

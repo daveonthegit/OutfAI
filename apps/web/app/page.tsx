@@ -34,17 +34,31 @@ function codeToWeatherLabel(
 
 export default function Home() {
   const currentUser = useRequireAuth("/");
-  const convexGarments = useQuery(api.garments.list) ?? [];
+  // Keep the raw value so we can tell "loading" (undefined) from "empty" ([])
+  const convexGarmentsRaw = useQuery(api.garments.list);
+  const convexGarments = convexGarmentsRaw ?? [];
 
   const [isShuffling, setIsShuffling] = useState(false);
   const [mood, setMood] = useState<any>("bold");
   const [weather, setWeather] = useState<any>(null);
-  const [temperature, setTemperature] = useState<number | null>(null);
+  // Always store temperature in Celsius internally so the recommendation engine's
+  // thresholds (< 10 °C = cold, > 25 °C = hot) are always in the right unit.
+  const [temperatureCelsius, setTemperatureCelsius] = useState<number | null>(
+    null
+  );
   const [locationError, setLocationError] = useState<string | null>(null);
   const [allRecommendedOutfits, setAllRecommendedOutfits] = useState<any[]>([]);
   const [recommendedOutfit, setRecommendedOutfit] = useState<any[]>([]);
   const [tempUnit, setTempUnit] = useState<"F" | "C">("F");
   const [lastFetched, setLastFetched] = useState<string | null>(null);
+
+  // Derive the display value from Celsius; no extra API call needed on unit switch.
+  const displayTemp =
+    temperatureCelsius === null
+      ? null
+      : tempUnit === "F"
+        ? Math.round(temperatureCelsius * (9 / 5) + 32)
+        : temperatureCelsius;
 
   const userId = currentUser?._id ?? "default-user";
   const saveOutfit = useMutation(api.outfits.save);
@@ -56,11 +70,12 @@ export default function Home() {
     userId,
     mood,
     weather: weather ?? "cloudy",
-    temperature: temperature ?? 12,
-    // Fetch a larger pool of high-quality outfits; we'll show 6 at a time
+    temperature: temperatureCelsius ?? 15, // always Celsius for the engine
     limitCount: 30,
   });
 
+  // Fetch weather once on mount. Open-Meteo returns Celsius by default which
+  // is what the recommendation engine expects. The unit toggle converts for display.
   useEffect(() => {
     if (!navigator.geolocation) {
       setLocationError("Geolocation is not supported by this browser.");
@@ -72,13 +87,12 @@ export default function Home() {
         try {
           const { latitude, longitude } = coords;
 
+          // No temperature_unit param → Open-Meteo defaults to Celsius
           const url =
             `https://api.open-meteo.com/v1/forecast` +
             `?latitude=${latitude}&longitude=${longitude}` +
-            `&current=temperature_2m,weather_code` +
-            `&temperature_unit=${tempUnit === "F" ? "fahrenheit" : "celsius"}`;
+            `&current=temperature_2m,weather_code`;
 
-          console.log("Weather API URL:", url);
           const res = await fetch(url);
           if (!res.ok)
             throw new Error(`Weather request failed (${res.status})`);
@@ -89,7 +103,7 @@ export default function Home() {
 
           setLastFetched(new Date().toISOString());
 
-          if (typeof temp === "number") setTemperature(Math.round(temp));
+          if (typeof temp === "number") setTemperatureCelsius(Math.round(temp));
           if (typeof code === "number") setWeather(codeToWeatherLabel(code));
 
           setLocationError(null);
@@ -101,7 +115,7 @@ export default function Home() {
         setLocationError(err.message || "Location permission denied.");
       }
     );
-  }, [tempUnit]);
+  }, []); // Run once on mount — unit toggle just converts displayTemp client-side
 
   // Seed the closet with mock items on the user's first visit (empty closet).
   useEffect(() => {
@@ -111,21 +125,35 @@ export default function Home() {
     seedDevCloset().catch(console.error);
   }, [currentUser, convexGarments.length, seeded]);
 
-  // Generate recommendations on mount
+  // Generate recommendations whenever mood, weather, or the garment list changes.
+  // Wait until garments have actually loaded (undefined = still loading) so we
+  // don't fire with an empty list and fall back to mock data unnecessarily.
   useEffect(() => {
+    if (convexGarmentsRaw === undefined) return; // still loading from Convex
+
     const generateRecommendations = async () => {
-      // Use real Convex garments if available, otherwise fall back to mock data
       const garments =
         convexGarments.length > 0
           ? convexGarments.map((g) => ({
               id: g._id,
               userId,
               name: g.name,
-              category: g.category as "top" | "bottom" | "shoes" | "outerwear",
+              category: g.category as
+                | "top"
+                | "bottom"
+                | "shoes"
+                | "outerwear"
+                | "accessory",
               primaryColor: g.primaryColor,
               secondaryColor: undefined,
               material: g.material,
-              season: g.season,
+              season: g.season as
+                | "spring"
+                | "summer"
+                | "fall"
+                | "winter"
+                | "all-season"
+                | undefined,
               tags: g.tags,
               style: g.style,
               fit: g.fit,
@@ -143,43 +171,45 @@ export default function Home() {
               imageOriginalUrl: g.imageUrl,
               createdAt: new Date(g._creationTime),
             }))
-          : MOCK_CLOSET_ITEMS.filter((g) => g.category !== "accessory").map(
-              (g, i) => ({
-                id: `mock-${i}`,
-                userId,
-                name: g.name,
-                category: g.category as
-                  | "top"
-                  | "bottom"
-                  | "shoes"
-                  | "outerwear",
-                primaryColor: g.primaryColor,
-                secondaryColor: undefined,
-                material: undefined,
-                season: "all-season" as const,
-                tags: g.tags,
-                style: g.style,
-                fit: g.fit,
-                occasion: g.occasion,
-                versatility: g.versatility,
-                vibrancy: g.vibrancy,
-                imageOriginalUrl: g.imageUrl,
-                createdAt: new Date(),
-              })
-            );
+          : MOCK_CLOSET_ITEMS.map((g, i) => ({
+              id: `mock-${i}`,
+              userId,
+              name: g.name,
+              category: g.category as
+                | "top"
+                | "bottom"
+                | "shoes"
+                | "outerwear"
+                | "accessory",
+              primaryColor: g.primaryColor,
+              secondaryColor: undefined,
+              material: undefined,
+              season: "all-season" as const,
+              tags: g.tags,
+              style: g.style,
+              fit: g.fit,
+              occasion: g.occasion,
+              versatility: g.versatility,
+              vibrancy: g.vibrancy,
+              imageOriginalUrl: g.imageUrl,
+              createdAt: new Date(),
+            }));
 
       await generate({
         garments,
         mood,
         weather: weather ?? "cloudy",
-        temperature: temperature ?? 12,
-        // Fetch a larger pool of high-quality outfits
+        temperature: temperatureCelsius ?? 15, // always Celsius for the engine
         limitCount: 30,
       });
     };
 
     generateRecommendations();
-  }, [mood, weather]);
+    // Re-run when mood, weather, or temperature changes, or when garment count changes.
+    // convexGarmentsRaw is intentionally omitted — it changes reference on every
+    // Convex subscription tick. We only care about the count (a stable number) and use
+    // convexGarmentsRaw purely as a loading guard via closure.
+  }, [mood, weather, temperatureCelsius, convexGarments.length]);
 
   // Update displayed outfit when recommendations change
   useEffect(() => {
@@ -285,7 +315,7 @@ export default function Home() {
               ) : (
                 <>
                   <span className="text-foreground/80">
-                    {temperature === null ? "--" : temperature}°{tempUnit}
+                    {displayTemp === null ? "--" : displayTemp}°{tempUnit}
                   </span>
                   <span className="opacity-40">·</span>
                   <span className="text-foreground/80">
@@ -299,7 +329,11 @@ export default function Home() {
                             ? "Rainy"
                             : weather === "snowy"
                               ? "Snowy"
-                              : "Foggy"}
+                              : weather === "foggy"
+                                ? "Foggy"
+                                : weather === "windy"
+                                  ? "Windy"
+                                  : "Cloudy"}
                   </span>
                   {lastFetched && (
                     <>
@@ -427,7 +461,7 @@ export default function Home() {
                 garmentIds,
                 contextMood: mood,
                 contextWeather: weather ?? undefined,
-                contextTemperature: temperature ?? undefined,
+                contextTemperature: temperatureCelsius ?? undefined,
                 explanation: first.explanation,
               });
               setSavedOutfitId(id);

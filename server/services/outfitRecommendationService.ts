@@ -140,67 +140,76 @@ export class OutfitRecommendationService {
   }
 
   /**
-   * Check if garment season is appropriate for weather
+   * Check if garment season is appropriate for weather.
+   * Garments with no season set (undefined / null / empty) are treated as
+   * all-season so they are never incorrectly filtered out.
    */
   private static isSeasonAppropriate(
-    garmentSeason: string,
+    garmentSeason: string | undefined | null,
     weather: WeatherCondition,
     temperature?: number
   ): boolean {
-    if (garmentSeason === "all-season") return true;
+    // No season info → assume all-season (includes newly-added Convex garments)
+    if (!garmentSeason || garmentSeason === "all-season") return true;
 
     const weatherSeasonMap: Record<WeatherCondition, string[]> = {
       sunny: ["spring", "summer", "all-season"],
       cloudy: ["spring", "summer", "fall", "all-season"],
       rainy: ["spring", "fall", "winter", "all-season"],
       snowy: ["winter", "all-season"],
+      foggy: ["spring", "fall", "winter", "all-season"],
       windy: ["fall", "winter", "all-season"],
       hot: ["summer", "all-season"],
       cold: ["winter", "all-season"],
     };
 
-    return weatherSeasonMap[weather]?.includes(garmentSeason) || false;
+    return weatherSeasonMap[weather]?.includes(garmentSeason) ?? true;
   }
 
   /**
-   * Check if garment is appropriate for temperature
+   * Check if garment is appropriate for temperature.
+   * Garments with no material info are assumed suitable at any temperature —
+   * we don't want to filter out the whole closet just because material is unset.
    */
   private static isTemperatureAppropriate(
     garment: Garment,
     temperature: number
   ): boolean {
-    const material = garment.material?.toLowerCase() || "";
+    const material = garment.material?.toLowerCase() ?? "";
     const category = garment.category;
 
-    // Hot weather (>25°C)
+    // Hot weather (>25°C): skip heavy outerwear and known heavy materials
     if (temperature > 25) {
-      const hotWeatherMaterials = [
-        "cotton",
-        "linen",
-        "silk",
-        "rayon",
-        "polyester",
-      ];
       if (
         category === "outerwear" ||
-        material.includes("wool") ||
-        material.includes("fleece")
+        (material && (material.includes("wool") || material.includes("fleece")))
       ) {
         return false;
       }
       return true;
     }
 
-    // Cold weather (<10°C)
+    // Cold weather (<10°C): prefer warm materials / outerwear, but only
+    // exclude a garment if we *know* it has a summer-only material.
     if (temperature < 10) {
       const coldWeatherMaterials = ["wool", "fleece", "down", "synthetic"];
-      const isColdAppropriate =
+      // If material is known and warm, or it's outerwear → keep
+      if (
         coldWeatherMaterials.some((m) => material.includes(m)) ||
-        category === "outerwear";
-      return isColdAppropriate;
+        category === "outerwear"
+      ) {
+        return true;
+      }
+      // If material is known and explicitly summery → exclude
+      const summerMaterials = ["linen", "silk", "rayon"];
+      if (material && summerMaterials.some((m) => material.includes(m))) {
+        return false;
+      }
+      // No material info → don't exclude (benefit of the doubt)
+      return true;
     }
 
-    // Mild weather
+    // Mild weather (10–25°C): everything is fine
     return true;
   }
 
@@ -216,9 +225,9 @@ export class OutfitRecommendationService {
     // Group garments by category
     const categories = this.groupByCategory(garments);
 
-    // Ensure we have at least one top and bottom
-    const tops = categories.get("tops") || [];
-    const bottoms = categories.get("bottoms") || [];
+    // Singular category keys matching the Convex schema
+    const tops = categories.get("top") || [];
+    const bottoms = categories.get("bottom") || [];
     const shoes = categories.get("shoes") || [];
 
     if (tops.length === 0 || bottoms.length === 0) {
@@ -252,8 +261,8 @@ export class OutfitRecommendationService {
           });
         }
 
-        // Add optional accessories
-        const accessories = categories.get("accessories") || [];
+        // Add optional accessories (singular "accessory" to match Convex schema)
+        const accessories = categories.get("accessory") || [];
         for (const accessory of accessories.slice(0, 2)) {
           const garmentIds = [top.id, bottom.id];
           if (shoes.length > 0) {
@@ -342,52 +351,54 @@ export class OutfitRecommendationService {
   }
 
   /**
-   * Score style coherence - how well garment styles match each other
+   * Score style coherence - how well garment styles match each other.
+   * Prefers the dedicated `style` array field; falls back to tag scanning.
    */
   private static scoreStyleCoherence(garments: Garment[]): number {
     if (garments.length < 2) return 0;
 
-    const extractStyles = (tags: string[]): string[] => {
-      const styleKeywords = [
-        "minimalist",
-        "bold",
-        "classic",
-        "trendy",
-        "avant-garde",
-        "casual",
-      ];
-      return tags.filter((tag) =>
-        styleKeywords.some((keyword) => tag.includes(keyword))
+    const styleKeywords = [
+      "minimalist",
+      "bold",
+      "classic",
+      "trendy",
+      "avant-garde",
+      "casual",
+    ];
+
+    const extractStyles = (g: Garment): string[] => {
+      // Prefer the dedicated `style` field (Convex schema)
+      if (g.style && g.style.length > 0)
+        return g.style.map((s) => s.toLowerCase());
+      // Fall back to scanning tags for style keywords
+      return g.tags.filter((tag) =>
+        styleKeywords.some((keyword) => tag.toLowerCase().includes(keyword))
       );
     };
 
-    const allStyles = garments.flatMap((g) => extractStyles(g.tags));
+    const allStyles = garments.flatMap(extractStyles);
 
-    if (allStyles.length === 0) return 5; // Neutral score if no style tags
+    if (allStyles.length === 0) return 5;
 
-    // Check if garments share at least one style
+    // Bonus for garments sharing at least one style
     const styleMatches = allStyles.filter((style, index) =>
       allStyles.slice(index + 1).includes(style)
     );
 
-    if (styleMatches.length > 0) {
-      return 15; // Strong bonus for matching styles
-    }
+    if (styleMatches.length > 0) return 15;
 
-    // Bonus if garments have complementary styles
     const hasMinimalist = allStyles.some((s) => s.includes("minimalist"));
     const hasBold = allStyles.some((s) => s.includes("bold"));
     const hasClassic = allStyles.some((s) => s.includes("classic"));
 
-    if ((hasMinimalist && hasClassic) || (hasBold && hasClassic)) {
-      return 10; // Complementary style combo
-    }
+    if ((hasMinimalist && hasClassic) || (hasBold && hasClassic)) return 10;
 
-    return 5; // Baseline
+    return 5;
   }
 
   /**
-   * Score occasion matching - ensures outfit is appropriate for contexts
+   * Score occasion matching - ensures outfit is appropriate for the mood context.
+   * Prefers the dedicated `occasion` array field; falls back to tag scanning.
    */
   private static scoreOccasionMatching(
     garments: Garment[],
@@ -406,18 +417,24 @@ export class OutfitRecommendationService {
     const targetOccasions = moodToOccasion[mood] || [];
     if (targetOccasions.length === 0) return 0;
 
+    const knownOccasions = [
+      "casual",
+      "formal",
+      "work",
+      "smart-casual",
+      "night",
+      "weekend",
+    ];
+
     let matchScore = 0;
     for (const garment of garments) {
-      const garmentOccasions = garment.tags.filter((tag) =>
-        [
-          "casual",
-          "formal",
-          "work",
-          "smart-casual",
-          "night",
-          "weekend",
-        ].includes(tag)
-      );
+      // Prefer the dedicated `occasion` field (Convex schema)
+      const garmentOccasions: string[] =
+        garment.occasion && garment.occasion.length > 0
+          ? garment.occasion.map((o) => o.toLowerCase())
+          : garment.tags.filter((tag) =>
+              knownOccasions.includes(tag.toLowerCase())
+            );
 
       const matches = garmentOccasions.filter((occ) =>
         targetOccasions.includes(occ)
@@ -430,15 +447,22 @@ export class OutfitRecommendationService {
   }
 
   /**
-   * Score versatility - prefer outfits with versatile pieces
+   * Score versatility - prefer outfits with versatile pieces.
+   * Uses the dedicated `versatility` field first; falls back to tags.
    */
   private static scoreVersatility(garments: Garment[]): number {
     let versatilityScore = 0;
 
     for (const garment of garments) {
-      if (garment.tags.includes("versatile-high")) {
+      if (
+        garment.versatility === "high" ||
+        garment.tags.includes("versatile-high")
+      ) {
         versatilityScore += 2;
-      } else if (garment.tags.includes("versatile-medium")) {
+      } else if (
+        garment.versatility === "medium" ||
+        garment.tags.includes("versatile-medium")
+      ) {
         versatilityScore += 1;
       }
     }
@@ -546,11 +570,18 @@ export class OutfitRecommendationService {
       reasons.push("Neutral base for easy coordination");
     }
 
-    // Style coherence reasoning
+    // Style coherence reasoning (use `style` field, fall back to tags)
+    const styleKeywords = [
+      "minimalist",
+      "bold",
+      "classic",
+      "trendy",
+      "avant-garde",
+    ];
     const allStyles = garments.flatMap((g) =>
-      g.tags.filter((t) =>
-        ["minimalist", "bold", "classic", "trendy", "avant-garde"].includes(t)
-      )
+      g.style && g.style.length > 0
+        ? g.style.map((s) => s.toLowerCase())
+        : g.tags.filter((t) => styleKeywords.includes(t.toLowerCase()))
     );
     const uniqueStyles = [...new Set(allStyles)];
 
@@ -563,18 +594,19 @@ export class OutfitRecommendationService {
       reasons.push("Classic foundation with modern twist");
     }
 
-    // Occasion reasoning
+    // Occasion reasoning (use `occasion` field, fall back to tags)
+    const knownOccasions = [
+      "casual",
+      "formal",
+      "work",
+      "smart-casual",
+      "night",
+      "weekend",
+    ];
     const allOccasions = garments.flatMap((g) =>
-      g.tags.filter((t) =>
-        [
-          "casual",
-          "formal",
-          "work",
-          "smart-casual",
-          "night",
-          "weekend",
-        ].includes(t)
-      )
+      g.occasion && g.occasion.length > 0
+        ? g.occasion.map((o) => o.toLowerCase())
+        : g.tags.filter((t) => knownOccasions.includes(t.toLowerCase()))
     );
     const commonOccasions = [...new Set(allOccasions)];
 
@@ -584,9 +616,9 @@ export class OutfitRecommendationService {
       reasons.push("Comfortable and approachable");
     }
 
-    // Versatility reasoning
-    const versatilePieces = garments.filter((g) =>
-      g.tags.includes("versatile-high")
+    // Versatility reasoning (use `versatility` field, fall back to tags)
+    const versatilePieces = garments.filter(
+      (g) => g.versatility === "high" || g.tags.includes("versatile-high")
     ).length;
     if (versatilePieces >= 2) {
       reasons.push("Mix-and-match friendly pieces");

@@ -57,6 +57,7 @@ async function seedGarmentsForUser(ctx: MutationCtx, userId: string) {
       versatility: item.versatility,
       vibrancy: item.vibrancy,
       imageUrl: item.imageUrl,
+      season: "all-season",
     });
   }
 
