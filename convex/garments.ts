@@ -89,3 +89,17 @@ export const remove = mutation({
     await ctx.db.delete(id);
   },
 });
+
+export const removeMany = mutation({
+  args: { ids: v.array(v.id("garments")) },
+  handler: async (ctx, { ids }) => {
+    const user = await getAuthUser(ctx);
+    if (!user) throw new Error("Unauthorized");
+    for (const id of ids) {
+      const garment = await ctx.db.get(id);
+      if (garment && garment.userId === user._id) {
+        await ctx.db.delete(id);
+      }
+    }
+  },
+});
