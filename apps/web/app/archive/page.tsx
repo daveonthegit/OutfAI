@@ -3,97 +3,45 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useQuery, useMutation } from "convex/react";
+import { api } from "@convex/_generated/api";
+import type { Id } from "@convex/_generated/dataModel";
+import { formatDistanceToNow } from "date-fns";
+import { useRequireAuth } from "@/hooks/use-require-auth";
 
-interface SavedLook {
-  id: string;
-  date: string;
-  mood: string;
-  garments: {
-    src: string;
+interface OutfitWithGarments {
+  _id: Id<"outfits">;
+  _creationTime: number;
+  userId: string;
+  garmentIds: Id<"garments">[];
+  contextMood?: string;
+  contextWeather?: string;
+  contextTemperature?: number;
+  explanation?: string;
+  savedAt: number;
+  garments: Array<{
+    _id: Id<"garments">;
     name: string;
-    type: string;
-  }[];
+    category: string;
+    primaryColor: string;
+    imageUrl?: string;
+  } | null>;
 }
 
-const SAVED_LOOKS: SavedLook[] = [
-  {
-    id: "1",
-    date: "Jan 28, 2026",
-    mood: "Bold",
-    garments: [
-      { src: "/garments/look-a-top.jpg", name: "Wool coat", type: "outerwear" },
-      {
-        src: "/garments/look-a-bottom.jpg",
-        name: "Wide trousers",
-        type: "bottom",
-      },
-      {
-        src: "/garments/look-a-shoes.jpg",
-        name: "Chelsea boots",
-        type: "shoes",
-      },
-    ],
-  },
-  {
-    id: "2",
-    date: "Jan 25, 2026",
-    mood: "Minimal",
-    garments: [
-      { src: "/garments/shirt-white.jpg", name: "Oxford shirt", type: "top" },
-      { src: "/garments/pants-black.jpg", name: "Dress pants", type: "bottom" },
-      { src: "/garments/loafers-brown.jpg", name: "Loafers", type: "shoes" },
-    ],
-  },
-  {
-    id: "3",
-    date: "Jan 22, 2026",
-    mood: "Relaxed",
-    garments: [
-      { src: "/garments/sweater-grey.jpg", name: "Cashmere knit", type: "top" },
-      {
-        src: "/garments/jeans-indigo.jpg",
-        name: "Selvedge denim",
-        type: "bottom",
-      },
-      { src: "/garments/look-b-shoes.jpg", name: "Sneakers", type: "shoes" },
-    ],
-  },
-  {
-    id: "4",
-    date: "Jan 18, 2026",
-    mood: "Sharp",
-    garments: [
-      { src: "/garments/look-b-top.jpg", name: "Blazer", type: "top" },
-      {
-        src: "/garments/look-b-bottom.jpg",
-        name: "Tailored pants",
-        type: "bottom",
-      },
-      {
-        src: "/garments/look-a-shoes.jpg",
-        name: "Chelsea boots",
-        type: "shoes",
-      },
-    ],
-  },
-];
-
-// Group looks by month
-const groupByMonth = (looks: SavedLook[]) => {
-  const groups: { [key: string]: SavedLook[] } = {};
-  looks.forEach((look) => {
-    const month = look.date.split(" ").slice(0, 2).join(" ");
-    if (!groups[month]) {
-      groups[month] = [];
-    }
-    groups[month].push(look);
-  });
-  return groups;
-};
-
 export default function ArchivePage() {
+  useRequireAuth("/archive");
+
   const [hoveredId, setHoveredId] = useState<string | null>(null);
-  const groupedLooks = groupByMonth(SAVED_LOOKS);
+  const outfits = useQuery(api.outfits.list) as
+    | OutfitWithGarments[]
+    | undefined;
+  const removeOutfit = useMutation(api.outfits.remove);
+
+  const handleRemove = async (id: Id<"outfits">, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    await removeOutfit({ id });
+  };
 
   return (
     <main className="min-h-screen bg-background text-foreground selection:bg-signal-orange selection:text-background">
@@ -132,79 +80,11 @@ export default function ArchivePage() {
           </p>
         </section>
 
-        {/* Grouped looks */}
-        {Object.entries(groupedLooks).map(([month, looks]) => (
-          <section key={month} className="mb-16">
-            {/* Month header */}
-            <div className="flex items-center gap-4 mb-8">
-              <h2 className="text-[11px] uppercase tracking-[0.3em] text-muted-foreground">
-                {month}
-              </h2>
-              <div className="h-px bg-border flex-1" />
-              <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground/50">
-                {looks.length} {looks.length === 1 ? "look" : "looks"}
-              </span>
-            </div>
-
-            {/* Looks grid */}
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {looks.map((look) => (
-                <Link
-                  key={look.id}
-                  href="/explain"
-                  className="group block"
-                  onMouseEnter={() => setHoveredId(look.id)}
-                  onMouseLeave={() => setHoveredId(null)}
-                  style={{
-                    opacity:
-                      hoveredId !== null && hoveredId !== look.id ? 0.5 : 1,
-                    transition: "opacity 100ms",
-                  }}
-                >
-                  {/* Compact composition stack */}
-                  <div className="flex flex-col gap-[1px] mb-4">
-                    {look.garments.map((garment, idx) => (
-                      <div
-                        key={idx}
-                        className="relative border border-border bg-card overflow-hidden"
-                      >
-                        <div className="aspect-[3/2] relative bg-secondary">
-                          <Image
-                            src={garment.src || "/placeholder.svg"}
-                            alt={garment.name}
-                            fill
-                            className="object-cover transition-transform duration-300 group-hover:scale-105"
-                          />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Metadata */}
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
-                      {look.date.split(", ")[0].split(" ")[1]}
-                    </span>
-                    <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground group-hover:text-signal-orange transition-colors duration-100">
-                      {look.mood}
-                    </span>
-                  </div>
-
-                  {/* Hover indicator line */}
-                  <div
-                    className="h-[2px] mt-3 bg-signal-orange transition-all duration-100"
-                    style={{
-                      width: hoveredId === look.id ? "100%" : "0%",
-                    }}
-                  />
-                </Link>
-              ))}
-            </div>
-          </section>
-        ))}
-
-        {/* Empty state hint */}
-        {SAVED_LOOKS.length === 0 && (
+        {outfits === undefined ? (
+          <p className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
+            Loading…
+          </p>
+        ) : outfits.length === 0 ? (
           <section className="text-center py-20">
             <p className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground mb-4">
               No saved looks yet
@@ -227,6 +107,84 @@ export default function ArchivePage() {
               </svg>
             </Link>
           </section>
+        ) : (
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {outfits.map((outfit) => (
+              <div
+                key={outfit._id}
+                className="group block relative"
+                onMouseEnter={() => setHoveredId(outfit._id)}
+                onMouseLeave={() => setHoveredId(null)}
+                style={{
+                  opacity:
+                    hoveredId !== null && hoveredId !== outfit._id ? 0.5 : 1,
+                  transition: "opacity 100ms",
+                }}
+              >
+                {/* Compact composition stack */}
+                <div className="flex flex-col gap-[1px] mb-4">
+                  {outfit.garments
+                    .filter(Boolean)
+                    .slice(0, 3)
+                    .map((garment, idx) =>
+                      garment ? (
+                        <div
+                          key={idx}
+                          className="relative border border-border bg-card overflow-hidden"
+                        >
+                          <div className="aspect-[3/2] relative bg-secondary">
+                            {garment.imageUrl ? (
+                              <Image
+                                src={garment.imageUrl}
+                                alt={garment.name}
+                                fill
+                                className="object-cover transition-transform duration-300 group-hover:scale-105"
+                              />
+                            ) : (
+                              <div className="absolute inset-0 flex items-center justify-center">
+                                <span className="text-[9px] uppercase tracking-widest text-muted-foreground">
+                                  {garment.category}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ) : null
+                    )}
+                </div>
+
+                {/* Metadata */}
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+                    {formatDistanceToNow(new Date(outfit.savedAt), {
+                      addSuffix: true,
+                    })}
+                  </span>
+                  <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground group-hover:text-signal-orange transition-colors duration-100">
+                    {outfit.contextMood ?? "—"}
+                  </span>
+                </div>
+
+                {/* Remove button */}
+                {hoveredId === outfit._id && (
+                  <button
+                    onClick={(e) => handleRemove(outfit._id, e)}
+                    className="absolute top-2 right-2 p-1.5 bg-background/80 border border-border hover:border-destructive hover:text-destructive transition-colors text-[9px] uppercase tracking-widest"
+                  >
+                    Remove
+                  </button>
+                )}
+
+                {/* Hover indicator line */}
+                <div
+                  className="h-[2px] mt-3 bg-signal-orange transition-all duration-100"
+                  style={{
+                    width: hoveredId === outfit._id ? "100%" : "0%",
+                  }}
+                />
+              </div>
+            ))}
+          </div>
         )}
       </div>
     </main>

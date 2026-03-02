@@ -35,8 +35,12 @@ scripts
 templates
 
 # Logs
+logs/
 *.log
 npm-debug.log*
+
+# Dev script runtime files
+.dev-pids
 
 # OS
 .DS_Store

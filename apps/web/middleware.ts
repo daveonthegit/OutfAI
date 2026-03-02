@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-// BetterAuth sets this cookie on sign-in (HTTP dev) or the __Secure- variant (HTTPS).
-// Middleware only checks existence; full session validation happens server-side.
+// Lightweight presence check — BetterAuth (via @convex-dev/better-auth) sets
+// this cookie on sign-in. Full cryptographic validation happens inside Convex
+// functions via authComponent.getAuthUser(ctx).
 function hasSession(request: NextRequest): boolean {
   return (
     request.cookies.has("better-auth.session_token") ||

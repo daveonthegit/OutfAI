@@ -4,8 +4,8 @@
 
 The database is designed to be wardrobe-first, extensible, and friendly to future recommendation improvements.
 
-**Database:** PostgreSQL  
-**ORM:** Prisma
+**Database:** Convex  
+**ORM:** Convex (schema-defined collections, no separate ORM layer)
 
 ---
 

@@ -1,23 +1,39 @@
-# ============================================================
-# OutfAI — Development Dockerfile
-# Used by docker-compose.yml for local hot-reload development.
-# Source code is volume-mounted at runtime; this image only
-# provides the Node runtime + pre-installed node_modules.
-# ============================================================
+# ─────────────────────────────────────────────────────────────────────────────
+# OutfAI — Next.js development image
+# Pinned to Node 24 Alpine to match the project's target runtime.
+#
+# Usage (via Compose):  docker compose up --build
+# Usage (standalone):   docker build -f Dockerfile.dev -t outfai-web .
+#                       docker run -p 3000:3000 outfai-web
+#
+# Hot-reload: bind-mount the project root in docker-compose.yml so edits
+# on the host are picked up immediately. WATCHPACK_POLLING is enabled so
+# that file-change events work reliably through Docker Desktop on Windows.
+# ─────────────────────────────────────────────────────────────────────────────
+FROM node:24-alpine
 
-FROM node:22-alpine
+# libc6-compat is required by some native Node addons on Alpine
+RUN apk add --no-cache libc6-compat
+
 WORKDIR /app
-ENV NEXT_TELEMETRY_DISABLED=1
-ENV NODE_ENV=development
 
-# Install dependencies into the image layer.
-# The docker-compose volume mount uses an anonymous volume at
-# /app/node_modules so the container's modules are not replaced
-# by whatever is (or isn't) in the host's node_modules folder.
-COPY package*.json ./
+# Copy manifests first — layer-cached until dependencies change
+COPY package.json package-lock.json* ./
+
+# Install all deps (dev deps are required by `next dev`)
 RUN npm ci
+
+# Copy the rest of the monorepo source.
+# In dev mode docker-compose.yml bind-mounts . → /app, so these layers
+# are overridden at runtime and only serve standalone docker build.
+COPY . .
 
 EXPOSE 3000
 
-# `npm run dev` executes: cd apps/web && next dev --turbo
+# Required for hot-reload to work reliably inside Docker Desktop
+# (inotify events don't cross the VM boundary on Windows/macOS)
+ENV WATCHPACK_POLLING=true
+ENV NEXT_TELEMETRY_DISABLED=1
+
+# `npm run dev` resolves to: cd apps/web && next dev --turbo
 CMD ["npm", "run", "dev"]

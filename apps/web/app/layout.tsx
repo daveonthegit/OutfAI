@@ -50,6 +50,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body
         className={`${inter.variable} ${instrumentSerif.variable} font-sans antialiased`}
+        suppressHydrationWarning
       >
         <Providers>
           <ThemeProvider

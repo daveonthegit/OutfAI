@@ -2,13 +2,44 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { authClient } from "@/lib/auth-client";
 
 export default function SignupPage() {
-  const [submitted, setSubmitted] = useState(false);
+  const router = useRouter();
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitted(true);
+    setError("");
+    setLoading(true);
+
+    try {
+      const { error } = await authClient.signUp.email({
+        email,
+        password,
+        name: username,
+        username,
+      });
+
+      if (error) {
+        setError(
+          error.message ??
+            "Could not create account. Try a different username or email."
+        );
+      } else {
+        router.push("/");
+        router.refresh();
+      }
+    } catch {
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -34,53 +65,68 @@ export default function SignupPage() {
           </h1>
         </div>
 
-        {!submitted ? (
-          <>
-            <form onSubmit={handleSubmit} className="space-y-0">
-              <div className="border border-border">
-                <div className="border-b border-border">
-                  <label className="block px-4 pt-3 pb-1 text-[9px] uppercase tracking-[0.2em] text-muted-foreground">
-                    Username
-                  </label>
-                  <input
-                    type="text"
-                    autoComplete="username"
-                    required
-                    className="w-full px-4 pb-3 bg-transparent text-foreground text-sm outline-none placeholder:text-muted-foreground/40"
-                    placeholder="choose a username"
-                  />
-                </div>
-                <div className="border-b border-border">
-                  <label className="block px-4 pt-3 pb-1 text-[9px] uppercase tracking-[0.2em] text-muted-foreground">
-                    Email
-                  </label>
-                  <input
-                    type="email"
-                    autoComplete="email"
-                    required
-                    className="w-full px-4 pb-3 bg-transparent text-foreground text-sm outline-none placeholder:text-muted-foreground/40"
-                    placeholder="you@example.com"
-                  />
-                </div>
-                <div>
-                  <label className="block px-4 pt-3 pb-1 text-[9px] uppercase tracking-[0.2em] text-muted-foreground">
-                    Password
-                  </label>
-                  <input
-                    type="password"
-                    autoComplete="new-password"
-                    required
-                    className="w-full px-4 pb-3 bg-transparent text-foreground text-sm outline-none placeholder:text-muted-foreground/40"
-                    placeholder="••••••••"
-                  />
-                </div>
-              </div>
+        <form onSubmit={handleSubmit} className="space-y-0">
+          <div className="border border-border">
+            <div className="border-b border-border">
+              <label className="block px-4 pt-3 pb-1 text-[9px] uppercase tracking-[0.2em] text-muted-foreground">
+                Username
+              </label>
+              <input
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                autoComplete="username"
+                required
+                className="w-full px-4 pb-3 bg-transparent text-foreground text-sm outline-none placeholder:text-muted-foreground/40"
+                placeholder="choose a username"
+              />
+            </div>
+            <div className="border-b border-border">
+              <label className="block px-4 pt-3 pb-1 text-[9px] uppercase tracking-[0.2em] text-muted-foreground">
+                Email
+              </label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                autoComplete="email"
+                required
+                className="w-full px-4 pb-3 bg-transparent text-foreground text-sm outline-none placeholder:text-muted-foreground/40"
+                placeholder="you@example.com"
+              />
+            </div>
+            <div>
+              <label className="block px-4 pt-3 pb-1 text-[9px] uppercase tracking-[0.2em] text-muted-foreground">
+                Password
+              </label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoComplete="new-password"
+                required
+                className="w-full px-4 pb-3 bg-transparent text-foreground text-sm outline-none placeholder:text-muted-foreground/40"
+                placeholder="••••••••"
+              />
+            </div>
+          </div>
 
-              <div className="pt-6">
-                <button
-                  type="submit"
-                  className="w-full px-6 py-4 text-[10px] uppercase tracking-[0.2em] bg-foreground text-background hover:bg-foreground/90 transition-all duration-100 flex items-center justify-center gap-2"
-                >
+          {error && (
+            <p className="pt-3 text-[11px] uppercase tracking-[0.15em] text-signal-orange">
+              {error}
+            </p>
+          )}
+
+          <div className="pt-6">
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full px-6 py-4 text-[10px] uppercase tracking-[0.2em] bg-foreground text-background hover:bg-foreground/90 disabled:opacity-40 transition-all duration-100 flex items-center justify-center gap-2"
+            >
+              {loading ? (
+                "Creating account…"
+              ) : (
+                <>
                   Create account
                   <svg
                     width="14"
@@ -93,35 +139,11 @@ export default function SignupPage() {
                     <line x1="5" y1="12" x2="19" y2="12" />
                     <polyline points="12 5 19 12 12 19" />
                   </svg>
-                </button>
-              </div>
-            </form>
-
-            {/* Coming soon notice */}
-            <div className="mt-8 border border-border p-4">
-              <p className="text-[10px] uppercase tracking-[0.15em] text-muted-foreground mb-1">
-                Beta access
-              </p>
-              <p className="text-xs text-muted-foreground leading-relaxed">
-                Registration is not yet open. Use the test account to explore —{" "}
-                <span className="text-foreground font-medium">
-                  username: test / password: test
-                </span>
-              </p>
-            </div>
-          </>
-        ) : (
-          <div className="border border-border p-6">
-            <div className="w-2 h-2 bg-acid-lime mb-4" />
-            <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground mb-2">
-              Request received
-            </p>
-            <p className="text-sm text-foreground leading-relaxed">
-              We&apos;ll let you know when registration opens. In the meantime,
-              use the test account to explore.
-            </p>
+                </>
+              )}
+            </button>
           </div>
-        )}
+        </form>
 
         {/* Footer */}
         <div className="mt-8 text-center">
