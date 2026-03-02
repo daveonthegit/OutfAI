@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
+// Keep the cookie name in sync with lib/auth.ts
+const SESSION_COOKIE = "outfai-session";
+
 export function middleware(request: NextRequest) {
-  // next-auth v4 stores the JWT in one of these two cookies
-  const token =
-    request.cookies.get("next-auth.session-token") ??
-    request.cookies.get("__Secure-next-auth.session-token");
+  const token = request.cookies.get(SESSION_COOKIE);
 
   if (!token) {
     const loginUrl = new URL("/login", request.url);
@@ -21,7 +21,7 @@ export const config = {
     /*
      * Protect all routes except:
      * - /login and /signup (auth pages)
-     * - /api/auth (NextAuth endpoints)
+     * - /api/auth (login/logout endpoints)
      * - /_next (Next.js internals)
      * - /favicon.ico, /icon*, /apple-icon* (static assets)
      */

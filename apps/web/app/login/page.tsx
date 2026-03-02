@@ -20,26 +20,14 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      // Fetch CSRF token required by NextAuth credentials callback
-      const csrfRes = await fetch("/api/auth/csrf");
-      const { csrfToken } = await csrfRes.json();
-
-      const res = await fetch("/api/auth/callback/credentials", {
+      const res = await fetch("/api/auth/login", {
         method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: new URLSearchParams({
-          csrfToken,
-          username,
-          password,
-          callbackUrl,
-          json: "true",
-        }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
       });
 
-      const data = await res.json();
-
-      if (data.url && !data.url.includes("error")) {
-        router.push(data.url);
+      if (res.ok) {
+        router.push(callbackUrl);
         router.refresh();
       } else {
         setError("Invalid username or password.");
