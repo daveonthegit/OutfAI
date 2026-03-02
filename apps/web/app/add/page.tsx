@@ -2,7 +2,7 @@
 
 import React from "react";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -24,6 +24,12 @@ const COLORS = [
   "Cream",
   "Indigo",
   "Olive",
+  "Red",
+  "Blue",
+  "Green",
+  "Beige",
+  "Pink",
+  "Yellow",
 ];
 
 const STYLE_OPTIONS = [
@@ -50,9 +56,25 @@ const VERSATILITY_OPTIONS = ["high", "medium", "low"] as const;
 
 const VIBRANCY_OPTIONS = ["muted", "balanced", "vibrant"] as const;
 
+function fileToBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result as string;
+      const base64 = result.includes(",") ? result.split(",")[1] : result;
+      resolve(base64 ?? "");
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
 export default function AddGarmentPage() {
   const [dragActive, setDragActive] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [analyzeLoading, setAnalyzeLoading] = useState(false);
+  const [analyzeError, setAnalyzeError] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(
     null
   );
@@ -67,6 +89,39 @@ export default function AddGarmentPage() {
   );
   const [selectedVibrancy, setSelectedVibrancy] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleAnalyzeImage = useCallback(async () => {
+    if (!selectedFile) return;
+    setAnalyzeError(null);
+    setAnalyzeLoading(true);
+    try {
+      const imageBase64 = await fileToBase64(selectedFile);
+      const res = await fetch("/api/analyze-garment-image", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ imageBase64 }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data?.error ?? `Analysis failed (${res.status})`);
+      }
+      const result = await res.json();
+      setSelectedCategory(result.category);
+      setSelectedColor(result.color);
+      setTags(result.tags ?? []);
+      setSelectedStyles(result.style ?? []);
+      setSelectedFit(result.fit);
+      setSelectedOccasions(result.occasion ?? []);
+      setSelectedVersatility(result.versatility);
+      setSelectedVibrancy(result.vibrancy);
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Image analysis failed";
+      setAnalyzeError(message);
+    } finally {
+      setAnalyzeLoading(false);
+    }
+  }, [selectedFile]);
 
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
@@ -92,6 +147,8 @@ export default function AddGarmentPage() {
     if (file.type.startsWith("image/")) {
       const url = URL.createObjectURL(file);
       setPreviewUrl(url);
+      setSelectedFile(file);
+      setAnalyzeError(null);
     }
   };
 
@@ -116,8 +173,6 @@ export default function AddGarmentPage() {
   };
 
   const isComplete = previewUrl && selectedCategory && selectedColor;
-  const isTraitsComplete =
-    selectedFit && selectedVersatility && selectedVibrancy;
 
   return (
     <main className="min-h-screen bg-background text-foreground selection:bg-signal-orange selection:text-background">
@@ -209,12 +264,32 @@ export default function AddGarmentPage() {
             </div>
 
             {previewUrl && (
-              <button
-                onClick={() => setPreviewUrl(null)}
-                className="mt-4 text-[10px] uppercase tracking-[0.2em] text-muted-foreground hover:text-signal-orange transition-colors duration-100"
-              >
-                Remove image
-              </button>
+              <div className="mt-4 flex flex-wrap items-center gap-4">
+                <button
+                  type="button"
+                  onClick={handleAnalyzeImage}
+                  disabled={analyzeLoading}
+                  className="text-[10px] uppercase tracking-[0.2em] text-signal-orange hover:underline disabled:opacity-50 disabled:no-underline"
+                >
+                  {analyzeLoading ? "Analyzing…" : "Auto-fill from image"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPreviewUrl(null);
+                    setSelectedFile(null);
+                    setAnalyzeError(null);
+                  }}
+                  className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground hover:text-signal-orange transition-colors duration-100"
+                >
+                  Remove image
+                </button>
+                {analyzeError && (
+                  <span className="text-[10px] text-destructive">
+                    {analyzeError}
+                  </span>
+                )}
+              </div>
             )}
           </section>
 
