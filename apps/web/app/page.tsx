@@ -194,22 +194,88 @@ const CLOSET_ITEMS: ClosetItemType[] = [
   },
 ];
 
+function codeToWeatherLabel(
+  code: number
+): "sunny" | "cloudy" | "rainy" | "snowy" | "foggy" {
+  if (code === 0) return "sunny"; // clear sky
+
+  if (code === 1) return "sunny"; // mainly clear (feels like sunny)
+  if (code === 2) return "cloudy"; // partly cloudy
+  if (code === 3) return "cloudy"; // overcast
+
+  if (code === 45 || code === 48) return "foggy";
+
+  if ([51, 53, 55, 56, 57, 61, 63, 65, 66, 67, 80, 81, 82].includes(code))
+    return "rainy";
+
+  if ([71, 73, 75, 77, 85, 86].includes(code)) return "snowy";
+
+  if ([95, 96, 99].includes(code)) return "rainy"; // thunderstorm -> treat as rainy for outfits
+
+  return "cloudy";
+}
+
 export default function Home() {
   const [isShuffling, setIsShuffling] = useState(false);
   const [mood, setMood] = useState<any>("bold");
-  const [weather, setWeather] = useState<any>("cloudy");
-  const [temperature] = useState(12);
+  const [weather, setWeather] = useState<any>(null);
+  const [temperature, setTemperature] = useState<number | null>(null);
+  const [locationError, setLocationError] = useState<string | null>(null);
   const [allRecommendedOutfits, setAllRecommendedOutfits] = useState<any[]>([]);
   const [recommendedOutfit, setRecommendedOutfit] = useState<any[]>([]);
+  const [tempUnit, setTempUnit] = useState<"F" | "C">("F");
+  const [lastFetched, setLastFetched] = useState<string | null>(null);
 
   const { outfits, loading, generate } = useOutfitRecommendations({
     userId: "default-user",
     mood,
-    weather,
-    temperature,
+    weather: weather ?? "cloudy",
+    temperature: temperature ?? 12,
     // Fetch a larger pool of high-quality outfits; we'll show 6 at a time
     limitCount: 30,
   });
+
+  useEffect(() => {
+    if (!navigator.geolocation) {
+      setLocationError("Geolocation is not supported by this browser.");
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      async ({ coords }) => {
+        try {
+          const { latitude, longitude } = coords;
+
+          const url =
+            `https://api.open-meteo.com/v1/forecast` +
+            `?latitude=${latitude}&longitude=${longitude}` +
+            `&current=temperature_2m,weather_code` +
+            `&temperature_unit=${tempUnit === "F" ? "fahrenheit" : "celsius"}`;
+
+          console.log("Weather API URL:", url);
+          const res = await fetch(url);
+          if (!res.ok)
+            throw new Error(`Weather request failed (${res.status})`);
+          const data = await res.json();
+
+          const temp = data?.current?.temperature_2m;
+          const code = data?.current?.weather_code;
+
+          setLastFetched(new Date().toISOString());
+
+          if (typeof temp === "number") setTemperature(Math.round(temp));
+          if (typeof code === "number") setWeather(codeToWeatherLabel(code));
+
+          setLocationError(null);
+        } catch (e: any) {
+          setLocationError(e?.message ?? "Failed to fetch weather.");
+        }
+      },
+      (err) => {
+        setLocationError(err.message || "Location permission denied.");
+      }
+    );
+  }, [tempUnit]);
 
   // Generate recommendations on mount
   useEffect(() => {
@@ -219,8 +285,8 @@ export default function Home() {
       await generate({
         garments,
         mood,
-        weather,
-        temperature,
+        weather: weather ?? "cloudy",
+        temperature: temperature ?? 12,
         // Fetch a larger pool of high-quality outfits
         limitCount: 30,
       });
@@ -293,7 +359,9 @@ export default function Home() {
         const j = Math.floor(Math.random() * (i + 1));
         [indices[i], indices[j]] = [indices[j], indices[i]];
       }
-      const selected = indices.slice(0, 6).map((idx) => allRecommendedOutfits[idx]);
+      const selected = indices
+        .slice(0, 6)
+        .map((idx) => allRecommendedOutfits[idx]);
       return selected;
     });
   };
@@ -321,11 +389,59 @@ export default function Home() {
         <section className="mb-16 md:mb-24 lg:mb-32">
           <div className="max-w-4xl">
             {/* Weather context - small, peripheral */}
-            <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground mb-6 md:mb-8">
-              {temperature}°C ·{" "}
-              {weather.charAt(0).toUpperCase() + weather.slice(1)}
-            </p>
-
+            <div className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-background/60 px-3 py-1 text-[10px] uppercase tracking-[0.28em] text-muted-foreground mb-6 md:mb-8 backdrop-blur">
+              <span
+                className={`h-1.5 w-1.5 rounded-full ${locationError ? "bg-destructive" : "bg-acid-lime"}`}
+              />
+              {locationError ? (
+                <>
+                  <span className="text-foreground/80">Location off</span>
+                  <span className="opacity-40">·</span>
+                  <span className="normal-case tracking-normal text-muted-foreground">
+                    ENABLE LOCATION, THEN REFRESH
+                  </span>
+                </>
+              ) : (
+                <>
+                  <span className="text-foreground/80">
+                    {temperature === null ? "--" : temperature}°{tempUnit}
+                  </span>
+                  <span className="opacity-40">·</span>
+                  <span className="text-foreground/80">
+                    {weather === null
+                      ? "Loading…"
+                      : weather === "sunny"
+                        ? "Sunny"
+                        : weather === "cloudy"
+                          ? "Cloudy"
+                          : weather === "rainy"
+                            ? "Rainy"
+                            : weather === "snowy"
+                              ? "Snowy"
+                              : "Foggy"}
+                  </span>
+                  {lastFetched && (
+                    <>
+                      <span className="opacity-40">·</span>
+                      <span className="text-muted-foreground">
+                        Updated{" "}
+                        {new Date(lastFetched).toLocaleTimeString([], {
+                          hour: "numeric",
+                          minute: "2-digit",
+                        })}
+                      </span>
+                    </>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => setTempUnit((u) => (u === "F" ? "C" : "F"))}
+                    className="ml-2 rounded-full border border-border/60 px-2 py-0.5 text-[9px] uppercase tracking-[0.28em] text-muted-foreground hover:text-foreground hover:border-border transition-colors"
+                  >
+                    {tempUnit === "F" ? "°C" : "°F"}
+                  </button>
+                </>
+              )}
+            </div>
             {/* Mood line - oversized editorial */}
             <h2 className="font-serif text-4xl sm:text-5xl md:text-7xl lg:text-8xl italic text-foreground leading-[0.9] tracking-tight mb-0">
               today feels
