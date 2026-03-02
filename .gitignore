@@ -145,12 +145,12 @@ vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vercel
 .env*.local
-<<<<<<< HEAD
 .DS_Store
-=======
 
 # Google Cloud service account keys (never commit)
 *-credentials.json
 *service-account*.json
 *.gcp.json
->>>>>>> 0cca996 (feat: auto-fill garment attributes from images via Google Vision)
+
+# Dev script runtime files
+.dev-pids

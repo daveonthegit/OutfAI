@@ -5,6 +5,11 @@ import React from "react";
 import { useState, useRef, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useMutation } from "convex/react";
+import { api } from "@convex/_generated/api";
+import { useRequireAuth } from "@/hooks/use-require-auth";
+import { UserAvatar } from "@/components/user-avatar";
 
 type Category = "top" | "bottom" | "shoes" | "outerwear" | "accessory";
 
@@ -70,6 +75,10 @@ function fileToBase64(file: File): Promise<string> {
 }
 
 export default function AddGarmentPage() {
+  useRequireAuth("/add");
+  const router = useRouter();
+  const createGarment = useMutation(api.garments.create);
+
   const [dragActive, setDragActive] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -79,6 +88,7 @@ export default function AddGarmentPage() {
     null
   );
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
+  const [garmentName, setGarmentName] = useState("");
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState("");
   const [selectedStyles, setSelectedStyles] = useState<string[]>([]);
@@ -88,6 +98,8 @@ export default function AddGarmentPage() {
     null
   );
   const [selectedVibrancy, setSelectedVibrancy] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleAnalyzeImage = useCallback(async () => {
@@ -172,7 +184,33 @@ export default function AddGarmentPage() {
     setTags(tags.filter((tag) => tag !== tagToRemove));
   };
 
-  const isComplete = previewUrl && selectedCategory && selectedColor;
+  const handleSave = async () => {
+    if (!selectedCategory || !selectedColor) return;
+    setSaving(true);
+    setSaveError(null);
+    try {
+      await createGarment({
+        name: garmentName || `${selectedColor} ${selectedCategory}`,
+        category: selectedCategory,
+        primaryColor: selectedColor,
+        tags,
+        style: selectedStyles.length > 0 ? selectedStyles : undefined,
+        fit: selectedFit ?? undefined,
+        occasion: selectedOccasions.length > 0 ? selectedOccasions : undefined,
+        versatility: selectedVersatility ?? undefined,
+        vibrancy: selectedVibrancy ?? undefined,
+      });
+      router.push("/closet");
+    } catch (err) {
+      setSaveError(
+        err instanceof Error ? err.message : "Failed to save garment"
+      );
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const isComplete = selectedCategory && selectedColor;
 
   return (
     <main className="min-h-screen bg-background text-foreground selection:bg-signal-orange selection:text-background">
@@ -185,12 +223,15 @@ export default function AddGarmentPage() {
           >
             OutfAI
           </Link>
-          <Link
-            href="/closet"
-            className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground hover:text-foreground transition-colors duration-100"
-          >
-            Back to closet
-          </Link>
+          <div className="flex items-center gap-5">
+            <Link
+              href="/closet"
+              className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground hover:text-foreground transition-colors duration-100"
+            >
+              Back to closet
+            </Link>
+            <UserAvatar />
+          </div>
         </div>
       </header>
 
@@ -295,6 +336,21 @@ export default function AddGarmentPage() {
 
           {/* Form inputs */}
           <section className="flex flex-col gap-10">
+            {/* Name */}
+            <div>
+              <label className="block text-[10px] uppercase tracking-[0.25em] text-muted-foreground mb-4">
+                Name{" "}
+                <span className="text-muted-foreground/50">(optional)</span>
+              </label>
+              <input
+                type="text"
+                value={garmentName}
+                onChange={(e) => setGarmentName(e.target.value)}
+                placeholder="e.g. Cashmere crewneck"
+                className="w-full bg-transparent border border-border px-4 py-3 text-[11px] uppercase tracking-widest text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-foreground transition-colors duration-100"
+              />
+            </div>
+
             {/* Category */}
             <div>
               <label className="block text-[10px] uppercase tracking-[0.25em] text-muted-foreground mb-4">
@@ -511,17 +567,24 @@ export default function AddGarmentPage() {
         <section className="mt-12 border-t border-border pt-8">
           <div className="flex items-center justify-between">
             <span className="text-[9px] uppercase tracking-[0.2em] text-muted-foreground">
-              {isComplete ? "Ready to add" : "Complete all fields"}
+              {saveError ? (
+                <span className="text-destructive">{saveError}</span>
+              ) : isComplete ? (
+                "Ready to add"
+              ) : (
+                "Complete all fields"
+              )}
             </span>
             <button
-              disabled={!isComplete}
+              onClick={handleSave}
+              disabled={!isComplete || saving}
               className={`px-6 py-3 text-[10px] uppercase tracking-[0.2em] transition-all duration-100 ${
-                isComplete
+                isComplete && !saving
                   ? "bg-foreground text-background hover:bg-foreground/90"
                   : "bg-secondary text-muted-foreground cursor-not-allowed"
               }`}
             >
-              Add to closet
+              {saving ? "Saving…" : "Add to closet"}
             </button>
           </div>
         </section>

@@ -118,40 +118,6 @@ jobs:
       - run: npm run build
 
   # ──────────────────────────────────────────────
-  # Prisma — validate & format check (no DB needed)
-  # ──────────────────────────────────────────────
-  prisma:
-    needs: setup
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20.19.0
-      - uses: actions/cache@v4
-        with:
-          path: node_modules
-          key: nm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-      - name: Check for Prisma schema
-        id: check
-        run: |
-          if [ -f prisma/schema.prisma ]; then
-            echo "exists=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "exists=false" >> "$GITHUB_OUTPUT"
-            echo "::notice::No prisma/schema.prisma found — skipping Prisma checks"
-          fi
-      - name: Validate schema
-        if: steps.check.outputs.exists == 'true'
-        run: npx prisma validate
-      - name: Format check
-        if: steps.check.outputs.exists == 'true'
-        run: |
-          npx prisma format
-          git diff --exit-code prisma/schema.prisma \
-            || (echo "::error::Prisma schema is not formatted. Run 'npm run prisma:format' locally and commit." && exit 1)
-
-  # ──────────────────────────────────────────────
   # Docs consistency — generated docs must be committed
   # ──────────────────────────────────────────────
   docs-consistency:

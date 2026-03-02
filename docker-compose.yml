@@ -1,17 +1,25 @@
-# ============================================================
-# OutfAI — Local development Docker Compose
+# ─────────────────────────────────────────────────────────────────────────────
+# OutfAI — dev docker-compose
+#
+# Runs: Next.js web server (Docker) — pinned Node 24
+# Does NOT run: Convex dev watcher — must be started locally via:
+#                 npm run convex:dev
+#               Convex watches your local source files and connects to
+#               the Convex cloud; it cannot be containerised.
+#
 # Usage:
-#   docker compose up --build        # start (rebuilds if needed)
-#   docker compose up --build -d     # start detached
-#   docker compose logs -f web       # tail web logs
-#   docker compose down              # stop and remove containers
-#   docker compose down -v           # also wipe the DB volume
-# ============================================================
+#   docker compose up --build        start (rebuild if Dockerfile/deps changed)
+#   docker compose up                start without rebuild
+#   docker compose down              stop and remove containers
+#   docker compose logs -f web       tail web server logs
+#
+# GCP Vision API (optional):
+#   If you use GOOGLE_APPLICATION_CREDENTIALS, Docker cannot resolve a Windows
+#   host path. Copy your key file to .gcp-credentials.json at the project root
+#   (it is gitignored) and uncomment the volume + environment lines below.
+# ─────────────────────────────────────────────────────────────────────────────
 
 services:
-  # ----------------------------------------------------------
-  # Next.js dev server (hot reload via volume mount)
-  # ----------------------------------------------------------
   web:
     build:
       context: .
@@ -19,46 +27,27 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      # Mount the whole repo so code changes hot-reload
+      # Bind-mount the whole monorepo so edits are reflected immediately.
       - .:/app
-      # Anonymous volume so the container's node_modules (built by npm ci
-      # in the Dockerfile) are never shadowed by the host's node_modules.
-      # Using anonymous (not named) means a docker compose up --build always
-      # picks up packages added to package.json without needing a manual
-      # `docker compose down -v`.
+      # Anonymous volumes prevent the host node_modules / Next.js cache from
+      # masking the ones installed inside the container.
       - /app/node_modules
+      - /app/apps/web/.next
     env_file:
-      - .env.local
+      # Docker Compose reads KEY=VALUE lines; comments and blank lines are ignored.
+      # The file is optional so the container still starts if it doesn't exist yet.
+      - path: .env.local
+        required: false
     environment:
-      - NODE_ENV=development
-      # Point to the Postgres container when running in Docker
-      - DATABASE_URL=postgresql://postgres:postgres@db:5432/outfai
-    depends_on:
-      db:
-        condition: service_healthy
-    restart: unless-stopped
+      # Always-on in Docker — ensures hot-reload works on Docker Desktop
+      WATCHPACK_POLLING: "true"
+      NEXT_TELEMETRY_DISABLED: "1"
 
-  # ----------------------------------------------------------
-  # Postgres (local stand-in for Supabase DB)
-  # Host port 5433 avoids the Windows/Hyper-V excluded port
-  # range that blocks binding to 54322 on most machines.
-  # ----------------------------------------------------------
-  db:
-    image: postgres:16-alpine
-    ports:
-      - "5433:5432"
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: outfai
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d outfai"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
+      # ── Uncomment if using GCP Vision API ─────────────────────────────────
+      # 1. Copy your service-account key to .gcp-credentials.json (project root)
+      # 2. Uncomment these two blocks:
+      #
+      # GOOGLE_APPLICATION_CREDENTIALS: /app/.gcp-credentials.json
+    # volumes (add under the web service alongside the lines above):
+    #   - ./.gcp-credentials.json:/app/.gcp-credentials.json:ro
     restart: unless-stopped
-
-volumes:
-  postgres_data:

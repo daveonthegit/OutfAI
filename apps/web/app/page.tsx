@@ -4,195 +4,12 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { OutfitRecommendationCard } from "@/components/outfit-recommendation-card";
 import { useOutfitRecommendations } from "@/hooks/use-outfit-recommendations";
-import { closetItemsToGarments } from "@/lib/closet-to-garment";
+import { useRequireAuth } from "@/hooks/use-require-auth";
 import type { Outfit } from "@shared/types";
-
-// Closet items with detailed traits for better recommendations
-type ClosetItemType = {
-  id: string;
-  src: string;
-  name: string;
-  category: "top" | "bottom" | "shoes" | "outerwear";
-  color: string;
-  traits: {
-    style: string[]; // minimalist, bold, classic, trendy, avant-garde, etc.
-    fit: string; // oversized, fitted, relaxed, tapered, etc.
-    occasion: string[]; // casual, formal, work, weekend, night, etc.
-    versatility: "high" | "medium" | "low";
-    vibrancy: "muted" | "balanced" | "vibrant";
-  };
-};
-
-const CLOSET_ITEMS: ClosetItemType[] = [
-  {
-    id: "1",
-    src: "/garments/look-a-top.jpg",
-    name: "Oversized wool coat",
-    category: "outerwear",
-    color: "Black",
-    traits: {
-      style: ["bold", "classic", "minimalist"],
-      fit: "oversized",
-      occasion: ["casual", "smart-casual", "night"],
-      versatility: "high",
-      vibrancy: "muted",
-    },
-  },
-  {
-    id: "2",
-    src: "/garments/look-b-top.jpg",
-    name: "Deconstructed blazer",
-    category: "top",
-    color: "Cream",
-    traits: {
-      style: ["bold", "avant-garde", "trendy"],
-      fit: "relaxed",
-      occasion: ["smart-casual", "work", "night"],
-      versatility: "medium",
-      vibrancy: "balanced",
-    },
-  },
-  {
-    id: "3",
-    src: "/garments/shirt-white.jpg",
-    name: "Cotton oxford",
-    category: "top",
-    color: "White",
-    traits: {
-      style: ["classic", "minimalist"],
-      fit: "fitted",
-      occasion: ["casual", "work", "smart-casual"],
-      versatility: "high",
-      vibrancy: "muted",
-    },
-  },
-  {
-    id: "4",
-    src: "/garments/sweater-grey.jpg",
-    name: "Cashmere crewneck",
-    category: "top",
-    color: "Grey",
-    traits: {
-      style: ["minimalist", "classic"],
-      fit: "fitted",
-      occasion: ["casual", "smart-casual"],
-      versatility: "high",
-      vibrancy: "muted",
-    },
-  },
-  {
-    id: "5",
-    src: "/garments/jacket-black.jpg",
-    name: "Bomber jacket",
-    category: "outerwear",
-    color: "Black",
-    traits: {
-      style: ["bold", "trendy"],
-      fit: "fitted",
-      occasion: ["casual", "weekend"],
-      versatility: "high",
-      vibrancy: "muted",
-    },
-  },
-  {
-    id: "6",
-    src: "/garments/look-a-bottom.jpg",
-    name: "Wide-leg trousers",
-    category: "bottom",
-    color: "Charcoal",
-    traits: {
-      style: ["bold", "classic"],
-      fit: "oversized",
-      occasion: ["smart-casual", "work", "night"],
-      versatility: "medium",
-      vibrancy: "muted",
-    },
-  },
-  {
-    id: "7",
-    src: "/garments/look-b-bottom.jpg",
-    name: "Tailored trousers",
-    category: "bottom",
-    color: "Black",
-    traits: {
-      style: ["minimalist", "classic"],
-      fit: "tapered",
-      occasion: ["formal", "work", "smart-casual"],
-      versatility: "high",
-      vibrancy: "muted",
-    },
-  },
-  {
-    id: "8",
-    src: "/garments/pants-black.jpg",
-    name: "Dress pants",
-    category: "bottom",
-    color: "Black",
-    traits: {
-      style: ["classic", "minimalist"],
-      fit: "fitted",
-      occasion: ["formal", "work"],
-      versatility: "high",
-      vibrancy: "muted",
-    },
-  },
-  {
-    id: "9",
-    src: "/garments/jeans-indigo.jpg",
-    name: "Selvedge denim",
-    category: "bottom",
-    color: "Indigo",
-    traits: {
-      style: ["classic", "casual"],
-      fit: "fitted",
-      occasion: ["casual", "weekend"],
-      versatility: "high",
-      vibrancy: "vibrant",
-    },
-  },
-  {
-    id: "10",
-    src: "/garments/look-a-shoes.jpg",
-    name: "Chelsea boots",
-    category: "shoes",
-    color: "Black",
-    traits: {
-      style: ["classic", "bold"],
-      fit: "fitted",
-      occasion: ["smart-casual", "formal", "night"],
-      versatility: "high",
-      vibrancy: "muted",
-    },
-  },
-  {
-    id: "11",
-    src: "/garments/look-b-shoes.jpg",
-    name: "Platform sneakers",
-    category: "shoes",
-    color: "White",
-    traits: {
-      style: ["trendy", "bold"],
-      fit: "fitted",
-      occasion: ["casual", "weekend"],
-      versatility: "high",
-      vibrancy: "balanced",
-    },
-  },
-  {
-    id: "12",
-    src: "/garments/loafers-brown.jpg",
-    name: "Penny loafers",
-    category: "shoes",
-    color: "Brown",
-    traits: {
-      style: ["classic"],
-      fit: "fitted",
-      occasion: ["smart-casual", "work"],
-      versatility: "high",
-      vibrancy: "balanced",
-    },
-  },
-];
+import { useQuery, useMutation } from "convex/react";
+import { api } from "@convex/_generated/api";
+import { MOCK_CLOSET_ITEMS } from "@shared/data/mock-closet";
+import { UserAvatar } from "@/components/user-avatar";
 
 function codeToWeatherLabel(
   code: number
@@ -216,6 +33,9 @@ function codeToWeatherLabel(
 }
 
 export default function Home() {
+  const currentUser = useRequireAuth("/");
+  const convexGarments = useQuery(api.garments.list) ?? [];
+
   const [isShuffling, setIsShuffling] = useState(false);
   const [mood, setMood] = useState<any>("bold");
   const [weather, setWeather] = useState<any>(null);
@@ -226,8 +46,14 @@ export default function Home() {
   const [tempUnit, setTempUnit] = useState<"F" | "C">("F");
   const [lastFetched, setLastFetched] = useState<string | null>(null);
 
+  const userId = currentUser?._id ?? "default-user";
+  const saveOutfit = useMutation(api.outfits.save);
+  const seedDevCloset = useMutation(api.seed.seedDevCloset);
+  const [savedOutfitId, setSavedOutfitId] = useState<string | null>(null);
+  const [seeded, setSeeded] = useState(false);
+
   const { outfits, loading, generate } = useOutfitRecommendations({
-    userId: "default-user",
+    userId,
     mood,
     weather: weather ?? "cloudy",
     temperature: temperature ?? 12,
@@ -277,10 +103,70 @@ export default function Home() {
     );
   }, [tempUnit]);
 
+  // Seed the closet with mock items on the user's first visit (empty closet).
+  useEffect(() => {
+    if (!currentUser || seeded) return;
+    if (convexGarments.length > 0) return;
+    setSeeded(true);
+    seedDevCloset().catch(console.error);
+  }, [currentUser, convexGarments.length, seeded]);
+
   // Generate recommendations on mount
   useEffect(() => {
     const generateRecommendations = async () => {
-      const garments = closetItemsToGarments(CLOSET_ITEMS, "default-user");
+      // Use real Convex garments if available, otherwise fall back to mock data
+      const garments =
+        convexGarments.length > 0
+          ? convexGarments.map((g) => ({
+              id: g._id,
+              userId,
+              name: g.name,
+              category: g.category as "top" | "bottom" | "shoes" | "outerwear",
+              primaryColor: g.primaryColor,
+              secondaryColor: undefined,
+              material: g.material,
+              season: g.season,
+              tags: g.tags,
+              style: g.style,
+              fit: g.fit,
+              occasion: g.occasion,
+              versatility: g.versatility as
+                | "high"
+                | "medium"
+                | "low"
+                | undefined,
+              vibrancy: g.vibrancy as
+                | "muted"
+                | "balanced"
+                | "vibrant"
+                | undefined,
+              imageOriginalUrl: g.imageUrl,
+              createdAt: new Date(g._creationTime),
+            }))
+          : MOCK_CLOSET_ITEMS.filter((g) => g.category !== "accessory").map(
+              (g, i) => ({
+                id: `mock-${i}`,
+                userId,
+                name: g.name,
+                category: g.category as
+                  | "top"
+                  | "bottom"
+                  | "shoes"
+                  | "outerwear",
+                primaryColor: g.primaryColor,
+                secondaryColor: undefined,
+                material: undefined,
+                season: "all-season" as const,
+                tags: g.tags,
+                style: g.style,
+                fit: g.fit,
+                occasion: g.occasion,
+                versatility: g.versatility,
+                vibrancy: g.vibrancy,
+                imageOriginalUrl: g.imageUrl,
+                createdAt: new Date(),
+              })
+            );
 
       await generate({
         garments,
@@ -302,23 +188,23 @@ export default function Home() {
         label: `Option ${index + 1}`,
         garments: outfit.garmentIds
           .map((id) => {
-            const item = CLOSET_ITEMS.find((i) => i.id === id);
+            // Look up the garment from Convex data
+            const item = convexGarments.find((g) => g._id === id);
             if (!item) return null;
             return {
-              id: item.id,
-              src: item.src,
+              id: item._id,
+              src: item.imageUrl ?? "",
               name: item.name,
               category: item.category,
-              type:
-                item.category === "outerwear"
-                  ? "outerwear"
-                  : item.category === "top"
-                    ? "top"
-                    : item.category === "bottom"
-                      ? "bottom"
-                      : "shoes",
-              color: item.color,
-              traits: item.traits,
+              type: item.category,
+              color: item.primaryColor,
+              traits: {
+                style: item.style,
+                fit: item.fit,
+                occasion: item.occasion,
+                versatility: item.versatility,
+                vibrancy: item.vibrancy,
+              },
             };
           })
           .filter(Boolean),
@@ -328,7 +214,7 @@ export default function Home() {
       setAllRecommendedOutfits(convertedOutfits);
       setRecommendedOutfit(convertedOutfits.slice(0, 6));
     }
-  }, [outfits]);
+  }, [outfits, convexGarments]);
 
   const handleShuffle = () => {
     setIsShuffling(true);
@@ -374,12 +260,7 @@ export default function Home() {
           <h1 className="text-base md:text-lg tracking-tight font-medium">
             OutfAI
           </h1>
-          <div className="flex items-center gap-1">
-            <div className="w-1.5 h-1.5 bg-acid-lime" />
-            <span className="text-[9px] uppercase tracking-[0.2em] text-muted-foreground">
-              Active
-            </span>
-          </div>
+          <UserAvatar />
         </div>
       </header>
 
@@ -529,7 +410,30 @@ export default function Home() {
 
         {/* Actions - Typographic, subtle */}
         <section className="flex items-center justify-center gap-8 md:gap-12 mb-20 md:mb-28">
-          <button className="text-[11px] uppercase tracking-[0.25em] text-foreground hover:text-signal-orange transition-colors duration-100 group flex items-center gap-2">
+          <button
+            onClick={async () => {
+              if (recommendedOutfit.length === 0 || convexGarments.length === 0)
+                return;
+              // Save the first displayed outfit that has real Convex garment IDs
+              const first = recommendedOutfit[0];
+              if (!first) return;
+              const garmentIds = convexGarments
+                .filter((g) =>
+                  first.garments.some((fg: any) => fg?.id === g._id)
+                )
+                .map((g) => g._id);
+              if (garmentIds.length === 0) return;
+              const id = await saveOutfit({
+                garmentIds,
+                contextMood: mood,
+                contextWeather: weather ?? undefined,
+                contextTemperature: temperature ?? undefined,
+                explanation: first.explanation,
+              });
+              setSavedOutfitId(id);
+            }}
+            className="text-[11px] uppercase tracking-[0.25em] text-foreground hover:text-signal-orange transition-colors duration-100 group flex items-center gap-2"
+          >
             <svg
               width="12"
               height="12"
@@ -541,7 +445,7 @@ export default function Home() {
             >
               <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
             </svg>
-            Save Look
+            {savedOutfitId ? "Saved!" : "Save Look"}
           </button>
 
           <div className="w-px h-4 bg-border" />

@@ -20,6 +20,6 @@
       "@shared/*": ["./shared/*"]
     }
   },
-  "include": ["apps/**/*", "server/**/*", "shared/**/*"],
+  "include": ["apps/**/*", "server/**/*", "shared/**/*", "convex/**/*"],
   "exclude": ["node_modules"]
 }
