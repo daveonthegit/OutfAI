@@ -98,6 +98,8 @@ const NAV_ITEMS = [
   },
 ];
 
+const AUTH_PATHS = ["/login", "/signup"];
+
 export function BottomNav() {
   const pathname = usePathname();
   const { theme, setTheme, resolvedTheme } = useTheme();
@@ -106,6 +108,8 @@ export function BottomNav() {
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  if (AUTH_PATHS.includes(pathname)) return null;
 
   const toggleTheme = () => {
     setTheme(resolvedTheme === "dark" ? "light" : "dark");

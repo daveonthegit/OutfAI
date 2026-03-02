@@ -83,22 +83,69 @@ if [ "$NO_DOCKER" = false ]; then
     fi
 fi
 
+# ---- Readiness poll ----
+wait_for_app() {
+    local url=$1
+    local max_wait=${2:-120}
+    local waited=0
+    while [ "$waited" -lt "$max_wait" ]; do
+        if curl -sf --max-time 2 "$url" &>/dev/null; then
+            return 0
+        fi
+        sleep 3
+        waited=$((waited + 3))
+        echo -e "  \033[0;37mWaiting for app... ${waited}s\033[0m"
+    done
+    return 1
+}
+
+open_browser() {
+    local url=$1
+    if command -v xdg-open &>/dev/null; then
+        xdg-open "$url" &>/dev/null &
+    elif command -v open &>/dev/null; then
+        open "$url"
+    fi
+}
+
 # ---- Start ----
 cd "$ROOT_DIR"
 if [ "$NO_DOCKER" = false ]; then
     log "Starting Docker Compose (dev)..."
     docker compose up --build -d
-    ok "Docker services up"
+    ok "Containers started. Waiting for web app to be ready..."
+    if wait_for_app "http://localhost:3000"; then
+        ok "App is ready"
+        open_browser "http://localhost:3000"
+    else
+        warn "App did not respond within 120s — check logs: docker compose logs -f web"
+    fi
 else
     warn "Skipping Docker (--no-docker). Starting Next.js dev server in the background..."
     npm run dev &
+    log "Waiting for dev server to be ready..."
+    if wait_for_app "http://localhost:3000"; then
+        ok "App is ready"
+        open_browser "http://localhost:3000"
+    else
+        warn "Dev server did not respond within 120s."
+    fi
 fi
 
 echo ""
 ok "Startup done."
 echo -e "  Web app:  \033[0;37mhttp://localhost:3000\033[0m"
-echo -e "  Postgres: \033[0;37mlocalhost:54322\033[0m"
+echo -e "  Postgres: \033[0;37mlocalhost:5433\033[0m"
 echo ""
 echo -e "  Tail logs : \033[0;37mdocker compose logs -f web\033[0m"
-echo -e "  Stop      : \033[0;37m./scripts/stop.sh\033[0m"
+echo -e "  Type :q   to stop everything and quit"
 echo ""
+
+while true; do
+    read -r cmd
+    if [ "$cmd" = ":q" ]; then
+        log "Stopping..."
+        "$SCRIPT_DIR/stop.sh"
+        break
+    fi
+done

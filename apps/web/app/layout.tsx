@@ -4,6 +4,7 @@ import { Inter, Instrument_Serif } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { ThemeProvider } from "@/components/theme-provider";
 import { BottomNav } from "@/components/bottom-nav";
+import { Providers } from "@/components/providers";
 import "./globals.css";
 
 const inter = Inter({
@@ -50,15 +51,17 @@ export default function RootLayout({
       <body
         className={`${inter.variable} ${instrumentSerif.variable} font-sans antialiased`}
       >
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="dark"
-          enableSystem
-          disableTransitionOnChange
-        >
-          {children}
-          <BottomNav />
-        </ThemeProvider>
+        <Providers>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="dark"
+            enableSystem
+            disableTransitionOnChange
+          >
+            {children}
+            <BottomNav />
+          </ThemeProvider>
+        </Providers>
         <Analytics />
       </body>
     </html>
