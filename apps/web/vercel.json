@@ -1,4 +1,5 @@
 {
+  "framework": "nextjs",
   "installCommand": "cd ../.. && npm install",
   "buildCommand": "cd ../.. && npx convex deploy --cmd 'npm run build'"
 }
