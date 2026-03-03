@@ -24,48 +24,48 @@
 
 ## `garments`
 
-| Field | Type | Required |
-|-------|------|----------|
-| `userId` | `string` | yes |
-| `name` | `string` | yes |
-| `category` | `string` | yes |
-| `primaryColor` | `string` | yes |
-| `tags` | `array<string>` | yes |
-| `style` | `array<string>` | no |
-| `fit` | `string` | no |
-| `occasion` | `array<string>` | no |
-| `versatility` | `string` | no |
-| `vibrancy` | `string` | no |
-| `material` | `string` | no |
-| `season` | `string` | no |
-| `imageUrl` | `string` | no |
+| Field          | Type            | Required |
+| -------------- | --------------- | -------- |
+| `userId`       | `string`        | yes      |
+| `name`         | `string`        | yes      |
+| `category`     | `string`        | yes      |
+| `primaryColor` | `string`        | yes      |
+| `tags`         | `array<string>` | yes      |
+| `style`        | `array<string>` | no       |
+| `fit`          | `string`        | no       |
+| `occasion`     | `array<string>` | no       |
+| `versatility`  | `string`        | no       |
+| `vibrancy`     | `string`        | no       |
+| `material`     | `string`        | no       |
+| `season`       | `string`        | no       |
+| `imageUrl`     | `string`        | no       |
 
 ---
 
 ## `outfits`
 
-| Field | Type | Required |
-|-------|------|----------|
-| `userId` | `string` | yes |
-| `garmentIds` | `array<id<garments>>` | yes |
-| `contextMood` | `string` | no |
-| `contextWeather` | `string` | no |
-| `contextTemperature` | `number` | no |
-| `explanation` | `string` | no |
-| `savedAt` | `number` | yes |
+| Field                | Type                  | Required |
+| -------------------- | --------------------- | -------- |
+| `userId`             | `string`              | yes      |
+| `garmentIds`         | `array<id<garments>>` | yes      |
+| `contextMood`        | `string`              | no       |
+| `contextWeather`     | `string`              | no       |
+| `contextTemperature` | `number`              | no       |
+| `explanation`        | `string`              | no       |
+| `savedAt`            | `number`              | yes      |
 
 ---
 
 ## `recommendationLogs`
 
-| Field | Type | Required |
-|-------|------|----------|
-| `userId` | `string` | yes |
-| `outfitId` | `id<outfits>` | no |
-| `garmentIds` | `array<string>` | yes |
-| `action` | `string` | yes |
-| `mood` | `string` | no |
-| `weather` | `string` | no |
-| `loggedAt` | `number` | yes |
+| Field        | Type            | Required |
+| ------------ | --------------- | -------- |
+| `userId`     | `string`        | yes      |
+| `outfitId`   | `id<outfits>`   | no       |
+| `garmentIds` | `array<string>` | yes      |
+| `action`     | `string`        | yes      |
+| `mood`       | `string`        | no       |
+| `weather`    | `string`        | no       |
+| `loggedAt`   | `number`        | yes      |
 
 ---
