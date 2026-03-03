@@ -15,7 +15,7 @@ const siteUrl = process.env.SITE_URL!;
 const FROM_EMAIL = process.env.EMAIL_FROM ?? "OutfAI <onboarding@resend.dev>";
 
 export const authComponent = createClient<DataModel>(components.betterAuth);
-const resend = new Resend(components.resend, {});
+const resend = new Resend(components.resend, { testMode: false });
 
 export const createAuth = (ctx: GenericCtx<DataModel>) =>
   betterAuth({
