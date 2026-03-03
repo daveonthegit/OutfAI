@@ -32,6 +32,9 @@ jobs:
 
       - name: Build preview
         run: vercel build --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          VERCEL_ENV: preview
+          VERCEL_GIT_COMMIT_REF: ${{ github.head_ref }}
 
       - name: Deploy preview
         id: deploy
