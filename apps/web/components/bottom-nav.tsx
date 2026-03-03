@@ -98,7 +98,7 @@ const NAV_ITEMS = [
   },
 ];
 
-const AUTH_PATHS = ["/login", "/signup"];
+const AUTH_PATHS = ["/login", "/signup", "/check-email", "/verify-email"];
 
 export function BottomNav() {
   const pathname = usePathname();

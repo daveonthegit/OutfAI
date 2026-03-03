@@ -1,6 +1,8 @@
 import { createClient, type GenericCtx } from "@convex-dev/better-auth";
 import { convex } from "@convex-dev/better-auth/plugins";
+import { requireRunMutationCtx } from "@convex-dev/better-auth/utils";
 import { username } from "better-auth/plugins";
+import { Resend } from "@convex-dev/resend";
 import { components } from "./_generated/api";
 import type { DataModel } from "./_generated/dataModel";
 import { query } from "./_generated/server";
@@ -9,7 +11,11 @@ import authConfig from "./auth.config";
 
 const siteUrl = process.env.SITE_URL!;
 
+// Sender address: use a verified domain in production or Resend's onboarding domain
+const FROM_EMAIL = process.env.EMAIL_FROM ?? "OutfAI <onboarding@resend.dev>";
+
 export const authComponent = createClient<DataModel>(components.betterAuth);
+const resend = new Resend(components.resend, {});
 
 export const createAuth = (ctx: GenericCtx<DataModel>) =>
   betterAuth({
@@ -17,9 +23,23 @@ export const createAuth = (ctx: GenericCtx<DataModel>) =>
     database: authComponent.adapter(ctx),
     emailAndPassword: {
       enabled: true,
-      requireEmailVerification: false,
+      requireEmailVerification: true,
       // Keep minimum length of 1 so the dev test/test account still works
       minPasswordLength: 1,
+    },
+    emailVerification: {
+      sendOnSignUp: true,
+      sendOnSignIn: true,
+      autoSignInAfterVerification: true,
+      sendVerificationEmail: async ({ user, url }) => {
+        const runCtx = requireRunMutationCtx(ctx);
+        await resend.sendEmail(runCtx, {
+          from: FROM_EMAIL,
+          to: user.email,
+          subject: "Verify your email — OutfAI",
+          html: `<!DOCTYPE html><html><body style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px;"><h1 style="font-size:1.25rem;">Verify your email</h1><p>Thanks for signing up for OutfAI. Click the link below to verify your email and start using your wardrobe.</p><p><a href="${url}" style="display:inline-block;background:#000;color:#fff;padding:12px 20px;text-decoration:none;border-radius:8px;">Verify email</a></p><p>Or copy this link: <br/><a href="${url}">${url}</a></p><p style="color:#666;font-size:0.875rem;">If you didn't create an account, you can ignore this email.</p></body></html>`,
+        });
+      },
     },
     plugins: [convex({ authConfig }), username()],
   });

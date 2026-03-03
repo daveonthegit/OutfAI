@@ -33,7 +33,7 @@ export default function SignupPage() {
             "Could not create account. Try a different username or email."
         );
       } else {
-        router.push("/");
+        router.push(`/check-email?email=${encodeURIComponent(email)}`);
         router.refresh();
       }
     } catch {

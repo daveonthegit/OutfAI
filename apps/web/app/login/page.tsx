@@ -15,20 +15,39 @@ function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [unverifiedEmail, setUnverifiedEmail] = useState(false);
+  const [resendEmail, setResendEmail] = useState("");
+  const [resendLoading, setResendLoading] = useState(false);
+  const [resendSent, setResendSent] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setUnverifiedEmail(false);
     setLoading(true);
 
     try {
-      const { error } = await authClient.signIn.username({
-        username,
-        password,
-      });
+      const { error } = await authClient.signIn.username(
+        { username, password },
+        {
+          onError: (ctx) => {
+            if (ctx.error?.status === 403) {
+              setUnverifiedEmail(true);
+              setError("Please verify your email before signing in.");
+            }
+          },
+        }
+      );
 
       if (error) {
-        setError("Invalid username or password.");
+        const isUnverified =
+          "status" in error && (error as { status?: number }).status === 403;
+        if (isUnverified) {
+          setUnverifiedEmail(true);
+          setError("Please verify your email before signing in.");
+        } else if (!unverifiedEmail) {
+          setError("Invalid username or password.");
+        }
       } else {
         router.push(callbackUrl);
         router.refresh();
@@ -37,6 +56,28 @@ function LoginForm() {
       setError("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleResendVerification = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!resendEmail.trim()) return;
+    setResendLoading(true);
+    setError("");
+    try {
+      const { error } = await authClient.sendVerificationEmail({
+        body: {
+          email: resendEmail.trim(),
+          callbackURL: "/verify-email",
+        },
+      });
+      if (error)
+        setError(error.message ?? "Could not send verification email.");
+      else setResendSent(true);
+    } catch {
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setResendLoading(false);
     }
   };
 
@@ -216,6 +257,47 @@ function LoginForm() {
                           <p className="rounded-lg border border-signal-orange/30 bg-signal-orange/10 px-3 py-2 text-[11px] uppercase tracking-[0.15em] text-signal-orange">
                             {error}
                           </p>
+                        </div>
+                      )}
+
+                      {unverifiedEmail && (
+                        <div className="mt-4 rounded-xl border border-border/70 bg-background/40 p-4">
+                          <p className="mb-3 text-[11px] uppercase tracking-[0.15em] text-muted-foreground">
+                            Resend verification email
+                          </p>
+                          {resendSent ? (
+                            <p className="text-sm text-foreground/80">
+                              Check your inbox for the verification link.
+                            </p>
+                          ) : (
+                            <form
+                              onSubmit={handleResendVerification}
+                              className="flex flex-col gap-3 sm:flex-row sm:items-end"
+                            >
+                              <div className="flex-1 rounded-lg border border-border/70 bg-background/60 focus-within:ring-2 focus-within:ring-foreground/20">
+                                <label className="block px-3 pt-2 pb-0.5 text-[10px] uppercase tracking-wider text-muted-foreground">
+                                  Email
+                                </label>
+                                <input
+                                  type="email"
+                                  value={resendEmail}
+                                  onChange={(e) =>
+                                    setResendEmail(e.target.value)
+                                  }
+                                  placeholder="you@example.com"
+                                  required
+                                  className="w-full bg-transparent px-3 pb-2 text-sm text-foreground outline-none placeholder:text-muted-foreground/50"
+                                />
+                              </div>
+                              <button
+                                type="submit"
+                                disabled={resendLoading}
+                                className="rounded-lg border border-border/70 bg-background/60 px-4 py-2.5 text-[10px] uppercase tracking-wider text-foreground transition-colors hover:bg-background/80 disabled:opacity-50"
+                              >
+                                {resendLoading ? "Sending…" : "Resend"}
+                              </button>
+                            </form>
+                          )}
                         </div>
                       )}
 
