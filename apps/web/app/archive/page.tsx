@@ -3,11 +3,40 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@convex/_generated/api";
 import type { Id } from "@convex/_generated/dataModel";
 import { formatDistanceToNow } from "date-fns";
 import { useRequireAuth } from "@/hooks/use-require-auth";
+
+const GARMENT_CATEGORY_ORDER = [
+  "top",
+  "outerwear",
+  "bottom",
+  "shoes",
+  "accessory",
+] as const;
+
+function sortGarmentsByCategory<T extends { category: string }>(
+  garments: T[]
+): T[] {
+  const rank = (c: string) => {
+    const i = GARMENT_CATEGORY_ORDER.indexOf(
+      c as (typeof GARMENT_CATEGORY_ORDER)[number]
+    );
+    return i === -1 ? GARMENT_CATEGORY_ORDER.length : i;
+  };
+  return [...garments].sort((a, b) => rank(a.category) - rank(b.category));
+}
+
+interface ArchiveGarment {
+  _id: Id<"garments">;
+  name: string;
+  category: string;
+  primaryColor: string;
+  imageUrl?: string;
+}
 
 interface OutfitWithGarments {
   _id: Id<"outfits">;
@@ -19,18 +48,12 @@ interface OutfitWithGarments {
   contextTemperature?: number;
   explanation?: string;
   savedAt: number;
-  garments: Array<{
-    _id: Id<"garments">;
-    name: string;
-    category: string;
-    primaryColor: string;
-    imageUrl?: string;
-  } | null>;
+  garments: Array<ArchiveGarment | null>;
 }
 
 export default function ArchivePage() {
   useRequireAuth("/archive");
-
+  const router = useRouter();
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const outfits = useQuery(api.outfits.list) as
     | OutfitWithGarments[]
@@ -41,6 +64,28 @@ export default function ArchivePage() {
     e.preventDefault();
     e.stopPropagation();
     await removeOutfit({ id });
+  };
+
+  const handleViewOutfit = (outfit: OutfitWithGarments) => {
+    const sorted = sortGarmentsByCategory(
+      outfit.garments.filter(Boolean) as ArchiveGarment[]
+    );
+    const garments = sorted.map((g) => ({
+      id: g._id,
+      src: g.imageUrl ?? "",
+      name: g.name,
+      type: g.category,
+    }));
+    const outfitData = JSON.stringify({
+      label: `Saved ${formatDistanceToNow(new Date(outfit.savedAt), { addSuffix: true })}`,
+      garments,
+      explanation: outfit.explanation,
+      garmentIds: outfit.garmentIds,
+      contextMood: outfit.contextMood,
+      contextWeather: outfit.contextWeather,
+      contextTemperature: outfit.contextTemperature,
+    });
+    router.push(`/outfit?outfit=${encodeURIComponent(outfitData)}`);
   };
 
   return (
@@ -108,82 +153,111 @@ export default function ArchivePage() {
             </Link>
           </section>
         ) : (
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {outfits.map((outfit) => (
-              <div
-                key={outfit._id}
-                className="group block relative"
-                onMouseEnter={() => setHoveredId(outfit._id)}
-                onMouseLeave={() => setHoveredId(null)}
-                style={{
-                  opacity:
-                    hoveredId !== null && hoveredId !== outfit._id ? 0.5 : 1,
-                  transition: "opacity 100ms",
-                }}
-              >
-                {/* Compact composition stack */}
-                <div className="flex flex-col gap-[1px] mb-4">
-                  {outfit.garments
-                    .filter(Boolean)
-                    .slice(0, 3)
-                    .map((garment, idx) =>
-                      garment ? (
-                        <div
-                          key={idx}
-                          className="relative border border-border bg-card overflow-hidden"
-                        >
-                          <div className="aspect-[3/2] relative bg-secondary">
-                            {garment.imageUrl ? (
-                              <Image
-                                src={garment.imageUrl}
-                                alt={garment.name}
-                                fill
-                                className="object-cover transition-transform duration-300 group-hover:scale-105"
-                              />
-                            ) : (
-                              <div className="absolute inset-0 flex items-center justify-center">
-                                <span className="text-[9px] uppercase tracking-widest text-muted-foreground">
-                                  {garment.category}
-                                </span>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      ) : null
-                    )}
-                </div>
-
-                {/* Metadata */}
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
-                    {formatDistanceToNow(new Date(outfit.savedAt), {
-                      addSuffix: true,
-                    })}
-                  </span>
-                  <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground group-hover:text-signal-orange transition-colors duration-100">
-                    {outfit.contextMood ?? "—"}
-                  </span>
-                </div>
-
-                {/* Remove button */}
-                {hoveredId === outfit._id && (
-                  <button
-                    onClick={(e) => handleRemove(outfit._id, e)}
-                    className="absolute top-2 right-2 p-1.5 bg-background/80 border border-border hover:border-destructive hover:text-destructive transition-colors text-[9px] uppercase tracking-widest"
-                  >
-                    Remove
-                  </button>
-                )}
-
-                {/* Hover indicator line */}
+          <div
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 lg:gap-8"
+            style={{
+              opacity: hoveredId ? 1 : 1,
+            }}
+          >
+            {outfits.map((outfit) => {
+              const sortedGarments = sortGarmentsByCategory(
+                outfit.garments.filter(Boolean) as ArchiveGarment[]
+              );
+              const isHovered = hoveredId === outfit._id;
+              return (
                 <div
-                  className="h-[2px] mt-3 bg-signal-orange transition-all duration-100"
+                  key={outfit._id}
+                  className="group relative w-full aspect-square border border-border bg-card hover:bg-secondary/50 transition-all duration-200 overflow-hidden text-left"
+                  onMouseEnter={() => setHoveredId(outfit._id)}
+                  onMouseLeave={() => setHoveredId(null)}
                   style={{
-                    width: hoveredId === outfit._id ? "100%" : "0%",
+                    opacity: hoveredId !== null && !isHovered ? 0.5 : 1,
+                    transition: "opacity 100ms",
                   }}
-                />
-              </div>
-            ))}
+                >
+                  {/* Remove button - same z as overlay */}
+                  {isHovered && (
+                    <button
+                      onClick={(e) => handleRemove(outfit._id, e)}
+                      className="absolute top-2 right-2 z-20 p-1.5 bg-background/80 border border-border hover:border-destructive hover:text-destructive transition-colors text-[9px] uppercase tracking-widest"
+                    >
+                      Remove
+                    </button>
+                  )}
+
+                  {/* Clickable area: same square layout as recommendation options */}
+                  <button
+                    type="button"
+                    className="absolute inset-0 w-full h-full flex flex-col"
+                    onClick={() => handleViewOutfit(outfit)}
+                  >
+                    <div className="w-full h-full relative flex-1 min-h-0">
+                      {sortedGarments.length === 1 ? (
+                        <div className="absolute inset-0 relative">
+                          {sortedGarments[0].imageUrl ? (
+                            <Image
+                              src={sortedGarments[0].imageUrl}
+                              alt={sortedGarments[0].name}
+                              fill
+                              className="object-cover"
+                            />
+                          ) : (
+                            <div className="absolute inset-0 bg-secondary flex items-center justify-center">
+                              <span className="text-[9px] uppercase tracking-widest text-muted-foreground">
+                                {sortedGarments[0].category}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-2 w-full h-full absolute inset-0">
+                          {sortedGarments.slice(0, 4).map((garment, idx) => (
+                            <div
+                              key={garment._id}
+                              className="relative bg-secondary border-l border-t border-border"
+                            >
+                              {garment.imageUrl ? (
+                                <Image
+                                  src={garment.imageUrl}
+                                  alt={garment.name}
+                                  fill
+                                  className="object-cover"
+                                />
+                              ) : (
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                  <span className="text-[9px] uppercase tracking-widest text-muted-foreground">
+                                    {garment.category}
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Same hover overlay as recommendation cards */}
+                    <div className="absolute bottom-0 left-0 right-0 bg-background/95 px-4 py-4 translate-y-full group-hover:translate-y-0 transition-transform duration-200">
+                      <p className="text-[11px] uppercase tracking-widest text-foreground mb-2">
+                        Saved{" "}
+                        {formatDistanceToNow(new Date(outfit.savedAt), {
+                          addSuffix: true,
+                        })}
+                      </p>
+                      <p className="text-[9px] uppercase tracking-widest text-muted-foreground mb-3">
+                        {sortedGarments.length} pieces
+                      </p>
+                      <span className="text-[10px] uppercase tracking-[0.2em] text-signal-orange">
+                        Click to view
+                      </span>
+                    </div>
+                  </button>
+
+                  {/* Accent line on hover - same as options */}
+                  <div className="absolute top-0 left-0 w-0.5 h-full bg-signal-orange opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none" />
+                </div>
+              );
+            })}
           </div>
         )}
       </div>

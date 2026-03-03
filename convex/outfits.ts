@@ -13,15 +13,36 @@ export const list = query({
       .order("desc")
       .collect();
 
-    // Resolve garment details for each outfit
+    // Display order: Top → Outerwear → Bottom → Shoes → Accessory
+    const CATEGORY_ORDER = [
+      "top",
+      "outerwear",
+      "bottom",
+      "shoes",
+      "accessory",
+    ] as const;
+    const categoryRank = (c: string) => {
+      const i = CATEGORY_ORDER.indexOf(c as (typeof CATEGORY_ORDER)[number]);
+      return i === -1 ? CATEGORY_ORDER.length : i;
+    };
+
+    // Resolve garment details for each outfit and sort by category order
     const outfitsWithGarments = await Promise.all(
       outfits.map(async (outfit) => {
         const garments = await Promise.all(
           outfit.garmentIds.map((id) => ctx.db.get(id))
         );
+        const filtered = garments.filter(Boolean) as Array<{
+          _id: (typeof outfit.garmentIds)[0];
+          category: string;
+          [key: string]: unknown;
+        }>;
+        filtered.sort(
+          (a, b) => categoryRank(a.category) - categoryRank(b.category)
+        );
         return {
           ...outfit,
-          garments: garments.filter(Boolean),
+          garments: filtered,
         };
       })
     );

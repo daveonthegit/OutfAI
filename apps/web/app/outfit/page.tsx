@@ -4,12 +4,20 @@ import { Suspense, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
+import { useMutation } from "convex/react";
+import { api } from "@convex/_generated/api";
+import type { Id } from "@convex/_generated/dataModel";
 
 function OutfitContent() {
   const [hoveredId, setHoveredId] = useState<number | null>(null);
   const [selectedGarment, setSelectedGarment] = useState<any | null>(null);
+  const [savedOutfitId, setSavedOutfitId] = useState<Id<"outfits"> | null>(
+    null
+  );
+  const [saveError, setSaveError] = useState<string | null>(null);
   const searchParams = useSearchParams();
   const router = useRouter();
+  const saveOutfit = useMutation(api.outfits.save);
 
   // Get outfit data from query params
   const outfitData = searchParams.get("outfit");
@@ -236,7 +244,41 @@ function OutfitContent() {
 
         {/* Action */}
         <section className="border-t border-border pt-10">
-          <button className="text-[11px] uppercase tracking-[0.25em] text-foreground hover:text-signal-orange transition-colors duration-100 group flex items-center gap-2">
+          {saveError && (
+            <p className="text-[11px] text-destructive mb-2">{saveError}</p>
+          )}
+          <button
+            onClick={async () => {
+              const garmentIds = (outfit as { garmentIds?: Id<"garments">[] })
+                .garmentIds;
+              if (!garmentIds || garmentIds.length === 0) {
+                setSaveError(
+                  "This look can’t be saved from here. Save it from the main page."
+                );
+                return;
+              }
+              setSaveError(null);
+              try {
+                const id = await saveOutfit({
+                  garmentIds,
+                  contextMood: (outfit as { contextMood?: string }).contextMood,
+                  contextWeather: (outfit as { contextWeather?: string })
+                    .contextWeather,
+                  contextTemperature: (
+                    outfit as { contextTemperature?: number }
+                  ).contextTemperature,
+                  explanation: outfit.explanation,
+                });
+                setSavedOutfitId(id);
+              } catch (e) {
+                setSaveError(
+                  e instanceof Error ? e.message : "Failed to save look"
+                );
+              }
+            }}
+            disabled={!!savedOutfitId}
+            className="text-[11px] uppercase tracking-[0.25em] text-foreground hover:text-signal-orange transition-colors duration-100 group flex items-center gap-2 disabled:opacity-60 disabled:cursor-default"
+          >
             <svg
               width="12"
               height="12"
@@ -248,7 +290,7 @@ function OutfitContent() {
             >
               <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
             </svg>
-            Save Look
+            {savedOutfitId ? "Saved!" : "Save Look"}
           </button>
         </section>
       </div>

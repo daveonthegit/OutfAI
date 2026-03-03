@@ -52,6 +52,13 @@ export default function Home() {
   const [tempUnit, setTempUnit] = useState<"F" | "C">("F");
   const [lastFetched, setLastFetched] = useState<string | null>(null);
 
+  // Select mode for Save Look (same UI as closet: multi-select options)
+  const [isSelectMode, setIsSelectMode] = useState(false);
+  const [selectedOptionIndices, setSelectedOptionIndices] = useState<
+    Set<number>
+  >(new Set());
+  const [isSaving, setIsSaving] = useState(false);
+
   // Derive the display value from Celsius; no extra API call needed on unit switch.
   const displayTemp =
     temperatureCelsius === null
@@ -241,12 +248,74 @@ export default function Home() {
           })
           .filter(Boolean),
         explanation: outfit.explanation,
+        contextMood: mood,
+        contextWeather: weather ?? undefined,
+        contextTemperature: temperatureCelsius ?? undefined,
       }));
       // Store full pool and show top 6 by default
       setAllRecommendedOutfits(convertedOutfits);
       setRecommendedOutfit(convertedOutfits.slice(0, 6));
     }
   }, [outfits, convexGarments]);
+
+  const toggleSelectMode = () => {
+    setIsSelectMode((prev) => !prev);
+    setSelectedOptionIndices(new Set());
+    setSavedOutfitId(null);
+  };
+
+  const toggleOptionIndex = (index: number) => {
+    setSelectedOptionIndices((prev) => {
+      const next = new Set(prev);
+      if (next.has(index)) next.delete(index);
+      else next.add(index);
+      return next;
+    });
+  };
+
+  const selectAllOptions = () => {
+    if (!recommendedOutfit?.length) return;
+    setSelectedOptionIndices(new Set(recommendedOutfit.map((_, i) => i)));
+  };
+
+  const deselectAllOptions = () => {
+    setSelectedOptionIndices(new Set());
+  };
+
+  const allOptionsSelected =
+    recommendedOutfit &&
+    recommendedOutfit.length > 0 &&
+    recommendedOutfit.every((_, i) => selectedOptionIndices.has(i));
+
+  const handleSaveSelectedLooks = async () => {
+    if (selectedOptionIndices.size === 0 || convexGarments.length === 0) return;
+    setIsSaving(true);
+    try {
+      for (const index of selectedOptionIndices) {
+        const outfit = recommendedOutfit[index];
+        if (!outfit?.garments?.length) continue;
+        const garmentIds = convexGarments
+          .filter((g: Doc<"garments">) =>
+            outfit.garments.some((fg: { id?: string }) => fg?.id === g._id)
+          )
+          .map((g: Doc<"garments">) => g._id);
+        if (garmentIds.length === 0) continue;
+        await saveOutfit({
+          garmentIds,
+          contextMood: outfit.contextMood ?? mood,
+          contextWeather: outfit.contextWeather ?? weather ?? undefined,
+          contextTemperature:
+            outfit.contextTemperature ?? temperatureCelsius ?? undefined,
+          explanation: outfit.explanation,
+        });
+      }
+      setSavedOutfitId("done");
+      setSelectedOptionIndices(new Set());
+      setIsSelectMode(false);
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   const handleShuffle = () => {
     setIsShuffling(true);
@@ -415,6 +484,72 @@ export default function Home() {
           <div className="h-px bg-border flex-1" />
         </div>
 
+        {/* Selection toolbar - same as closet */}
+        {isSelectMode && recommendedOutfit && recommendedOutfit.length > 0 && (
+          <section className="mb-6 flex flex-wrap items-center justify-between gap-3 border border-border px-4 py-3">
+            <div className="flex items-center gap-4">
+              <span className="text-[11px] uppercase tracking-[0.2em] text-foreground">
+                {selectedOptionIndices.size === 0
+                  ? "None selected"
+                  : `${selectedOptionIndices.size} selected`}
+              </span>
+              <button
+                type="button"
+                onClick={
+                  allOptionsSelected ? deselectAllOptions : selectAllOptions
+                }
+                className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground hover:text-foreground transition-colors duration-100 underline underline-offset-2"
+              >
+                {allOptionsSelected ? "Deselect all" : "Select all"}
+              </button>
+            </div>
+            {selectedOptionIndices.size > 0 && (
+              <button
+                type="button"
+                onClick={handleSaveSelectedLooks}
+                disabled={isSaving}
+                className="flex items-center gap-2 px-4 py-2 text-[10px] uppercase tracking-[0.2em] bg-signal-orange text-background border border-signal-orange hover:opacity-90 transition-colors duration-100 disabled:opacity-50"
+              >
+                {isSaving ? (
+                  <>
+                    <svg
+                      className="animate-spin"
+                      width="12"
+                      height="12"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                    >
+                      <path
+                        d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                        opacity="0.25"
+                      />
+                      <path d="M21 12a9 9 0 01-9-9" />
+                    </svg>
+                    Saving…
+                  </>
+                ) : (
+                  <>
+                    <svg
+                      width="12"
+                      height="12"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                    >
+                      <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+                    </svg>
+                    Save {selectedOptionIndices.size} look
+                    {selectedOptionIndices.size !== 1 ? "s" : ""}
+                  </>
+                )}
+              </button>
+            )}
+          </section>
+        )}
+
         {/* Recommendation Grid */}
         <section className="mb-16 md:mb-24">
           {recommendedOutfit && recommendedOutfit.length > 0 ? (
@@ -431,6 +566,12 @@ export default function Home() {
                       label={outfit.label}
                       garments={outfit.garments}
                       explanation={outfit.explanation}
+                      contextMood={outfit.contextMood}
+                      contextWeather={outfit.contextWeather}
+                      contextTemperature={outfit.contextTemperature}
+                      isSelectMode={isSelectMode}
+                      isSelected={selectedOptionIndices.has(index)}
+                      onToggleSelect={() => toggleOptionIndex(index)}
                     />
                   )
               )}
@@ -444,49 +585,45 @@ export default function Home() {
           )}
         </section>
 
-        {/* Actions - Typographic, subtle */}
+        {/* Actions - Save Look (pick options to save) + Shuffle */}
         <section className="flex items-center justify-center gap-8 md:gap-12 mb-20 md:mb-28">
-          <button
-            onClick={async () => {
-              if (recommendedOutfit.length === 0 || convexGarments.length === 0)
-                return;
-              // Save the first displayed outfit that has real Convex garment IDs
-              const first = recommendedOutfit[0];
-              if (!first) return;
-              const garmentIds = convexGarments
-                .filter((g: Doc<"garments">) =>
-                  first.garments.some((fg: { id?: string }) => fg?.id === g._id)
-                )
-                .map((g: Doc<"garments">) => g._id);
-              if (garmentIds.length === 0) return;
-              const id = await saveOutfit({
-                garmentIds,
-                contextMood: mood,
-                contextWeather: weather ?? undefined,
-                contextTemperature: temperatureCelsius ?? undefined,
-                explanation: first.explanation,
-              });
-              setSavedOutfitId(id);
-            }}
-            className="text-[11px] uppercase tracking-[0.25em] text-foreground hover:text-signal-orange transition-colors duration-100 group flex items-center gap-2"
-          >
-            <svg
-              width="12"
-              height="12"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              className="transition-transform duration-100 group-hover:scale-110"
-            >
-              <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
-            </svg>
-            {savedOutfitId ? "Saved!" : "Save Look"}
-          </button>
+          {recommendedOutfit && recommendedOutfit.length > 0 && (
+            <>
+              <button
+                type="button"
+                onClick={toggleSelectMode}
+                className={`text-[11px] uppercase tracking-[0.25em] transition-colors duration-100 group flex items-center gap-2 ${
+                  isSelectMode
+                    ? "text-foreground border-border"
+                    : savedOutfitId
+                      ? "text-muted-foreground"
+                      : "text-foreground hover:text-signal-orange"
+                }`}
+              >
+                <svg
+                  width="12"
+                  height="12"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  className="transition-transform duration-100 group-hover:scale-110"
+                >
+                  <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+                </svg>
+                {isSelectMode
+                  ? "Cancel"
+                  : savedOutfitId
+                    ? "Saved!"
+                    : "Save Look"}
+              </button>
 
-          <div className="w-px h-4 bg-border" />
+              <div className="w-px h-4 bg-border" />
+            </>
+          )}
 
           <button
+            type="button"
             onClick={handleShuffle}
             disabled={loading}
             className="text-[11px] uppercase tracking-[0.25em] text-muted-foreground hover:text-foreground transition-colors duration-100 group flex items-center gap-2 disabled:opacity-50"
