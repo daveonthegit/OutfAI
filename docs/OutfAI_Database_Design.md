@@ -2,140 +2,103 @@
 
 ## Overview
 
-The database is designed to be wardrobe-first, extensible, and friendly to future recommendation improvements.
+The database is designed to be wardrobe-first, extensible, and friendly to future recommendation improvements. The single source of truth for the schema is [convex/schema.ts](../convex/schema.ts). An auto-generated reference is [convex-schema.md](./convex-schema.md).
 
 **Database:** Convex  
-**ORM:** Convex (schema-defined collections, no separate ORM layer)
+**Schema:** Convex `defineSchema` / `defineTable` (no separate ORM). User and session data are managed by the BetterAuth component (stored in Convex via `@convex-dev/better-auth`) and are not defined in the application schema.
 
 ---
 
-## Core Tables
-
-### users
-
-Stores basic user identity information.
-
-```sql
-id (pk)
-email
-name
-created_at
-```
-
----
+## Core Collections
 
 ### garments
 
-Represents individual clothing items owned by users.
+Individual clothing items owned by a user. Tags from the original design (a separate `garment_tags` table) are flattened into a `tags` array on each document.
 
-```sql
-id (pk)
-user_id (fk)
-name
-category
-primary_color
-secondary_color
-material
-season
-image_original_url
-image_processed_url
-image_thumbnail_url
-created_at
-```
+| Field        | Type            | Required | Notes                                         |
+| ------------ | --------------- | -------- | --------------------------------------------- |
+| userId       | string          | yes      | BetterAuth user id (string)                   |
+| name         | string          | yes      |                                               |
+| category     | string          | yes      | e.g. top, bottom, shoes, outerwear, accessory |
+| primaryColor | string          | yes      |                                               |
+| tags         | array of string | yes      | Replaces garment_tags table                   |
+| style        | array of string | no       |                                               |
+| fit          | string          | no       |                                               |
+| occasion     | array of string | no       |                                               |
+| versatility  | string          | no       | high / medium / low                           |
+| vibrancy     | string          | no       | muted / balanced / vibrant                    |
+| material     | string          | no       |                                               |
+| season       | string          | no       |                                               |
+| imageUrl     | string          | no       | From Convex file storage (or external URL)    |
 
----
-
-### garment_tags
-
-Stores tags assigned by AI or user corrections.
-
-```sql
-id (pk)
-garment_id (fk)
-tag
-source (auto | user)
-```
+Index: `by_userId` on `userId`.
 
 ---
 
 ### outfits
 
-Represents a generated outfit instance.
+Saved outfit instances. The original design had an `outfit_items` join table; for MVP, garment IDs are embedded as `garmentIds` on the outfit document to avoid multi-document reads.
 
-```sql
-id (pk)
-user_id (fk)
-context_weather
-context_mood
-created_at
-```
+| Field              | Type                  | Required | Notes                            |
+| ------------------ | --------------------- | -------- | -------------------------------- |
+| userId             | string                | yes      |                                  |
+| garmentIds         | array of id(garments) | yes      | Replaces outfit_items join table |
+| contextMood        | string                | no       |                                  |
+| contextWeather     | string                | no       |                                  |
+| contextTemperature | number                | no       |                                  |
+| explanation        | string                | no       | Human-readable reasoning         |
+| savedAt            | number                | yes      | Timestamp                        |
 
----
-
-### outfit_items
-
-Links garments to outfits.
-
-```sql
-id (pk)
-outfit_id (fk)
-garment_id (fk)
-position
-```
+Index: `by_userId` on `userId`.
 
 ---
 
-### recommendation_logs
+### recommendationLogs
 
-Tracks user interactions with recommendations.
+Tracks user interactions with recommendations (shown, saved, skipped, worn) for future learning and analytics.
 
-```sql
-id (pk)
-user_id
-outfit_id
-action (shown | saved | skipped | worn)
-timestamp
-```
+| Field      | Type            | Required | Notes                             |
+| ---------- | --------------- | -------- | --------------------------------- |
+| userId     | string          | yes      |                                   |
+| outfitId   | id(outfits)     | no       |                                   |
+| garmentIds | array of string | yes      | Garment IDs as strings            |
+| action     | string          | yes      | shown \| saved \| skipped \| worn |
+| mood       | string          | no       |                                   |
+| weather    | string          | no       |                                   |
+| loggedAt   | number          | yes      | Timestamp                         |
 
----
-
-## Optional Commerce Tables
-
-### external_products
-
-Represents storefront items.
-
-```sql
-id (pk)
-source
-name
-category
-color
-price
-image_url
-product_url
-```
+Index: `by_userId` on `userId`.
 
 ---
 
-### product_matches
+## Users and sessions
 
-Explains why a product fits a wardrobe.
-
-```sql
-id (pk)
-product_id (fk)
-garment_id (fk)
-reason
-```
+User identity and sessions are not defined in the application schema. They are managed by **BetterAuth** with the Convex adapter (`@convex-dev/better-auth`). Tables used by BetterAuth live in the same Convex deployment; see the [BetterAuth + Convex docs](https://labs.convex.dev/better-auth/framework-guides/next) for details.
 
 ---
 
-## Design Principles
+## Optional commerce (future)
 
-- Normalize wardrobe data
-- Log interactions, not opinions
-- Keep explanations first-class
-- Avoid schema rewrites later
+The following are not yet implemented; they are listed here as design reference.
+
+- **external_products** — Storefront items (source, name, category, color, price, image_url, product_url).
+- **product_matches** — Links product to garment with a reason (why it fits the wardrobe).
+
+These can be added as Convex tables when storefront integration is implemented.
+
+---
+
+## Legacy reference (pre-Convex)
+
+The original design used SQL-style tables (users, garment_tags, outfit_items, etc.). The current Convex schema flattens tags into `garments.tags` and outfit items into `outfits.garmentIds` as described in [MIGRATION_NOTES.md](../MIGRATION_NOTES.md). The SQL versions are no longer used.
+
+---
+
+## Design principles
+
+- Wardrobe-first: garments and outfits are the core entities.
+- Log interactions (recommendationLogs), not opinions.
+- Keep explanations first-class (e.g. outfit explanation field).
+- Avoid schema rewrites later; Convex schema is the single source of truth.
 
 This schema supports MVP needs while enabling future personalization and learning.

@@ -9,12 +9,12 @@ a manual approval gate in the GitHub `production` environment.
 
 ### Why this stack?
 
-| Concern     | Choice              | Reason                                                                                                    |
-| ----------- | ------------------- | --------------------------------------------------------------------------------------------------------- |
-| CI runner   | GitHub Actions      | Free for public repos, generous minutes for private, already integrated                                   |
-| Web hosting | Vercel              | Zero-config Next.js deploys, automatic previews, free hobby tier                                          |
-| Server/API  | Vercel Serverless   | tRPC routes can be served as Next.js API routes on the same Vercel project — no separate server to manage |
-| DB          | Supabase (Postgres) | Managed, free tier, built-in auth                                                                         |
+| Concern     | Choice          | Reason                                                                       |
+| ----------- | --------------- | ---------------------------------------------------------------------------- |
+| CI runner   | GitHub Actions  | Free for public repos, generous minutes for private, already integrated      |
+| Web hosting | Vercel          | Zero-config Next.js deploys, automatic previews, free hobby tier             |
+| Server/API  | Vercel + Convex | Next.js API routes and Convex server functions; no separate server to manage |
+| DB          | Convex Cloud    | Managed, built-in auth (BetterAuth component), file storage                  |
 
 ---
 
@@ -22,17 +22,16 @@ a manual approval gate in the GitHub `production` environment.
 
 ### What runs and when
 
-| Job                   | PR  | Push to `main` | Tag `v*` |            Blocks merge?            |
-| --------------------- | :-: | :------------: | :------: | :---------------------------------: |
-| **setup**             |  ✓  |       ✓        |    ✓     |                  —                  |
-| **format-check**      |  ✓  |       ✓        |    ✓     |                 Yes                 |
-| **lint**              |  ✓  |       ✓        |    ✓     |                 Yes                 |
-| **typecheck**         |  ✓  |       ✓        |    ✓     |                 Yes                 |
-| **test**              |  ✓  |       ✓        |    ✓     |                 Yes                 |
-| **build**             |  ✓  |       ✓        |    ✓     |                 Yes                 |
-| **prisma**            |  ✓  |       ✓        |    ✓     | Yes (skips gracefully if no schema) |
-| **docs-consistency**  |  ✓  |       ✓        |    ✓     |                 Yes                 |
-| **security-baseline** |  ✓  |       ✓        |    ✓     |            No (advisory)            |
+| Job                   | PR  | Push to `main` | Tag `v*` | Blocks merge? |
+| --------------------- | :-: | :------------: | :------: | :-----------: |
+| **setup**             |  ✓  |       ✓        |    ✓     |       —       |
+| **format-check**      |  ✓  |       ✓        |    ✓     |      Yes      |
+| **lint**              |  ✓  |       ✓        |    ✓     |      Yes      |
+| **typecheck**         |  ✓  |       ✓        |    ✓     |      Yes      |
+| **test**              |  ✓  |       ✓        |    ✓     |      Yes      |
+| **build**             |  ✓  |       ✓        |    ✓     |      Yes      |
+| **docs-consistency**  |  ✓  |       ✓        |    ✓     |      Yes      |
+| **security-baseline** |  ✓  |       ✓        |    ✓     | No (advisory) |
 
 ### Job graph
 
@@ -41,7 +40,6 @@ setup ──┬── format-check ──┐
         ├── lint ───────────┤
         ├── typecheck ──────┼── build
         ├── test ───────────┘
-        ├── prisma
         ├── docs-consistency
         └── security-baseline (non-blocking)
 ```
@@ -125,13 +123,13 @@ Or use the Vercel dashboard → Deployments → click the three dots → "Promot
 ```
 OutfAI/
 ├── apps/web/          # Next.js — auto-linted, type-checked, built
-├── server/            # tRPC — auto-linted, type-checked
+├── convex/            # Convex schema, functions, auth — type-checked with Convex CLI
+├── server/            # Services (e.g. recommendation engine) — auto-linted, type-checked
 ├── shared/            # Types & utils — auto-linted, type-checked
 ├── tests/             # Cross-cutting tests (vitest auto-discovers)
 ├── scripts/           # Tooling scripts
 ├── templates/         # Code generation templates
-├── docs/              # Generated + manual documentation
-└── prisma/            # Schema (when created)
+└── docs/              # Generated + manual documentation
 ```
 
 ### Test placement
@@ -170,21 +168,20 @@ new workspace:
 
 ## Scripts Reference
 
-| Script            | What it does                                                     | Used in CI? |
-| ----------------- | ---------------------------------------------------------------- | :---------: |
-| `format`          | Prettier — format all files in-place                             |      —      |
-| `format:check`    | Prettier — check without writing                                 |      ✓      |
-| `lint`            | ESLint — check all TS/JS files                                   |      ✓      |
-| `lint:fix`        | ESLint — auto-fix                                                |      —      |
-| `typecheck`       | `tsc --noEmit` — full type-check                                 |      ✓      |
-| `test`            | Vitest — run all tests once                                      |      ✓      |
-| `test:watch`      | Vitest — watch mode for development                              |      —      |
-| `build`           | Next.js production build                                         |      ✓      |
-| `prisma:validate` | Validate Prisma schema                                           |      ✓      |
-| `prisma:format`   | Format Prisma schema                                             |      ✓      |
-| `db:doc`          | Generate `docs/supabase-structure.md` from Prisma schema         |      ✓      |
-| `ci`              | Meta-script: runs format:check → lint → typecheck → test → build | ✓ (release) |
-| `prepare`         | Husky — installs git hooks on `npm install`                      |      —      |
+| Script         | What it does                                                     | Used in CI? |
+| -------------- | ---------------------------------------------------------------- | :---------: |
+| `format`       | Prettier — format all files in-place                             |      —      |
+| `format:check` | Prettier — check without writing                                 |      ✓      |
+| `lint`         | ESLint — check all TS/JS files                                   |      ✓      |
+| `lint:fix`     | ESLint — auto-fix                                                |      —      |
+| `typecheck`    | `tsc --noEmit` — full type-check                                 |      ✓      |
+| `test`         | Vitest — run all tests once                                      |      ✓      |
+| `test:watch`   | Vitest — watch mode for development                              |      —      |
+| `build`        | Next.js production build                                         |      ✓      |
+| `db:doc`       | Generate `docs/convex-schema.md` from Convex schema              |      ✓      |
+| `gen:db-docs`  | Same as `db:doc` (alias)                                         |      —      |
+| `ci`           | Meta-script: runs format:check → lint → typecheck → test → build | ✓ (release) |
+| `prepare`      | Husky — installs git hooks on `npm install`                      |      —      |
 
 ---
 
@@ -228,12 +225,11 @@ cat .vercel/project.json
 
 ### Variables the app needs
 
-| Variable                        |        Required         | Context             |
-| ------------------------------- | :---------------------: | ------------------- |
-| `NEXT_PUBLIC_SUPABASE_URL`      |           Yes           | Preview, Production |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` |           Yes           | Preview, Production |
-| `SUPABASE_SERVICE_ROLE_KEY`     |       Server only       | Production          |
-| `DATABASE_URL`                  | If using Prisma runtime | Production          |
+| Variable                      |             Required             | Context                          |
+| ----------------------------- | :------------------------------: | -------------------------------- |
+| `NEXT_PUBLIC_CONVEX_URL`      |               Yes                | Set by `npx convex dev` / deploy |
+| `NEXT_PUBLIC_CONVEX_SITE_URL` |               Yes                | Convex site URL for auth         |
+| Convex env (dashboard)        | `BETTER_AUTH_SECRET`, `SITE_URL` | Convex deployment                |
 
 ---
 
@@ -268,10 +264,8 @@ CI failed
 ├── build failed
 │   └── Run `npm run build` locally, fix build errors
 │   └── Check if new env vars are needed (build-time)
-├── prisma failed
-│   └── Run `npm run prisma:format` then `npm run prisma:validate`
 ├── docs-consistency failed
-│   └── Run `npm run db:doc` and commit the generated files
+│   └── Run `npm run db:doc` and commit the updated `docs/convex-schema.md`
 └── security-baseline failed (non-blocking)
     └── Run `npm audit` — update vulnerable packages if feasible
 ```
@@ -293,13 +287,12 @@ CI failed
 Use this checklist every time you add a new resource or feature.
 Following it guarantees CI stays green.
 
-### Backend resource (using `templates/resource/`)
+### Backend resource (Convex + optional API route)
 
-- [ ] Create Zod schema in `shared/` (validates at runtime + gives TS types)
-- [ ] Create service in `server/services/` with pure business logic
-- [ ] Create tRPC router in `server/api/routers/` using the service
-- [ ] Wire router into `server/api/routers/_app.ts`
-- [ ] Add at least 1 test file for the service's pure logic
+- [ ] For Convex-backed data: add table to `convex/schema.ts`, add queries/mutations in `convex/`
+- [ ] For server logic (e.g. recommendations): add service in `server/services/`, call from Next.js API route
+- [ ] Add types in `shared/` as needed
+- [ ] Add at least 1 test for pure service logic
 - [ ] Run `npm run ci` locally — all green
 
 ### Frontend feature
@@ -310,13 +303,11 @@ Following it guarantees CI stays green.
 - [ ] Add at least 1 test for the hook or pure logic
 - [ ] Run `npm run ci` locally — all green
 
-### Database change
+### Database change (Convex)
 
-- [ ] Update `prisma/schema.prisma`
-- [ ] Run `npm run prisma:format`
-- [ ] Run `npm run prisma:validate`
-- [ ] Run `npm run db:doc` and commit `docs/supabase-structure.md`
-- [ ] Run migrations: `npx prisma migrate dev --name <description>`
+- [ ] Update `convex/schema.ts` (defineTable, indexes)
+- [ ] Run `npm run db:doc` and commit updated `docs/convex-schema.md`
+- [ ] Convex schema is applied on deploy (`npx convex dev` or `convex deploy`); no separate migrations
 
 ### New script or tooling
 

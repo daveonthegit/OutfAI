@@ -123,10 +123,12 @@ rg "supabase|prisma|@prisma|from 'pg'" . --glob "!*.md" --glob "!MIGRATION_NOTES
 1. **Run `npx convex dev`** to create the Convex project and generate
    `convex/_generated/` types (required for TypeScript to compile).
 2. **Set Convex env vars**: `BETTER_AUTH_SECRET` and `SITE_URL`.
-3. **Image uploads**: garments currently store an optional `imageUrl`. A full
-   image upload pipeline (R2/S3 → Convex storage) is planned but not
-   implemented.
-4. **Signup page**: the `/signup` route shows a stub. Implement
-   `authClient.signUp.email()` or `authClient.signUp.username()`.
+3. **Image uploads**: garment image upload is implemented via Convex file
+   storage (`generateUploadUrl` in `convex/garments.ts`); garments store
+   optional `imageUrl` from Convex storage. R2/S3 remains an optional future
+   scaling option.
+4. **Signup page**: done. The `/signup` route uses `authClient.signUp.email()`
+   with email verification; username is supported via the BetterAuth username
+   plugin.
 5. **Onboarding**: seed a few garments for new users to make the recommendation
    engine useful on first login.

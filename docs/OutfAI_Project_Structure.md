@@ -9,7 +9,7 @@ This document describes the recommended project structure for OutfAI. The goal i
 ## Repository Layout
 
 ```text
-outfai/
+OutfAI/
 ├── apps/
 │   └── web/
 │       ├── app/
@@ -17,19 +17,31 @@ outfai/
 │       │   ├── page.tsx
 │       │   ├── closet/page.tsx
 │       │   ├── onboarding/page.tsx
-│       │   └── api/
+│       │   ├── (e.g. page.tsx, closet/, onboarding/, login/, signup/, profile/, add/, archive/, outfit/)
+│       │   └── api/          # Next.js API routes (e.g. recommendations, auth proxy)
 │       ├── components/
 │       ├── hooks/
-│       ├── lib/
+│       ├── lib/              # Auth client, server helpers
 │       ├── styles/
-│       └── types/
+│       └── middleware.ts
+│
+├── convex/
+│   ├── schema.ts             # Single source of truth for collections
+│   ├── auth.ts               # BetterAuth setup (Convex adapter)
+│   ├── auth.config.ts
+│   ├── http.ts               # HTTP router (BetterAuth endpoints)
+│   ├── garments.ts           # Garment queries and mutations
+│   ├── outfits.ts            # Outfit queries and mutations
+│   ├── recommendationLogs.ts
+│   ├── seed.ts               # Dev seed helpers
+│   └── _generated/           # Convex-generated types (do not edit)
 │
 ├── server/
 │   ├── api/
-│   │   ├── trpc.ts
-│   │   └── routers/
-│   ├── services/
-│   ├── db/
+│   │   ├── trpc.ts           # tRPC context (legacy; primary data flow is Convex)
+│   │   └── routers/          # tRPC routers (e.g. recommendations, garments)
+│   ├── services/             # Business logic (e.g. OutfitRecommendationService)
+│   ├── db/                   # Unused (Convex is the DB); placeholder only
 │   └── utils/
 │
 ├── shared/
@@ -37,7 +49,7 @@ outfai/
 │   └── utils/
 │
 ├── docs/
-├── scripts/
+├── scripts/                  # e.g. generate-convex-docs.ts
 ├── package.json
 ├── tsconfig.json
 └── README.md
@@ -47,10 +59,11 @@ outfai/
 
 ## Rationale
 
-- **apps/web**: UI and routing live close together for fast iteration.
-- **server/**: All backend logic is isolated and testable.
+- **apps/web**: UI and routing live close together for fast iteration. Next.js API routes handle recommendations and auth proxy; Convex React client is used for real-time data.
+- **convex/**: Backend database, server functions, auth (BetterAuth), and file storage. Schema and functions are the single source of truth for app data.
+- **server/**: Pure business logic (e.g. recommendation engine) and legacy tRPC routers. No database layer here; Convex holds all persisted data.
 - **shared/**: Prevents type drift between frontend and backend.
-- **docs/**: Keeps capstone and product documentation organized.
-- **scripts/**: One-off tooling (migrations, cleanup jobs).
+- **docs/**: Keeps capstone and product documentation organized. `docs/convex-schema.md` is generated from `convex/schema.ts`.
+- **scripts/**: One-off tooling (e.g. generate Convex schema docs).
 
 This structure avoids premature abstraction while remaining production-ready.

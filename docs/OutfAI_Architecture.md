@@ -2,18 +2,18 @@
 
 ## Architecture Overview
 
-OutfAI uses a web-first, API-driven architecture with a single TypeScript codebase.
+OutfAI uses a web-first architecture with a single TypeScript codebase. The client talks to Convex (database, server functions, auth, file storage) and to Next.js API routes for the recommendation engine and auth proxy.
 
 ```text
-Client (Next.js / React)
+Client (Next.js App Router / React)
         ↓
-tRPC API Layer
+Next.js (API routes + Convex React client)
         ↓
-Service Layer (Business Logic)
+Convex Cloud (DB, server functions, BetterAuth, file storage)
+        +
+Next.js API routes → OutfitRecommendationService → Convex (garments)
         ↓
-PostgreSQL (Prisma ORM)
-        ↓
-External APIs (Weather, Images, Storefronts)
+External APIs (Weather, e.g. Open-Meteo)
 ```
 
 ---
@@ -23,33 +23,31 @@ External APIs (Weather, Images, Storefronts)
 ### Monorepo
 
 - Single repository for frontend and backend
-- Shared types and utilities
+- Shared types and utilities in `shared/`
 - Faster development and fewer integration issues
 
-### tRPC API Layer
+### Convex as Backend
 
-- End-to-end type safety
-- No REST boilerplate
-- Ideal for small teams and capstones
+- **Database:** All app data (garments, outfits, recommendation logs) lives in Convex. User and session data are managed by the BetterAuth component stored in Convex via `@convex-dev/better-auth`.
+- **Server functions:** Convex queries and mutations replace a traditional REST/tRPC backend for CRUD (e.g. `garments.list`, `outfits.save`).
+- **Auth:** BetterAuth 1.4.9 with email/password and username plugin; auth routes are mounted on Convex HTTP and proxied from Next.js `/api/auth/[...all]`.
+- **File storage:** Convex file storage for garment images (and optional profile images); signed upload URLs via Convex mutations.
 
-### Service-Oriented Backend
+### Next.js API Routes
 
-- Routers handle I/O only
-- Services handle business logic
-- Easy to test and refactor
+- **Recommendations:** `POST /api/recommendations` calls `OutfitRecommendationService` with garments (from Convex) and returns generated outfits. The client uses the `useOutfitRecommendations` hook, which calls this endpoint.
+- **Auth:** Thin proxy to Convex HTTP (BetterAuth) for session handling.
+- A legacy tRPC route exists at `/api/trpc` but the primary data and recommendation flow uses Convex and the recommendations API route.
 
-### Image Storage
+### Service Layer
 
-- Object storage (Cloudflare R2 or S3)
-- Signed uploads
-- CDN delivery
-- URLs stored in database
+- `OutfitRecommendationService` in `server/services/` holds business logic for filtering, generating, and scoring outfits. It is invoked from the recommendations API route, not from Convex.
 
 ### Recommendation Engine
 
 - Rule-based for MVP
 - Explainable outputs
-- Data logged for future ML improvements
+- Recommendation logs stored in Convex for future ML improvements
 
 ---
 
@@ -57,7 +55,7 @@ External APIs (Weather, Images, Storefronts)
 
 - No microservices
 - No message queues
-- No custom auth system
+- No custom auth system (BetterAuth is used)
 - No heavy ML pipelines in MVP
 
 This architecture prioritizes simplicity, clarity, and extensibility.

@@ -15,14 +15,14 @@
 
 ## Tech Stack
 
-| Layer        | Stack                                                                   |
-| ------------ | ----------------------------------------------------------------------- |
-| **Frontend** | Next.js 15 (App Router), React 19, TypeScript                           |
-| **Styling**  | Tailwind CSS 4, Radix UI, custom "cybersigilism" design system          |
-| **API**      | tRPC (type-safe, shared with backend)                                   |
-| **Backend**  | Convex (database, server functions, auth via `@convex-dev/better-auth`) |
-| **Auth**     | BetterAuth 1.4.9 (email/password + username plugin, stored in Convex)   |
-| **Storage**  | Object storage for images (R2/S3 planned)                               |
+| Layer        | Stack                                                                                  |
+| ------------ | -------------------------------------------------------------------------------------- |
+| **Frontend** | Next.js 15 (App Router), React 19, TypeScript                                          |
+| **Styling**  | Tailwind CSS 4, Radix UI, custom "cybersigilism" design system                         |
+| **API**      | Convex (queries/mutations) + Next.js API routes (e.g. /api/recommendations, /api/auth) |
+| **Backend**  | Convex (database, server functions, auth via `@convex-dev/better-auth`)                |
+| **Auth**     | BetterAuth 1.4.9 (email/password + username plugin, stored in Convex)                  |
+| **Storage**  | Convex file storage (garment images); R2/S3 optional for future                        |
 
 ---
 

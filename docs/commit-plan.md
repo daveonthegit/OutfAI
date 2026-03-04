@@ -1,5 +1,9 @@
 # OutfAI — Commit Plan (PR-sized chunks)
 
+> **Superseded.** This document describes PRs for the pre-migration Supabase/Prisma/tRPC stack. For the current stack and backlog, see [MASTER_PLAN.md](./MASTER_PLAN.md) and [docs/issues/](./issues/). It is kept for historical reference only.
+
+---
+
 This maps implementation phases to small PRs that are easy to review and grade.
 Each PR should be demoable or at least verifiable via tests/logs.
 

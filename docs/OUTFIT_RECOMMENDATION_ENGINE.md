@@ -42,24 +42,31 @@ return (
 **3. Direct API call:**
 
 ```typescript
-const result = await trpc.recommendations.generate.query({
-  userId: "user-123",
-  mood: "casual",
-  weather: "sunny",
-  temperature: 22,
-  limitCount: 5,
+const response = await fetch("/api/recommendations", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    userId: "user-123",
+    mood: "casual",
+    weather: "sunny",
+    temperature: 22,
+    limitCount: 5,
+    garments, // array of Garment from Convex or elsewhere
+  }),
 });
+const { outfits, explanation } = await response.json();
 ```
 
 ## Files Created
 
-| Component | Location                                              |
-| --------- | ----------------------------------------------------- |
-| Service   | `server/services/outfitRecommendationService.ts`      |
-| Router    | `server/api/routers/recommendations.ts`               |
-| Component | `apps/web/components/outfit-recommendation-panel.tsx` |
-| Hook      | `apps/web/hooks/use-outfit-recommendations.ts`        |
-| Types     | `shared/types/index.ts`                               |
+| Component | Location                                                       |
+| --------- | -------------------------------------------------------------- |
+| Service   | `server/services/outfitRecommendationService.ts`               |
+| API route | `apps/web/app/api/recommendations/route.ts`                    |
+| Component | `apps/web/components/outfit-recommendation-panel.tsx`          |
+| Hook      | `apps/web/hooks/use-outfit-recommendations.ts`                 |
+| Types     | `shared/types/index.ts`                                        |
+| Data      | Convex `garments` (see [convex-schema.md](./convex-schema.md)) |
 
 ---
 
@@ -70,11 +77,11 @@ Frontend (React/TypeScript)
     ↓
 React Hook (useOutfitRecommendations)
     ↓
-tRPC API Endpoint (recommendations.generate)
+POST /api/recommendations (Next.js API route)
     ↓
 OutfitRecommendationService (Business Logic)
     ↓
-Database / Mock Layer
+Garments from Convex (fetched by client and passed in, or by server)
 ```
 
 ## How It Works
@@ -129,17 +136,13 @@ Core business logic orchestrating the 3-stage pipeline.
 - `scoreDiversity()` - Outfit completeness (5-10)
 - `generateExplanation()` - Human-readable reasoning
 
-### Router: recommendationRouter
+### API: POST /api/recommendations
 
-**File:** `server/api/routers/recommendations.ts`
+**File:** `apps/web/app/api/recommendations/route.ts`
 
-Three tRPC endpoints for type-safe API access.
+The recommendation API accepts a POST body and returns generated outfits. The client uses the `useOutfitRecommendations` hook, which calls this endpoint. Garments are passed in the request body (typically from Convex queries on the client).
 
-#### `recommendations.generate` (Query)
-
-Generates outfit recommendations.
-
-**Input:**
+**Input (JSON body):**
 
 ```typescript
 {
@@ -149,26 +152,20 @@ Generates outfit recommendations.
   temperature?: number        // Optional: -50 to 50°C
   occasion?: string           // Optional
   limitCount?: number         // Optional: 1-10, default 5
+  garments: Garment[]         // From Convex or other source
 }
 ```
 
-**Output:**
+**Output (JSON):**
 
 ```typescript
 {
   outfits: Outfit[]           // Generated outfits
   explanation: string         // Context explanation
-  totalGenerated: number      // Count of returned outfits
 }
 ```
 
-#### `recommendations.getOutfit` (Query)
-
-Retrieves single outfit with full garment details.
-
-#### `recommendations.logInteraction` (Mutation)
-
-Logs user interactions (shown, saved, skipped, worn) for analytics.
+Outfit persistence and logging use Convex directly: `outfits.save` and `recommendationLogs.log` (see [convex/outfits.ts](../convex/outfits.ts) and [convex/recommendationLogs.ts](../convex/recommendationLogs.ts)). A legacy tRPC router exists at `server/api/routers/recommendations.ts` but the app uses the POST endpoint above.
 
 ### React Hook: useOutfitRecommendations
 
@@ -337,44 +334,24 @@ await trpc.recommendations.generate.query({
 ### Formal Event
 
 ```typescript
-await trpc.recommendations.generate.query({
-  userId: "user123",
-  mood: "formal",
-  occasion: "business meeting",
+const res = await fetch("/api/recommendations", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    userId: "user123",
+    mood: "formal",
+    occasion: "business meeting",
+    garments,
+  }),
 });
+const { outfits, explanation } = await res.json();
 ```
 
 ## Integration
 
-### Database
+### Database (Convex)
 
-Replace mock data with real queries:
-
-```typescript
-const garments = await db.garment.findMany({
-  where: { userId: input.userId },
-});
-```
-
-**Prisma Schema:**
-
-```prisma
-model Garment {
-  id              String   @id @default(cuid())
-  userId          String
-  name            String
-  category        String
-  primaryColor    String
-  secondaryColor  String?
-  material        String?
-  season          String
-  imageUrl        String?
-  tags            String   @default("[]")
-  createdAt       DateTime @default(now())
-
-  @@index([userId])
-}
-```
+Garment data comes from Convex. The client typically fetches garments with `api.garments.list` (Convex query) and passes them to the recommendations API or to `useOutfitRecommendations` in the hook's `generate({ garments })` override. See [convex/schema.ts](../convex/schema.ts) and [convex-schema.md](./convex-schema.md) for the Convex schema; there is no Prisma schema.
 
 ### Weather API
 
@@ -390,11 +367,7 @@ const recommendations = await generateOutfits(garments, {
 
 ### Images
 
-Store in S3/R2 with CDN:
-
-- Original: Full resolution
-- Thumbnail: CDN-cached
-- Processed: Color-tagged for analysis
+Garment images use Convex file storage (`convex/garments.ts`: `generateUploadUrl`, then store the returned URL in `imageUrl`). Optional: R2/S3 + CDN for future scaling.
 
 ### Learning Pipeline
 

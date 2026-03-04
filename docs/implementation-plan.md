@@ -1,5 +1,9 @@
 # OutfAI — Implementation Plan
 
+> **Superseded.** This document describes the pre-migration Supabase/Prisma/tRPC stack. For the current stack and remaining work, see [MASTER_PLAN.md](./MASTER_PLAN.md) and [docs/issues/](./issues/). It is kept for historical reference only.
+
+---
+
 > Phased roadmap for building OutfAI from current state to capstone-demo-ready MVP.
 > Derived from the [PRD](./OutfAI_PRD.md), [DB Design](./OutfAI_Database_Design.md), [Project Structure](./OutfAI_Project_Structure.md), and [Recommendation Engine](./OUTFIT_RECOMMENDATION_ENGINE.md) docs.
 

@@ -58,26 +58,26 @@
 
 **UI surfaces:**
 
-- `/auth/signup` — email + password form
-- `/auth/login` — email + password form
+- `/signup` — email + password (and username) form
+- `/login` — email/password or username login
 - Nav bar — avatar / logout button
 - Middleware — redirects unauthenticated users to login
 
-**API endpoints:**
+**API / auth:**
 
-- Supabase Auth SDK (no custom tRPC endpoints needed)
-- `protectedProcedure` in tRPC context for all authenticated routes
+- BetterAuth via Convex (`@convex-dev/better-auth`). Auth routes are mounted on Convex HTTP and proxied from Next.js `/api/auth/[...all]`.
+- Protected routes: middleware checks for session cookie; Convex functions use `getCurrentUser` (or auth component) for server-side auth. No tRPC `protectedProcedure`; Convex queries/mutations enforce auth in Convex.
 
-**DB tables:**
+**DB:**
 
-- `users` (managed by Supabase Auth; `auth.users` in the Supabase schema)
+- Users and sessions are stored in Convex (BetterAuth component); not in the application schema.
 
 **Acceptance criteria:**
 
 - [ ] User can sign up with email and password
-- [ ] User can log in and is redirected to `/closet`
+- [ ] User can log in and is redirected to home/closet
 - [ ] Session persists across page refresh
-- [ ] Unauthenticated access to `/closet`, `/style`, `/mood` redirects to `/auth/login`
+- [ ] Unauthenticated access to protected routes redirects to `/login`
 - [ ] Logout clears the session and redirects to `/`
 
 ---
@@ -102,10 +102,9 @@
 | `mutation` | `garments.update` | Edit garment fields |
 | `mutation` | `garments.delete` | Delete garment + remove image from storage |
 
-**DB tables:**
+**DB:**
 
-- `garments` — core item record
-- `garment_tags` — tags (auto + user-corrected)
+- Convex `garments` collection (tags are a `tags` array on each garment).
 
 **Acceptance criteria:**
 
@@ -301,7 +300,7 @@
 
 ## Assumptions
 
-- The demo will be on a local or Vercel-deployed environment with Supabase backend.
+- The demo will be on a local or Vercel-deployed environment with Convex backend.
 - The presenter will have a pre-seeded fallback account ready.
 - "Auto-tagging" in P1 is a rules-based stub (category → default tags), not ML.
 - Storefront integration (P2) requires partner/affiliate API access not yet secured.
