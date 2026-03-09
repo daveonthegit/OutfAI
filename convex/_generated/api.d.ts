@@ -12,6 +12,7 @@ import type * as auth from "../auth.js";
 import type * as garments from "../garments.js";
 import type * as http from "../http.js";
 import type * as outfits from "../outfits.js";
+import type * as profile from "../profile.js";
 import type * as recommendationLogs from "../recommendationLogs.js";
 import type * as seed from "../seed.js";
 import type * as userPreferences from "../userPreferences.js";
@@ -27,6 +28,7 @@ declare const fullApi: ApiFromModules<{
   garments: typeof garments;
   http: typeof http;
   outfits: typeof outfits;
+  profile: typeof profile;
   recommendationLogs: typeof recommendationLogs;
   seed: typeof seed;
   userPreferences: typeof userPreferences;
