@@ -1,8 +1,10 @@
 "use client";
 
+import { useRef } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import type { Id } from "@convex/_generated/dataModel";
+import { animateCardHoverIn, animateCardHoverOut } from "@/lib/animations";
 
 interface Garment {
   id?: Id<"garments">;
@@ -36,6 +38,7 @@ export function OutfitRecommendationCard({
   onToggleSelect,
 }: OutfitRecommendationCardProps) {
   const router = useRouter();
+  const cardRef = useRef<HTMLButtonElement>(null);
 
   if (garments.length === 0) return null;
 
@@ -61,9 +64,17 @@ export function OutfitRecommendationCard({
 
   return (
     <button
+      ref={cardRef}
       type="button"
       onClick={handleClick}
-      className="relative w-full aspect-square border border-border bg-card hover:bg-secondary/50 transition-all duration-200 group overflow-hidden text-left"
+      onMouseEnter={() =>
+        cardRef.current && animateCardHoverIn(cardRef.current)
+      }
+      onMouseLeave={() =>
+        cardRef.current && animateCardHoverOut(cardRef.current)
+      }
+      className="relative w-full aspect-square border border-border bg-card hover:bg-secondary/50 transition-colors duration-200 group overflow-hidden text-left origin-center"
+      style={{ transformOrigin: "center center" }}
     >
       {/* Overlay composition preview - show first item or grid preview */}
       <div className="w-full h-full relative">

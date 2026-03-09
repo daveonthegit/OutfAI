@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { OutfitRecommendationCard } from "@/components/outfit-recommendation-card";
 import { useOutfitRecommendations } from "@/hooks/use-outfit-recommendations";
@@ -10,6 +10,7 @@ import { api } from "@convex/_generated/api";
 import type { Doc } from "@convex/_generated/dataModel";
 import { MOCK_CLOSET_ITEMS } from "@shared/data/mock-closet";
 import { UserAvatar } from "@/components/user-avatar";
+import { animateShuffleGrid, staggerFadeInContainer } from "@/lib/animations";
 
 function codeToWeatherLabel(
   code: number
@@ -72,6 +73,10 @@ export default function Home() {
   const seedDevCloset = useMutation(api.seed.seedDevCloset);
   const [savedOutfitId, setSavedOutfitId] = useState<string | null>(null);
   const [seeded, setSeeded] = useState(false);
+
+  const recommendationGridRef = useRef<HTMLDivElement>(null);
+  const justShuffledRef = useRef(false);
+  const hasStaggeredInitialRef = useRef(false);
 
   const { outfits, loading, generate } = useOutfitRecommendations({
     userId,
@@ -258,6 +263,27 @@ export default function Home() {
     }
   }, [outfits, convexGarments]);
 
+  // Shuffle animation: run after grid updates from handleShuffle
+  useEffect(() => {
+    if (!recommendedOutfit?.length || !recommendationGridRef.current) return;
+    if (justShuffledRef.current) {
+      animateShuffleGrid(recommendationGridRef.current);
+      justShuffledRef.current = false;
+    }
+  }, [recommendedOutfit]);
+
+  // Staggered entry when recommendations first appear
+  useEffect(() => {
+    if (
+      !recommendedOutfit?.length ||
+      hasStaggeredInitialRef.current ||
+      !recommendationGridRef.current
+    )
+      return;
+    hasStaggeredInitialRef.current = true;
+    staggerFadeInContainer(recommendationGridRef.current);
+  }, [recommendedOutfit]);
+
   const toggleSelectMode = () => {
     setIsSelectMode((prev) => !prev);
     setSelectedOptionIndices(new Set());
@@ -319,6 +345,7 @@ export default function Home() {
 
   const handleShuffle = () => {
     setIsShuffling(true);
+    justShuffledRef.current = true;
     setTimeout(() => setIsShuffling(false), 150);
 
     // Pick a random 6 from the full pool that already passed the threshold
@@ -554,6 +581,7 @@ export default function Home() {
         <section className="mb-16 md:mb-24">
           {recommendedOutfit && recommendedOutfit.length > 0 ? (
             <div
+              ref={recommendationGridRef}
               className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 lg:gap-8 transition-opacity duration-100 ${
                 isShuffling ? "opacity-30" : "opacity-100"
               }`}

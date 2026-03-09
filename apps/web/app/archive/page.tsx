@@ -1,7 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
+import {
+  staggerFadeInContainer,
+  animateCardHoverIn,
+  animateCardHoverOut,
+} from "@/lib/animations";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useQuery, useMutation } from "convex/react";
@@ -55,6 +60,8 @@ export default function ArchivePage() {
   useRequireAuth("/archive");
   const router = useRouter();
   const [hoveredId, setHoveredId] = useState<string | null>(null);
+  const gridRef = useRef<HTMLDivElement>(null);
+  const hasStaggeredRef = useRef(false);
   const outfits = useQuery(api.outfits.list) as
     | OutfitWithGarments[]
     | undefined;
@@ -65,6 +72,12 @@ export default function ArchivePage() {
     e.stopPropagation();
     await removeOutfit({ id });
   };
+
+  useEffect(() => {
+    if (!outfits?.length || hasStaggeredRef.current || !gridRef.current) return;
+    hasStaggeredRef.current = true;
+    staggerFadeInContainer(gridRef.current);
+  }, [outfits]);
 
   const handleViewOutfit = (outfit: OutfitWithGarments) => {
     const sorted = sortGarmentsByCategory(
@@ -154,6 +167,7 @@ export default function ArchivePage() {
           </section>
         ) : (
           <div
+            ref={gridRef}
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 lg:gap-8"
             style={{
               opacity: hoveredId ? 1 : 1,
@@ -167,9 +181,17 @@ export default function ArchivePage() {
               return (
                 <div
                   key={outfit._id}
-                  className="group relative w-full aspect-square border border-border bg-card hover:bg-secondary/50 transition-all duration-200 overflow-hidden text-left"
-                  onMouseEnter={() => setHoveredId(outfit._id)}
-                  onMouseLeave={() => setHoveredId(null)}
+                  className="group relative w-full aspect-square border border-border bg-card hover:bg-secondary/50 transition-all duration-200 overflow-hidden text-left origin-center"
+                  onMouseEnter={(e) => {
+                    setHoveredId(outfit._id);
+                    const el = e.currentTarget;
+                    if (el) animateCardHoverIn(el);
+                  }}
+                  onMouseLeave={(e) => {
+                    setHoveredId(null);
+                    const el = e.currentTarget;
+                    if (el) animateCardHoverOut(el);
+                  }}
                   style={{
                     opacity: hoveredId !== null && !isHovered ? 0.5 : 1,
                     transition: "opacity 100ms",

@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import Image from "next/image";
+import { staggerFadeInContainer } from "@/lib/animations";
 import Link from "next/link";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@convex/_generated/api";
@@ -53,6 +54,9 @@ export default function ClosetPage() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deletingIds, setDeletingIds] = useState<Id<"garments">[]>([]);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  const gridRef = useRef<HTMLDivElement>(null);
+  const hasStaggeredRef = useRef(false);
 
   const garments = useQuery(api.garments.list) ?? [];
   const removeMany = useMutation(api.garments.removeMany);
@@ -132,6 +136,13 @@ export default function ClosetPage() {
   const allFilteredSelected =
     filteredItems.length > 0 &&
     filteredItems.every((item: ConvexGarment) => selectedIds.has(item._id));
+
+  useEffect(() => {
+    if (!filteredItems.length || hasStaggeredRef.current || !gridRef.current)
+      return;
+    hasStaggeredRef.current = true;
+    staggerFadeInContainer(gridRef.current);
+  }, [filteredItems.length]);
 
   return (
     <main className="min-h-screen bg-background text-foreground selection:bg-signal-orange selection:text-background">
@@ -284,7 +295,10 @@ export default function ClosetPage() {
               </Link>
             </div>
           ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-0.5">
+            <div
+              ref={gridRef}
+              className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-0.5"
+            >
               {filteredItems.map((item: ConvexGarment) => {
                 const isSelected = selectedIds.has(item._id);
                 const isHovered = hoveredId === item._id;
