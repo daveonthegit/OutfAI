@@ -8,10 +8,10 @@ F8 (P1): When creating a garment, auto-suggest or auto-apply tags based on categ
 
 ## Tasks
 
-- [ ] On garment create (or on form blur), derive default tags: e.g. category → "casual", "everyday"; color → color name; season → "spring", "summer", etc. Map from a small rules table or inline logic.
-- [ ] Pre-fill the tags field with these suggestions; user can edit before submit.
+- [x] On garment create (or on form blur), derive default tags: e.g. category → "casual", "everyday"; color → color name; season → "spring", "summer", etc. Map from a small rules table or inline logic. _(Implemented in `shared/garment-default-tags.ts`; see PR for GitHub #39.)_
+- [x] Pre-fill the tags field with these suggestions; user can edit before submit.
 - [ ] Optional: on image analysis (if/when added), merge vision suggestions with rules-based tags.
-- [ ] Tags are stored in existing `garments.tags` array; no schema change.
+- [x] Tags are stored in existing `garments.tags` array; no schema change.
 
 ## Acceptance criteria
 
