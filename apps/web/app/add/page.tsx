@@ -1,8 +1,6 @@
 "use client";
 
-import React from "react";
-
-import { useState, useRef, useCallback } from "react";
+import React, { useState, useRef, useCallback, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -11,6 +9,7 @@ import { api } from "@convex/_generated/api";
 import type { Id } from "@convex/_generated/dataModel";
 import { useRequireAuth } from "@/hooks/use-require-auth";
 import { UserAvatar } from "@/components/user-avatar";
+import { getDefaultTagsForGarment } from "@shared/garment-default-tags";
 
 type Category = "top" | "bottom" | "shoes" | "outerwear" | "accessory";
 
@@ -150,6 +149,16 @@ export default function AddGarmentPage() {
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Auto-suggest tags from category and color (rules-based; issue #39).
+  // When both are set, pre-fill tags; user can add or remove before submit.
+  useEffect(() => {
+    if (selectedCategory && selectedColor) {
+      setTags(
+        getDefaultTagsForGarment(selectedCategory, selectedColor, undefined)
+      );
+    }
+  }, [selectedCategory, selectedColor]);
 
   const handleAnalyzeImage = useCallback(async () => {
     if (!selectedFile) return;
