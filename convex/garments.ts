@@ -1,6 +1,7 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { getAuthUser } from "./auth";
+import { getDefaultTagsForGarment } from "../shared/garment-default-tags";
 
 export const generateUploadUrl = mutation({
   args: {},
@@ -28,7 +29,7 @@ export const create = mutation({
     name: v.string(),
     category: v.string(),
     primaryColor: v.string(),
-    tags: v.array(v.string()),
+    tags: v.optional(v.array(v.string())),
     style: v.optional(v.array(v.string())),
     fit: v.optional(v.string()),
     occasion: v.optional(v.array(v.string())),
@@ -42,6 +43,14 @@ export const create = mutation({
   handler: async (ctx, { storageId, ...args }) => {
     const user = await getAuthUser(ctx);
     if (!user) throw new Error("Unauthorized");
+    const tags =
+      args.tags && args.tags.length > 0
+        ? args.tags
+        : getDefaultTagsForGarment(
+            args.category,
+            args.primaryColor,
+            args.season ?? undefined
+          );
     let imageUrl = args.imageUrl;
     if (storageId) {
       imageUrl = (await ctx.storage.getUrl(storageId)) ?? undefined;
@@ -49,6 +58,7 @@ export const create = mutation({
     return ctx.db.insert("garments", {
       userId: user._id,
       ...args,
+      tags,
       imageUrl,
     });
   },
