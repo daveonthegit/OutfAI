@@ -107,3 +107,106 @@ export type RecommendationLog = {
   action: "shown" | "saved" | "skipped" | "worn";
   timestamp: Date;
 };
+
+// --- Commerce / external product types (wardrobe-first recommendations) ---
+
+/** Result of a live product provider fetch. No fake data. */
+export type ProviderResult<T> =
+  | { ok: true; data: T; source: string }
+  | {
+      ok: false;
+      code:
+        | "UNAVAILABLE"
+        | "AUTH_REQUIRED"
+        | "RATE_LIMITED"
+        | "NETWORK_ERROR"
+        | "PARSE_ERROR";
+      message: string;
+      source?: string;
+    };
+
+/** Structured closet gap for recommendation engine. */
+export type ClosetGapType =
+  | "missing_staple"
+  | "missing_neutral_layer"
+  | "missing_versatile_shoes"
+  | "missing_formal_shoes"
+  | "missing_weather_outerwear"
+  | "weak_formal_coverage"
+  | "weak_category_coverage"
+  | "insufficient_basics";
+
+export interface ClosetGap {
+  gapType: ClosetGapType;
+  severity: "high" | "medium" | "low";
+  targetCategories: GarmentCategory[];
+  targetColors?: string[];
+  styleOccasionContext?: string[];
+  supportingGarmentIds: string[];
+  explanation: string;
+}
+
+export interface ExternalProduct {
+  id: string;
+  source: string;
+  sourceProductId: string;
+  /** Retailer or brand display name (e.g. "Best Buy", "Nordstrom") */
+  retailer?: string;
+  name: string;
+  brand?: string;
+  category: string;
+  subcategory?: string;
+  /** Normalized for matching (e.g. top, bottom, shoes) */
+  normalizedCategory?: string;
+  color?: string;
+  normalizedColor?: string;
+  styleTags?: string[];
+  occasionTags?: string[];
+  price?: number;
+  currency?: string;
+  imageUrl?: string;
+  productUrl: string;
+  affiliateUrl?: string;
+  availability?: string;
+  rating?: number;
+  createdAt: number;
+  updatedAt: number;
+}
+
+export type ProductRecommendationSourceContext =
+  | "wardrobe-gap"
+  | "color-match"
+  | "layering"
+  | "style-alignment"
+  | "occasion"
+  | "versatile-piece";
+
+export interface ProductRecommendation {
+  product: ExternalProduct;
+  reason: string;
+  score: number;
+  matchedGarmentIds: string[];
+  sourceContext: ProductRecommendationSourceContext;
+}
+
+export interface ProductRecommendationInput {
+  userId: string;
+  garments: Garment[];
+  /** Current outfit garment IDs (optional context) */
+  outfitGarmentIds?: string[];
+  mood?: Mood;
+  weather?: WeatherCondition;
+  temperature?: number;
+  occasion?: string;
+  limitCount?: number;
+}
+
+export type ProviderStatus =
+  | { available: true }
+  | { available: false; reason: string; code?: string };
+
+export interface ProductRecommendationOutput {
+  recommendations: ProductRecommendation[];
+  /** Set when no live provider could supply products; no fake data returned. */
+  providerStatus?: ProviderStatus;
+}

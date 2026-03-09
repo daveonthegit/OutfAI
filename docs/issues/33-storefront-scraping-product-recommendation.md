@@ -14,11 +14,11 @@ Suggestions must appear **after** wardrobe-based outfits and only when they **co
 
 ### Tasks
 
-- [ ] **Schema**: Add tables (or Convex schema) for external products and product–wardrobe matches. E.g. `external_products` (source, name, category, color, price, imageUrl, productUrl) and `product_matches` (productId, garmentId, reason) or equivalent. See [OutfAI_Database_Design.md](../OutfAI_Database_Design.md) optional commerce tables.
-- [ ] **Recommendation logic**: Given the user’s garments (and optionally current outfit or mood/weather), score external products by: category fit (e.g. fills gap: “no neutral jacket”), color compatibility with existing items, style/occasion alignment. Reuse or extend scoring ideas from the outfit recommendation engine (explainable rules).
-- [ ] **Justification**: For each suggested product, generate a one-line reason (e.g. “Pairs with your navy tops and adds a neutral layer”). Store or compute per user/outfit.
-- [ ] **UI**: Show “This would go well with…” or “Suggested for your wardrobe” cards after outfit results; label as “External product” / “Suggested purchase”; link opens in new tab. Do not block or replace the main outfit flow.
-- [ ] **Tracking**: Optional click-through or “interested” for metrics; do not track without consent.
+- [x] **Schema**: Add tables (or Convex schema) for external products and product–wardrobe matches. Implemented: `external_products` and `commerceInteractionLogs` in Convex; product–wardrobe matches computed on demand by recommendation service.
+- [x] **Recommendation logic**: Given the user’s garments (and optionally current outfit or mood/weather), score external products by: category fit, color compatibility, style/occasion alignment. Implemented in `server/services/productRecommendationService.ts`.
+- [x] **Justification**: For each suggested product, generate a one-line reason. Implemented in same service; reasons derived from scoring factors.
+- [x] **UI**: “Suggested for your wardrobe” section after outfit results; “Suggested purchase” label; link opens in new tab. Implemented: `SuggestedProductsSection`, `ExternalProductCard`.
+- [x] **Tracking**: Optional click-through via `commerceInteractionLogs.log`; consent-aware (not called by default).
 
 ### Acceptance criteria
 

@@ -60,4 +60,37 @@ export default defineSchema({
     avatarStorageId: v.optional(v.id("_storage")),
     updatedAt: v.number(),
   }).index("by_userId", ["userId"]),
+
+  // External products from affiliate/partner feeds. Normalized; multiple sources supported.
+  external_products: defineTable({
+    source: v.string(),
+    sourceProductId: v.string(),
+    name: v.string(),
+    brand: v.optional(v.string()),
+    category: v.string(),
+    subcategory: v.optional(v.string()),
+    color: v.optional(v.string()),
+    styleTags: v.optional(v.array(v.string())),
+    occasionTags: v.optional(v.array(v.string())),
+    price: v.optional(v.number()),
+    currency: v.optional(v.string()),
+    imageUrl: v.optional(v.string()),
+    productUrl: v.string(),
+    affiliateUrl: v.optional(v.string()),
+    availability: v.optional(v.string()),
+    metadata: v.optional(v.any()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_source", ["source"])
+    .index("by_source_product", ["source", "sourceProductId"])
+    .index("by_category", ["category"]),
+
+  // Optional: commerce interaction logs (click-through, dismissed). Consent-aware; do not track without consent.
+  commerceInteractionLogs: defineTable({
+    userId: v.string(),
+    productId: v.id("external_products"),
+    action: v.string(), // "clicked" | "dismissed"
+    loggedAt: v.number(),
+  }).index("by_userId", ["userId"]),
 });

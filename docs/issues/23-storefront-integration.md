@@ -8,11 +8,11 @@ PRD §7: Suggest new items only when they complement the existing wardrobe. Each
 
 ## Tasks
 
-- [ ] Define schema or external API for "suggested products" (e.g. affiliate feed or partner API): product id, name, image, link, price, category, tags.
-- [ ] After showing wardrobe-based outfits, optionally show "This would go well with…" cards with 1–2 suggested items and short justification (e.g. "Adds a neutral layer to your existing tops").
-- [ ] Clear labeling: "Suggested purchase", "External link", open in new tab.
-- [ ] Do not block or replace the wardrobe-first flow; suggestions are secondary.
-- [ ] Track click-through for metrics (optional).
+- [x] Define schema or external API for "suggested products" (e.g. affiliate feed or partner API): product id, name, image, link, price, category, tags. (Implemented: `external_products` in Convex; provider abstraction in `server/commerce/`.)
+- [x] After showing wardrobe-based outfits, optionally show "This would go well with…" cards with 1–2 suggested items and short justification (e.g. "Adds a neutral layer to your existing tops").
+- [x] Clear labeling: "Suggested purchase", "External link", open in new tab.
+- [x] Do not block or replace the wardrobe-first flow; suggestions are secondary.
+- [x] Track click-through for metrics (optional). (Implemented: `commerceInteractionLogs`; consent-aware, not called by default.)
 
 ## Acceptance criteria
 

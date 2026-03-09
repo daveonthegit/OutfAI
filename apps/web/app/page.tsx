@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { OutfitRecommendationCard } from "@/components/outfit-recommendation-card";
+import { SuggestedProductsSection } from "@/components/suggested-products-section";
 import { useOutfitRecommendations } from "@/hooks/use-outfit-recommendations";
 import { useRequireAuth } from "@/hooks/use-require-auth";
 import { useQuery, useMutation } from "convex/react";
@@ -612,6 +613,21 @@ export default function Home() {
             </div>
           )}
         </section>
+
+        {/* Suggested for your wardrobe — external products, only after outfit results */}
+        <SuggestedProductsSection
+          userId={userId}
+          garments={convexGarments}
+          outfitGarmentIds={recommendedOutfit?.[0]?.garments
+            ?.map((g: { id?: string }) => g?.id)
+            ?.filter(Boolean)}
+          mood={mood}
+          weather={weather ?? undefined}
+          temperature={temperatureCelsius ?? undefined}
+          showWhenHasOutfits={
+            !!(recommendedOutfit && recommendedOutfit.length > 0)
+          }
+        />
 
         {/* Actions - Save Look (pick options to save) + Shuffle */}
         <section className="flex items-center justify-center gap-8 md:gap-12 mb-20 md:mb-28">

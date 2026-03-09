@@ -77,14 +77,50 @@ User identity and sessions are not defined in the application schema. They are m
 
 ---
 
-## Optional commerce (future)
+## Commerce (storefront integration)
 
-The following are not yet implemented; they are listed here as design reference.
+Implemented as part of wardrobe-first product recommendations. See [commerce/IMPLEMENTATION.md](commerce/IMPLEMENTATION.md) and [commerce/SCRAPING_NON_GOAL.md](commerce/SCRAPING_NON_GOAL.md).
 
-- **external_products** — Storefront items (source, name, category, color, price, image_url, product_url).
-- **product_matches** — Links product to garment with a reason (why it fits the wardrobe).
+### external_products
 
-These can be added as Convex tables when storefront integration is implemented.
+Normalized external products from affiliate/partner feeds. Single source of truth: [convex/schema.ts](../convex/schema.ts).
+
+| Field           | Type      | Notes                              |
+| --------------- | --------- | ---------------------------------- |
+| source          | string    | Provider/source identifier         |
+| sourceProductId | string    | Id in source system                |
+| name            | string    |                                    |
+| brand           | string?   |                                    |
+| category        | string    | Normalized (top, bottom, shoes, …) |
+| subcategory     | string?   |                                    |
+| color           | string?   | Normalized color                   |
+| styleTags       | string[]? |                                    |
+| occasionTags    | string[]? |                                    |
+| price           | number?   |                                    |
+| currency        | string?   |                                    |
+| imageUrl        | string?   |                                    |
+| productUrl      | string    |                                    |
+| affiliateUrl    | string?   |                                    |
+| availability    | string?   |                                    |
+| createdAt       | number    |                                    |
+| updatedAt       | number    |                                    |
+
+Indexes: `by_source`, `by_source_product`, `by_category`.
+
+### commerceInteractionLogs
+
+Optional interaction logs (click-through, dismissed). Consent-aware; do not track without consent.
+
+| Field     | Type                  | Notes                    |
+| --------- | --------------------- | ------------------------ |
+| userId    | string                |                          |
+| productId | id(external_products) |                          |
+| action    | string                | "clicked" \| "dismissed" |
+| loggedAt  | number                |                          |
+
+Index: `by_userId`.
+
+Product–wardrobe “matches” are computed on demand by the recommendation service (not stored in a separate table).
 
 ---
 

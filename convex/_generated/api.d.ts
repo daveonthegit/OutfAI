@@ -9,6 +9,8 @@
  */
 
 import type * as auth from "../auth.js";
+import type * as commerceInteractionLogs from "../commerceInteractionLogs.js";
+import type * as externalProducts from "../externalProducts.js";
 import type * as garments from "../garments.js";
 import type * as http from "../http.js";
 import type * as outfits from "../outfits.js";
@@ -25,6 +27,8 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   auth: typeof auth;
+  commerceInteractionLogs: typeof commerceInteractionLogs;
+  externalProducts: typeof externalProducts;
   garments: typeof garments;
   http: typeof http;
   outfits: typeof outfits;
