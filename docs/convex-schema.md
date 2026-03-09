@@ -20,6 +20,7 @@
 - [`outfits`](#outfits)
 - [`recommendationLogs`](#recommendationLogs)
 - [`userPreferences`](#userPreferences)
+- [`profiles`](#profiles)
 
 ---
 
@@ -80,5 +81,16 @@
 | `preferredStyles` | `array<string>` | no |
 | `preferredColors` | `array<string>` | no |
 | `avoidedColors` | `array<string>` | no |
+
+---
+
+## `profiles`
+
+| Field | Type | Required |
+|-------|------|----------|
+| `userId` | `string` | yes |
+| `bio` | `string` | no |
+| `avatarStorageId` | `id<_storage>` | no |
+| `updatedAt` | `number` | yes |
 
 ---

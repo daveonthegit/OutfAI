@@ -52,4 +52,12 @@ export default defineSchema({
     preferredColors: v.optional(v.array(v.string())),
     avoidedColors: v.optional(v.array(v.string())),
   }).index("by_userId", ["userId"]),
+
+  // User profile extension: bio, avatar storage. Identity (name, username, email) lives in Better Auth user table.
+  profiles: defineTable({
+    userId: v.string(),
+    bio: v.optional(v.string()),
+    avatarStorageId: v.optional(v.id("_storage")),
+    updatedAt: v.number(),
+  }).index("by_userId", ["userId"]),
 });
