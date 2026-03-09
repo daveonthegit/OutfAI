@@ -10,7 +10,7 @@
 # OutfAI — Convex Schema
 
 > Auto-generated from [`convex/schema.ts`](../convex/schema.ts) by [`scripts/generate-convex-docs.ts`](../scripts/generate-convex-docs.ts).
-> Last generated: 2026-03-03
+> Last generated: 2026-03-08
 
 ---
 
@@ -19,6 +19,7 @@
 - [`garments`](#garments)
 - [`outfits`](#outfits)
 - [`recommendationLogs`](#recommendationLogs)
+- [`userPreferences`](#userPreferences)
 
 ---
 
@@ -67,5 +68,17 @@
 | `mood` | `string` | no |
 | `weather` | `string` | no |
 | `loggedAt` | `number` | yes |
+
+---
+
+## `userPreferences`
+
+| Field | Type | Required |
+|-------|------|----------|
+| `userId` | `string` | yes |
+| `favoriteMoods` | `array<string>` | no |
+| `preferredStyles` | `array<string>` | no |
+| `preferredColors` | `array<string>` | no |
+| `avoidedColors` | `array<string>` | no |
 
 ---
