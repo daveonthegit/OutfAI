@@ -10,7 +10,7 @@
 # OutfAI — Convex Schema
 
 > Auto-generated from [`convex/schema.ts`](../convex/schema.ts) by [`scripts/generate-convex-docs.ts`](../scripts/generate-convex-docs.ts).
-> Last generated: 2026-03-08
+> Last generated: 2026-03-09
 
 ---
 

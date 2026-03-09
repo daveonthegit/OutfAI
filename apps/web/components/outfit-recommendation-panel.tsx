@@ -1,7 +1,11 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { useQuery } from "convex/react";
 import { api } from "@convex/_generated/api";
-import { Mood, WeatherCondition } from "@/../../shared/types";
+import {
+  Mood,
+  UserStylePreferences,
+  WeatherCondition,
+} from "@/../../shared/types";
 import { useOutfitRecommendations } from "@/hooks/use-outfit-recommendations";
 
 /**
@@ -43,6 +47,32 @@ export function OutfitRecommendationPanel({
     useState<WeatherCondition>("sunny");
   const [temperature, setTemperature] = useState(20);
 
+  // Map Convex result to UserStylePreferences (explicit can be null; doc has extra fields; favoriteMoods are strings)
+  const normalizedPreferences: UserStylePreferences | undefined = useMemo(
+    () =>
+      preferences
+        ? {
+            explicit: preferences.explicit
+              ? {
+                  favoriteMoods: preferences.explicit.favoriteMoods as
+                    | Mood[]
+                    | undefined,
+                  preferredStyles: preferences.explicit.preferredStyles,
+                  preferredColors: preferences.explicit.preferredColors,
+                  avoidedColors: preferences.explicit.avoidedColors,
+                }
+              : undefined,
+            learned: {
+              ...preferences.learned,
+              favoriteMoods: preferences.learned.favoriteMoods as
+                | Mood[]
+                | undefined,
+            },
+          }
+        : undefined,
+    [preferences]
+  );
+
   const { outfits, loading, error, explanation, generate } =
     useOutfitRecommendations({
       userId,
@@ -50,7 +80,7 @@ export function OutfitRecommendationPanel({
       weather: selectedWeather,
       temperature,
       limitCount: 5,
-      preferences: preferences ?? undefined,
+      preferences: normalizedPreferences,
     });
 
   const handleGenerate = async () => {
@@ -58,7 +88,7 @@ export function OutfitRecommendationPanel({
       mood: selectedMood,
       weather: selectedWeather,
       temperature,
-      preferences: preferences ?? undefined,
+      preferences: normalizedPreferences,
     });
   };
 

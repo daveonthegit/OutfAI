@@ -14,6 +14,7 @@ import type * as http from "../http.js";
 import type * as outfits from "../outfits.js";
 import type * as recommendationLogs from "../recommendationLogs.js";
 import type * as seed from "../seed.js";
+import type * as userPreferences from "../userPreferences.js";
 
 import type {
   ApiFromModules,
@@ -28,6 +29,7 @@ declare const fullApi: ApiFromModules<{
   outfits: typeof outfits;
   recommendationLogs: typeof recommendationLogs;
   seed: typeof seed;
+  userPreferences: typeof userPreferences;
 }>;
 
 /**

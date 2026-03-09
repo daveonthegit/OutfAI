@@ -23,7 +23,7 @@
   "dependencies": {
     "@convex-dev/better-auth": "^0.10.13",
     "@convex-dev/resend": "^0.2.3",
-    "@google-cloud/vision": "^5.0.0",
+    "@google-cloud/vision": "^4.3.3",
     "@hookform/resolvers": "^3.10.0",
     "@radix-ui/react-accordion": "1.2.2",
     "@radix-ui/react-alert-dialog": "1.1.4",
