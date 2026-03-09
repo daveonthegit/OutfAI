@@ -1,0 +1,41 @@
+---
+description: Commit and PR guidelines — what to run and check before merge
+globs: [".github/**", "package.json", "docs/cicd.md"]
+alwaysApply: false
+---
+
+# Commit and PR Guidelines — OutfAI
+
+Purpose: Keep CI green and PRs consistent. Run the same checks locally that CI runs.
+
+## Pre-commit / pre-push
+
+- **Format:** Run `npm run format` (Prettier) before committing; or rely on the husky + lint-staged setup if configured.
+- **Lint:** `npm run lint` (ESLint). Fix or explicitly ignore with justification.
+- **Typecheck:** `npm run typecheck` (`tsc --noEmit`).
+- **Tests:** `npm run test` (Vitest).
+- **Build:** `npm run build` (Next.js build from `apps/web`).
+
+**Single CI-like check:** `npm run ci` runs format check, lint, typecheck, test, and build. Run this before pushing to catch failures early.
+
+## PR checklist
+
+- [ ] CI is green (format, lint, typecheck, test, build).
+- [ ] No new `any` types; use `shared/types` or Convex-generated types.
+- [ ] New Convex handlers use `getAuthUser(ctx)` and scope by `userId` where applicable.
+- [ ] New data-dependent UI handles loading (`undefined`), empty, and error states.
+- [ ] Schema or Convex changes: run `npm run gen:db-docs` (or `db:doc`) and commit generated docs if the project expects them.
+
+## Commits
+
+- Prefer clear, imperative messages (e.g. “Add empty state to closet page”, “Fix recommendation score for single-category closets”).
+- Do not commit `.env.local` or secrets; ensure sensitive env is in `.gitignore`.
+
+## Database / schema
+
+- **Convex:** Schema changes are done in `convex/schema.ts`; run `npx convex dev` (or deploy) to apply. No Prisma or separate migration files.
+- **Docs:** If the repo keeps generated schema docs (e.g. `docs/convex-schema.md`), regenerate and commit after schema changes.
+
+## New scripts
+
+- Add new scripts to root `package.json`. If a script is a quality gate (lint, test, typecheck), wire it into CI (e.g. `.github/workflows/ci.yml`) and document in `docs/cicd.md` if that doc exists.

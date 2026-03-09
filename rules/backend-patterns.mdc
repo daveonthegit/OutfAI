@@ -1,351 +1,89 @@
 ---
-description: Backend resource pattern — 4-layer architecture for every server-side resource
+description: Backend patterns — Convex + server services + API routes for OutfAI
 globs:
+  - convex/**/*.ts
   - server/**/*.ts
-  - shared/schemas/**/*.ts
+  - apps/web/app/api/**/*.ts
+  - shared/types/**/*.ts
 alwaysApply: true
 ---
 
-# Backend Resource Pattern
+# Backend Patterns — OutfAI
 
-Every backend "resource" (garments, outfits, recommendations, weather, etc.) MUST follow this 4-layer structure. No exceptions.
+Purpose: Define how server-side behavior is structured in OutfAI. The repo uses **Convex** as the primary backend (database, queries, mutations, auth, file storage) and **Next.js API routes** that call **server services** for heavier workflows (recommendations, image analysis). There is **no Prisma** and **no server/actions** layer.
 
-## Layer Overview
+## Tech context
 
-```
-Layer 1: Router          server/api/routers/{resource}.ts
-Layer 2: Service         server/services/{resource}Service.ts
-Layer 3: Actions         server/actions/{resource}Actions.ts
-Layer 4: Shared Schema   shared/schemas/{resource}.ts
-```
+- **Convex:** All persistent data (garments, outfits, userPreferences, recommendationLogs) and auth (Better Auth via `@convex-dev/better-auth`). Queries/mutations live in `convex/*.ts`.
+- **Server services:** `server/services/*.ts` — pure business logic (e.g. `OutfitRecommendationService`, `garmentImageAnalysisService`). No DB or HTTP; they receive input and return results.
+- **API surface:** Next.js route handlers in `apps/web/app/api/*/route.ts` call server services and return JSON. A tRPC app router exists at `server/api/routers/` and is mounted at `/api/trpc`, but the main app uses Convex + direct API routes (e.g. `/api/recommendations`, `/api/analyze-garment-image`).
 
-### Layer responsibilities
+## Convex layer
 
-| Layer | Does | Does NOT |
-|-------|------|----------|
-| **Router** | Defines tRPC endpoints, validates input via Zod, calls service, returns response | Contain business logic, call DB directly, call external APIs |
-| **Service** | Orchestrates workflows, coordinates multiple actions, enforces business rules | Import Prisma/DB client, make HTTP calls, throw tRPC errors |
-| **Actions** | Execute DB reads/writes (Prisma), call external APIs, handle retries | Contain business rules, validate input, know about tRPC |
-| **Shared Schema** | Export Zod schemas and inferred TypeScript types used by FE and BE | Contain runtime logic |
+### File and naming
 
-### Data flow
+- One file per “resource” or domain: `convex/garments.ts`, `convex/outfits.ts`, `convex/auth.ts`, `convex/userPreferences.ts`, `convex/recommendationLogs.ts`, etc.
+- Export **queries** and **mutations** with `query({ args, handler })` and `mutation({ args, handler })`; use `v.*` from `convex/values` for `args` validation.
+- Use **indexes** defined in `convex/schema.ts` for all user-scoped lookups (e.g. `by_userId`).
 
-```
-Request → Router (validate + parse) → Service (orchestrate) → Actions (DB/API) → Service → Router → Response
-```
+### Auth in Convex
 
----
+- Every Convex handler that operates on user data must enforce auth. Use the shared helper:
+  - `getAuthUser(ctx)` from `convex/auth.ts` — returns the current user document or `null` (does not throw).
+  - In mutations and in queries that return user-specific data: if `getAuthUser(ctx)` is `null`, return `[]` (queries) or throw `new Error("Unauthorized")` (mutations).
+  - **Identity:** Use `user._id` (Convex document id) as the stable user id stored in `garments.userId`, `outfits.userId`, etc. Do not use `user.userId` (optional plugin field, not set for email/password).
+- Scope all reads/writes by `userId` (e.g. `q.eq("userId", user._id)`); never trust client-provided userId for authorization.
 
-## Folder Conventions
+### Schema and validation
 
-```
-server/
-  api/
-    trpc.ts                          # tRPC init, context, procedures
-    routers/
-      _app.ts                        # Root router — merges all sub-routers
-      garments.ts                    # Garment endpoints
-      recommendations.ts            # Recommendation endpoints
-      outfits.ts                     # Outfit endpoints
-  services/
-    garmentService.ts               # Garment business logic
-    outfitRecommendationService.ts  # Recommendation pipeline
-    outfitService.ts                # Outfit orchestration
-  actions/
-    garmentActions.ts               # Garment DB operations
-    outfitActions.ts                # Outfit DB operations
-    weatherActions.ts               # Weather API calls
-    storageActions.ts               # File upload operations
-  db/
-    client.ts                       # PrismaClient singleton
+- **Schema:** `convex/schema.ts` defines tables with `defineTable`; add indexes for every query pattern (e.g. `by_userId`).
+- **Args:** Validate all inputs with `v.string()`, `v.id("garments")`, `v.array(...)`, etc. Do not rely on TypeScript alone at the boundary.
+- **Shared types:** Use `shared/types` for DTOs shared between frontend and server services (e.g. `Garment`, `Outfit`, `RecommendationInput`). Convex function args are validated by `v.*` and do not live in `shared/schemas` (this repo has no `shared/schemas`).
 
-shared/
-  schemas/
-    garments.ts                     # Garment Zod schemas + types
-    outfits.ts                      # Outfit Zod schemas + types
-    common.ts                       # Shared enums, base schemas
-  types/
-    index.ts                        # Legacy types (migrate to schemas/)
-  utils/
-    index.ts                        # Shared utilities
-```
+### Convex patterns to follow
 
----
+- Keep handlers focused: one query/mutation per export; delegate complex logic to internal async functions in the same file if needed.
+- For multi-step workflows that only touch Convex data, keep logic in the Convex module (e.g. resolving garment details inside `outfits.list`).
+- File storage: use `ctx.storage.generateUploadUrl()` and `ctx.storage.getUrl(storageId)` in mutations; return the public URL to the client after upload.
 
-## Canonical Example: `garments`
+## Server services layer
 
-### Layer 4 — Shared Schema (`shared/schemas/garments.ts`)
+- **Location:** `server/services/<name>Service.ts` (e.g. `outfitRecommendationService.ts`, `garmentImageAnalysisService.ts`).
+- **Responsibility:** Pure business logic — input in, result out. No Convex/DB imports, no HTTP. Callable from Next.js API routes or (in theory) tRPC.
+- **Testing:** Prefer unit tests next to the service (`server/services/<name>.test.ts`) or in `tests/services/`; cover happy path, empty input, and edge cases.
+- **External APIs:** If a service needs external calls (e.g. Google Vision), keep them inside the service and pass credentials via env; do not put HTTP calls in Convex handlers.
 
-```typescript
-import { z } from "zod";
+## API routes (Next.js)
 
-export const garmentCategorySchema = z.enum([
-  "tops", "bottoms", "shoes", "outerwear", "accessories",
-]);
+- **Location:** `apps/web/app/api/<name>/route.ts`.
+- **When to use:** For workflows that need to call server services with data the client already has (e.g. garments from Convex passed to the recommendation engine), or when the client must not call Convex directly (e.g. image analysis that uses server-only secrets).
+- **Pattern:** Parse request body, validate required fields, call server service, return `NextResponse.json(result)` or appropriate error status and JSON.
+- **Errors:** Catch service errors; return 400 for bad input, 500 for unexpected errors; log server-side; do not leak internals to the client.
+- **Auth:** Recommendations and other authenticated flows should receive a userId (or session) from the client; the API route can validate session via Better Auth helpers if needed. Currently `/api/recommendations` and `/api/analyze-garment-image` do not enforce auth in the route (rely on middleware protecting pages and Convex for data access).
 
-export const seasonSchema = z.enum([
-  "spring", "summer", "fall", "winter", "all-season",
-]);
+## tRPC (existing but secondary)
 
-export const createGarmentSchema = z.object({
-  name: z.string().min(1).max(100),
-  category: garmentCategorySchema,
-  primaryColor: z.string().min(1),
-  secondaryColor: z.string().optional(),
-  material: z.string().optional(),
-  season: seasonSchema,
-  imageUrl: z.string().url().optional(),
-  tags: z.array(z.string()).default([]),
-});
+- **Location:** `server/api/routers/*.ts`, `server/api/trpc.ts`, `server/api/routers/_app.ts`; handler at `apps/web/app/api/trpc/[trpc]/route.ts`.
+- **Context:** `createContext` is `() => ({})` — no auth in tRPC context. Used for `garments.analyzeGarmentImage` and `recommendations.generate`; the frontend currently uses **Next.js API routes** for recommendations and analyze-garment-image, not the tRPC client.
+- **Preference for new work:** Prefer Convex for data and Next.js API routes for server-service calls (e.g. recommendations, image analysis). If you add a new tRPC procedure, document why it is preferred over an API route.
 
-export const updateGarmentSchema = createGarmentSchema.partial();
+## Error handling
 
-export const garmentFilterSchema = z.object({
-  category: garmentCategorySchema.optional(),
-  season: seasonSchema.optional(),
-  search: z.string().optional(),
-});
+- **Convex:** Throw `new Error("Unauthorized")` or `new Error("Not found")` (or similar) in handlers; Convex surfaces these to the client. Avoid throwing raw external errors.
+- **Server services:** Throw descriptive `Error`s; let the caller (API route or tRPC) map them to HTTP status or tRPC codes.
+- **API routes:** Catch errors, log them, return appropriate status (400/500) and a safe JSON body (e.g. `{ error: "..." }`).
 
-export type CreateGarmentInput = z.infer<typeof createGarmentSchema>;
-export type UpdateGarmentInput = z.infer<typeof updateGarmentSchema>;
-export type GarmentFilter = z.infer<typeof garmentFilterSchema>;
-```
+## What not to do
 
-### Layer 3 — Actions (`server/actions/garmentActions.ts`)
+- Do **not** add a Prisma layer or `server/db` — data lives in Convex.
+- Do **not** add a generic “actions” layer under `server/actions` — Convex mutations are the data actions; server services are for non-Convex workflows.
+- Do **not** put business logic that belongs in Convex (e.g. CRUD rules) in Next.js API routes; keep CRUD in Convex.
+- Do **not** skip `getAuthUser(ctx)` and userId scoping in Convex handlers that touch user data.
+- Do **not** commit mock data or “getMockGarments”-style endpoints for production use; treat them as legacy/demo and remove or guard when possible.
 
-```typescript
-import { db } from "../db/client";
-import type { CreateGarmentInput, UpdateGarmentInput, GarmentFilter } from "@shared/schemas/garments";
+## Adding a new backend feature
 
-export async function createGarment(userId: string, data: CreateGarmentInput) {
-  return db.garment.create({
-    data: { ...data, userId, tags: JSON.stringify(data.tags) },
-  });
-}
-
-export async function listGarments(userId: string, filter?: GarmentFilter) {
-  return db.garment.findMany({
-    where: {
-      userId,
-      ...(filter?.category && { category: filter.category }),
-      ...(filter?.season && { season: filter.season }),
-      ...(filter?.search && { name: { contains: filter.search, mode: "insensitive" } }),
-    },
-    orderBy: { createdAt: "desc" },
-  });
-}
-
-export async function getGarmentById(userId: string, garmentId: string) {
-  return db.garment.findFirst({
-    where: { id: garmentId, userId },
-    include: { tags: true },
-  });
-}
-
-export async function updateGarment(userId: string, garmentId: string, data: UpdateGarmentInput) {
-  return db.garment.updateMany({
-    where: { id: garmentId, userId },
-    data,
-  });
-}
-
-export async function deleteGarment(userId: string, garmentId: string) {
-  return db.garment.deleteMany({
-    where: { id: garmentId, userId },
-  });
-}
-```
-
-### Layer 2 — Service (`server/services/garmentService.ts`)
-
-```typescript
-import * as garmentActions from "../actions/garmentActions";
-import type { CreateGarmentInput, UpdateGarmentInput, GarmentFilter } from "@shared/schemas/garments";
-
-export async function createGarment(userId: string, input: CreateGarmentInput) {
-  const defaultTags = deriveDefaultTags(input.category, input.primaryColor);
-  const mergedTags = [...new Set([...defaultTags, ...input.tags])];
-
-  return garmentActions.createGarment(userId, { ...input, tags: mergedTags });
-}
-
-export async function listGarments(userId: string, filter?: GarmentFilter) {
-  return garmentActions.listGarments(userId, filter);
-}
-
-export async function getGarment(userId: string, garmentId: string) {
-  const garment = await garmentActions.getGarmentById(userId, garmentId);
-  if (!garment) throw new Error("GARMENT_NOT_FOUND");
-  return garment;
-}
-
-export async function updateGarment(userId: string, garmentId: string, input: UpdateGarmentInput) {
-  await getGarment(userId, garmentId); // ensure exists + owned
-  return garmentActions.updateGarment(userId, garmentId, input);
-}
-
-export async function deleteGarment(userId: string, garmentId: string) {
-  await getGarment(userId, garmentId);
-  return garmentActions.deleteGarment(userId, garmentId);
-}
-
-function deriveDefaultTags(category: string, color: string): string[] {
-  const tags: string[] = [];
-  if (category === "outerwear") tags.push("layering");
-  if (["black", "white", "gray", "beige", "navy"].includes(color)) tags.push("neutral");
-  return tags;
-}
-```
-
-### Layer 1 — Router (`server/api/routers/garments.ts`)
-
-```typescript
-import { router, protectedProcedure } from "../trpc";
-import { z } from "zod";
-import { TRPCError } from "@trpc/server";
-import { createGarmentSchema, updateGarmentSchema, garmentFilterSchema } from "@shared/schemas/garments";
-import * as garmentService from "../../services/garmentService";
-
-export const garmentRouter = router({
-  list: protectedProcedure
-    .input(garmentFilterSchema.optional())
-    .query(async ({ ctx, input }) => {
-      return garmentService.listGarments(ctx.userId, input ?? undefined);
-    }),
-
-  getById: protectedProcedure
-    .input(z.object({ id: z.string() }))
-    .query(async ({ ctx, input }) => {
-      try {
-        return await garmentService.getGarment(ctx.userId, input.id);
-      } catch (e) {
-        if (e instanceof Error && e.message === "GARMENT_NOT_FOUND") {
-          throw new TRPCError({ code: "NOT_FOUND", message: "Garment not found" });
-        }
-        throw e;
-      }
-    }),
-
-  create: protectedProcedure
-    .input(createGarmentSchema)
-    .mutation(async ({ ctx, input }) => {
-      return garmentService.createGarment(ctx.userId, input);
-    }),
-
-  update: protectedProcedure
-    .input(z.object({ id: z.string(), data: updateGarmentSchema }))
-    .mutation(async ({ ctx, input }) => {
-      try {
-        return await garmentService.updateGarment(ctx.userId, input.id, input.data);
-      } catch (e) {
-        if (e instanceof Error && e.message === "GARMENT_NOT_FOUND") {
-          throw new TRPCError({ code: "NOT_FOUND", message: "Garment not found" });
-        }
-        throw e;
-      }
-    }),
-
-  delete: protectedProcedure
-    .input(z.object({ id: z.string() }))
-    .mutation(async ({ ctx, input }) => {
-      try {
-        await garmentService.deleteGarment(ctx.userId, input.id);
-        return { success: true };
-      } catch (e) {
-        if (e instanceof Error && e.message === "GARMENT_NOT_FOUND") {
-          throw new TRPCError({ code: "NOT_FOUND", message: "Garment not found" });
-        }
-        throw e;
-      }
-    }),
-});
-```
-
----
-
-## Naming Conventions
-
-| Item | Convention | Example |
-|------|-----------|---------|
-| Router file | `{resource}.ts` (plural, lowercase) | `garments.ts` |
-| Router export | `{resource}Router` (camelCase) | `garmentRouter` |
-| Service file | `{resource}Service.ts` (singular + "Service") | `garmentService.ts` |
-| Actions file | `{resource}Actions.ts` (singular + "Actions") | `garmentActions.ts` |
-| Schema file | `{resource}.ts` (plural, in `shared/schemas/`) | `garments.ts` |
-| Zod schema | `{verb}{Resource}Schema` (camelCase) | `createGarmentSchema` |
-| Inferred type | `{Verb}{Resource}Input` (PascalCase) | `CreateGarmentInput` |
-| DB model | `PascalCase` (Prisma convention) | `Garment`, `GarmentTag` |
-| tRPC endpoint | `{resource}.{verb}` (dot notation) | `garments.create` |
-
----
-
-## Error Handling
-
-1. **Actions** throw raw errors or return `null` for not-found.
-2. **Services** throw domain errors with string codes (e.g., `throw new Error("GARMENT_NOT_FOUND")`).
-3. **Routers** catch domain errors and translate them to `TRPCError` with appropriate HTTP codes:
-
-| Domain error | tRPC code |
-|-------------|-----------|
-| `*_NOT_FOUND` | `NOT_FOUND` |
-| `*_UNAUTHORIZED` | `FORBIDDEN` |
-| `*_INVALID` | `BAD_REQUEST` |
-| `*_CONFLICT` | `CONFLICT` |
-| Unexpected | `INTERNAL_SERVER_ERROR` |
-
-4. **Never** throw `TRPCError` from services or actions — they must stay transport-agnostic.
-
----
-
-## Transaction Guidance
-
-- **Actions** own individual DB transactions when a single operation needs atomicity:
-  ```typescript
-  export async function createGarmentWithTags(userId: string, data: CreateGarmentInput) {
-    return db.$transaction(async (tx) => {
-      const garment = await tx.garment.create({ data: { ...data, userId } });
-      await tx.garmentTag.createMany({ data: tags.map(t => ({ garmentId: garment.id, tag: t, source: "auto" })) });
-      return garment;
-    });
-  }
-  ```
-- **Services** coordinate multi-step workflows by calling multiple actions. If cross-resource atomicity is needed, pass the `tx` handle down:
-  ```typescript
-  export async function deleteGarmentCascade(userId: string, garmentId: string) {
-    await garmentActions.deleteGarmentWithTags(userId, garmentId);
-    await storageActions.deleteImage(garmentId);
-  }
-  ```
-- **Routers** never manage transactions.
-
----
-
-## What NOT To Do
-
-| Anti-pattern | Why it's wrong | Do this instead |
-|-------------|---------------|-----------------|
-| DB calls in router | Router becomes untestable, mixes I/O with business logic | Move to actions, call through service |
-| Business logic in actions | Actions become bloated, rules scatter across files | Keep actions as pure data access; rules live in service |
-| `TRPCError` in service | Couples service to transport layer; breaks if you add REST or GraphQL later | Throw plain `Error` with a code string; router translates |
-| Importing Prisma client in service | Service becomes untestable without DB | Service calls actions; actions import Prisma |
-| Zod schemas defined only in router | Frontend can't reuse validation; types drift | Define in `shared/schemas/`, import everywhere |
-| Inline mock data in router | Mocks rot, production code interleaves with test data | Use a separate seed script or test fixtures |
-| Fat service that does everything | Violates single responsibility | Split into focused services per resource |
-| Skipping `userId` filtering | Security hole — users see each other's data | Always filter by `userId` from `ctx`, never trust client |
-
----
-
-## PR Checklist
-
-Every backend PR that adds or modifies a resource must satisfy:
-
-- [ ] **Schema:** Zod schemas live in `shared/schemas/{resource}.ts` with exported inferred types
-- [ ] **Actions:** DB/API operations in `server/actions/{resource}Actions.ts` — no business logic
-- [ ] **Service:** Orchestration in `server/services/{resource}Service.ts` — no direct DB or tRPC imports
-- [ ] **Router:** Endpoints in `server/api/routers/{resource}.ts` — input validated via shared schema, errors translated to `TRPCError`
-- [ ] **Root router:** New router registered in `server/api/routers/_app.ts`
-- [ ] **Auth:** All endpoints use `protectedProcedure` (unless explicitly public)
-- [ ] **userId filter:** Every query/mutation scopes to `ctx.userId`
-- [ ] **Error mapping:** Service errors mapped to appropriate tRPC error codes in router
-- [ ] **No inline mocks:** Production code contains zero hardcoded test data
-- [ ] **Types exported:** Any new types are importable by the frontend via `@shared/`
+1. **New Convex data:** Add or extend tables in `convex/schema.ts`, then add queries/mutations in `convex/<resource>.ts`; use `getAuthUser` and index-based queries.
+2. **New server workflow:** Add `server/services/<name>Service.ts`; keep it pure (no Convex/DB); add tests.
+3. **New API endpoint:** Add `apps/web/app/api/<name>/route.ts` that validates input, calls the server service (or Convex via server-side client if ever needed), and returns JSON.
+4. **tRPC:** Only if you have a clear reason (e.g. type-sharing with a tRPC client); otherwise prefer API routes for server-service entry points.

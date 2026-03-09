@@ -1,0 +1,29 @@
+---
+description: Styling — Tailwind, design system, and UI primitives
+globs: ["apps/web/**/*.tsx", "apps/web/**/*.css", "docs/style.md"]
+alwaysApply: false
+---
+
+# Styling Patterns — OutfAI
+
+Purpose: Consistent styling using **Tailwind CSS 4**, **Radix-based UI** (`components/ui/`), and the project’s “cybersigilism” design direction.
+
+## Stack
+
+- **Tailwind CSS 4** with PostCSS; global styles in `apps/web/styles/globals.css` (minimal: font, box-sizing, body).
+- **Components:** `apps/web/components/ui/` — shadcn-style primitives (Button, Card, Input, Skeleton, Dialog, etc.). Prefer these over custom one-off components.
+- **Design system:** See `docs/style.md` and existing pages (closet, archive, add, outfit) for typography, spacing, and color usage. The README references a “cybersigilism” aesthetic.
+
+## Conventions
+
+- **Utility-first:** Use Tailwind classes; avoid inline styles except for dynamic values (e.g. animation, layout that cannot be expressed with classes).
+- **Tokens:** Use semantic tokens (e.g. `text-muted-foreground`, `text-foreground`, `hover:text-signal-orange`) where they exist; keep new colors/themes aligned with the design system.
+- **Responsiveness:** Use responsive prefixes (`md:`, `lg:`) consistently with existing breakpoints; test key flows on small viewports.
+- **Motion:** Respect reduced motion: use `lib/animations/prefers-reduced-motion` when adding animations; avoid motion-only critical information.
+- **Accessibility:** Labels for form inputs; sufficient contrast; use Radix primitives for focus and keyboard behavior.
+
+## Do not
+
+- Introduce a second CSS framework or random inline styles for layout that Tailwind can handle.
+- Change design tokens or global styles without aligning with `docs/style.md` or the rest of the app.
+- Remove or bypass the existing `components/ui` primitives in favor of one-off styled divs unless necessary.

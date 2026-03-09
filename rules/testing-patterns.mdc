@@ -1,0 +1,34 @@
+---
+description: Testing — Vitest, server tests, and coverage expectations
+globs: ["**/*.test.ts", "**/*.test.tsx", "vitest.config.ts"]
+alwaysApply: false
+---
+
+# Testing Patterns — OutfAI
+
+Purpose: How tests are run and where they live. The repo uses **Vitest**; tests are co-located or in `tests/` and `server/**/*.test.ts`.
+
+## Config
+
+- **Runner:** Vitest (`vitest.config.ts` at repo root).
+- **Include:** `tests/**/*.test.ts`, `server/**/*.test.ts`, `shared/**/*.test.ts`, `apps/web/**/*.test.ts`, `apps/web/**/*.test.tsx`.
+- **Exclude:** `node_modules`, `.next`, `dist`.
+- **Aliases:** Same as app — `@`, `@server`, `@shared` resolved in config.
+- **Environment:** `node` (no DOM by default; use `happy-dom` or `jsdom` in config if you add component tests that need a DOM).
+
+## Current coverage
+
+- **Server services:** `server/services/garmentImageAnalysisService.test.ts`, `tests/services/outfitRecommendationService.test.ts`. These cover business logic with unit tests.
+- **Frontend:** No frontend unit or integration tests in the audit; add tests for hooks or pure logic when adding non-trivial behavior (e.g. `useOutfitRecommendations` or form validation).
+
+## Conventions
+
+- **Naming:** `*.test.ts` or `*.test.tsx` next to the module or in a `tests/` mirror (e.g. `tests/services/outfitRecommendationService.test.ts`).
+- **Scope:** Prefer testing server services and shared pure logic; Convex functions can be tested via Convex’s test utilities if needed (not required for MVP).
+- **CI:** `npm run test` runs Vitest; keep it green. Add new test files for new server services with non-trivial logic.
+
+## What to test
+
+- **Server services:** Happy path, empty/missing input, edge cases (e.g. scoring, filtering).
+- **Hooks (when added):** Behavior that is pure or mockable (e.g. state transitions, error handling); avoid testing Convex internals.
+- **Avoid:** Snapshot tests for large UI unless they add clear value; do not block PRs on missing E2E if the repo does not yet have an E2E suite.

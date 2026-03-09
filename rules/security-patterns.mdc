@@ -1,0 +1,43 @@
+---
+description: Security — Auth, env, validation, and safe usage
+globs: ["convex/**/*.ts", "server/**/*.ts", "apps/web/app/api/**/*.ts", "apps/web/middleware.ts"]
+alwaysApply: false
+---
+
+# Security Patterns — OutfAI
+
+Purpose: Repo-specific security practices for auth, secrets, validation, and API safety.
+
+## Auth and session
+
+- **Session:** Better Auth session cookie; middleware checks for cookie presence before allowing access to protected routes. Full validation happens in Convex via `getAuthUser(ctx)`.
+- **Convex:** Every handler that touches user data must call `getAuthUser(ctx)` and scope by `user._id`. Never trust client-provided userId for authorization.
+- **API routes:** `/api/recommendations` and `/api/analyze-garment-image` do not currently verify the session in the route; they rely on the app only being reachable after login (middleware) and on Convex for data ownership. For stricter guarantees, add server-side session resolution (e.g. using `auth-server` helpers) and reject unauthenticated requests.
+
+## Secrets and env
+
+- **Convex secrets:** Store `BETTER_AUTH_SECRET`, `SITE_URL`, and other Convex-only secrets with `npx convex env set ...`. Do not commit them.
+- **Next.js / server:** Use `process.env` for API keys (e.g. Google Vision). Load from `.env.local` at repo root; Next.js is configured to load root `.env.local` in `next.config.ts`. Never commit `.env.local` or real tokens.
+- **Client:** Only `NEXT_PUBLIC_*` and Convex’s `NEXT_PUBLIC_CONVEX_*` are exposed to the browser. Do not put secrets in `NEXT_PUBLIC_*`.
+
+## Input validation
+
+- **Convex:** Validate all handler inputs with `v.*` (e.g. `v.string()`, `v.id("garments")`, `v.array(...)`). Do not assume types from the client.
+- **API routes:** Validate required body fields (e.g. `userId`, `imageBase64`) and return 400 when invalid. Sanitize only as needed (e.g. string length, type); Convex handles its own validation.
+- **No raw SQL or string interpolation in queries:** Convex API is structured; avoid building query strings from user input.
+
+## File upload and storage
+
+- **Upload:** Convex mutations return a short-lived upload URL via `ctx.storage.generateUploadUrl()`; client uploads directly. Do not accept raw file bytes in API route bodies for large files; use Convex storage flow.
+- **Image analysis:** Base64 image in `/api/analyze-garment-image` is size-limited by the client; consider adding a server-side size check and aborting oversized payloads.
+
+## API and DB safety
+
+- **Scoping:** All Convex queries that return user data must filter by `userId` from `getAuthUser(ctx)`.
+- **Rate limiting:** Not implemented in the audit; consider adding rate limits for `/api/recommendations` and `/api/analyze-garment-image` in production.
+- **Third-party APIs:** Call external APIs (e.g. Google Vision) only from server-side code (API routes or server services); never expose API keys to the client.
+
+## Client-side
+
+- Do not store tokens or secrets in localStorage for auth; session cookie is httpOnly where possible (Better Auth default).
+- Do not send sensitive data in URL query params; use POST body for recommendations and image analysis.

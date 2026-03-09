@@ -1,53 +1,49 @@
 ---
-description: CI/CD conventions that must be followed when implementing any new feature or resource.
-globs: ["server/**", "apps/web/**", "shared/**", "scripts/**", "prisma/**"]
+description: CI/CD conventions — keep CI green and deployments consistent
+globs: ["server/**", "apps/web/**", "shared/**", "scripts/**", "convex/**"]
 alwaysApply: false
 ---
 
-# CI/CD Rules
+# CI/CD Rules — OutfAI
 
-Every change must keep CI green. Follow these conventions so new features
-automatically get the right CI/CD coverage without redesigning anything.
+Every change must keep CI green. Follow these conventions so new features get the right coverage without redesigning the pipeline.
 
-## Backend resources
+## What CI runs
 
-When creating a new backend resource (router, service, action):
+- **format-check** — `npm run format:check` (Prettier)
+- **lint** — `npm run lint` (ESLint)
+- **typecheck** — `npm run typecheck` (tsc --noEmit)
+- **test** — `npm run test` (Vitest)
+- **build** — `npm run build` (Next.js; runs after format, lint, typecheck, test pass)
+- **docs-consistency** — `npm run db:doc` then checks that `docs/` has no uncommitted changes (generated Convex schema docs)
+- **security-baseline** — `npm audit` (advisory; does not block)
 
-1. **Schema first** — create a Zod schema in `shared/` that validates inputs and outputs.
-2. **Unit tests required** — every `server/services/*.ts` file with business logic must have a corresponding `.test.ts` file covering:
-   - Happy path
-   - Empty / missing input
-   - Edge cases for filtering, scoring, or validation
-3. **Service tests if orchestration exists** — if a service calls other services or external APIs, add integration-level tests that verify the orchestration.
-4. **Wire into the root router** — add the new router to `server/api/routers/_app.ts`.
+Run **`npm run ci`** locally before pushing to catch the same checks CI runs (format, lint, typecheck, test, build). The docs-consistency job is separate in CI; if you changed Convex schema or the doc generator, run `npm run db:doc` (or `gen:db-docs`) and commit updated docs.
 
-## Frontend features
+## Backend (Convex + server)
 
-When creating a new page, panel, or component:
+- **Convex:** New or changed queries/mutations must validate args with `v.*` and use `getAuthUser(ctx)` + userId scoping where applicable. No Prisma or separate DB layer.
+- **Server services:** New logic in `server/services/` should have unit tests (e.g. `server/services/<name>.test.ts` or `tests/services/<name>.test.ts`) covering happy path and edge cases.
+- **API routes:** New routes under `apps/web/app/api/` should validate input and return appropriate status codes; add to CI only if you introduce a new quality gate (e.g. contract tests).
 
-1. **Handle all states** — every data-fetching component must handle: loading, empty, error, and success states.
-2. **At least one test** — for the feature's pure logic or hook behavior. Place it co-located (`useX.test.ts`) or in `tests/`.
-3. **No `any` types** — use the shared Zod schemas or TypeScript types from `shared/types/`.
+## Frontend
+
+- **States:** Data-fetching views must handle loading (`undefined` for Convex), empty, error, and success.
+- **Types:** Use `shared/types` or Convex-generated types; do not add `any`.
+- **Tests:** Add tests for new hooks or pure logic when behavior is non-trivial; frontend tests are optional but encouraged.
 
 ## Pull requests
 
-1. **CI must be green** before merge — never bypass required checks.
-2. **Run `npm run ci` locally** before pushing to catch issues early.
-3. **Commit generated docs** — if you changed `prisma/schema.prisma`, run `npm run db:doc` and commit `docs/supabase-structure.md`.
-4. **Commit formatted code** — run `npm run format` before committing, or rely on the pre-commit hook.
+- CI must be green before merge; do not bypass required jobs.
+- Run `npm run ci` locally before pushing.
+- If you changed `convex/schema.ts` or the Convex doc generator, run `npm run db:doc` and commit changes under `docs/`.
+- Code must be formatted (`npm run format` or pre-commit hook).
 
 ## Scripts and tooling
 
-1. New scripts **must** be added to root `package.json`.
-2. If the script is a quality gate (validates something), wire it into `.github/workflows/ci.yml`.
-3. Document the script in `docs/cicd.md` → Scripts Reference table.
-
-## Database changes
-
-1. Update `prisma/schema.prisma` first.
-2. Run `npm run prisma:format` and `npm run prisma:validate`.
-3. Run `npm run db:doc` and commit the updated `docs/supabase-structure.md`.
-4. Run migrations with `npx prisma migrate dev --name <description>`.
+- New scripts go in root `package.json`.
+- Quality gates (lint, test, typecheck, format) are already wired in CI; document new scripts in `docs/cicd.md` if they become part of the workflow.
+- **Database:** This repo uses **Convex** only. Schema changes are in `convex/schema.ts`; run `npx convex dev` (or deploy) to apply. Use `npm run db:doc` / `gen:db-docs` to regenerate schema docs; there are no Prisma migrations.
 
 ## Pre-push checklist
 
@@ -55,4 +51,9 @@ When creating a new page, panel, or component:
 npm run ci
 ```
 
-This single command validates everything CI will check.
+If you changed Convex schema or doc generation:
+
+```bash
+npm run db:doc
+# then commit any changes under docs/
+```

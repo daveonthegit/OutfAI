@@ -1,0 +1,39 @@
+---
+description: Auth — Better Auth + Convex + route protection
+globs: ["convex/auth*.ts", "apps/web/**/auth*.ts", "apps/web/middleware.ts", "apps/web/hooks/use-require-auth.ts"]
+alwaysApply: false
+---
+
+# Auth Patterns — OutfAI
+
+Purpose: How authentication and route protection work. The app uses **Better Auth** with **Convex** as the auth store (`@convex-dev/better-auth`). Session is cookie-based; Convex functions resolve the current user server-side.
+
+## Stack
+
+- **Provider:** Better Auth 1.4.9 — email/password, email verification, username plugin.
+- **Storage:** Auth data lives in Convex (Better Auth component); no separate auth DB.
+- **Client:** `lib/auth-client.ts` — `createAuthClient` with `convexClient()` and `usernameClient()`; use for sign-in, sign-up, sign-out, and session-dependent UI that does not need Convex data.
+- **Server (Convex):** `convex/auth.ts` — `getAuthUser(ctx)` returns the current user document or `null`; used in every Convex handler that touches user data.
+- **Routes:** Better Auth routes are mounted on Convex HTTP and proxied at `apps/web/app/api/auth/[...all]/route.ts` (see Convex + Next.js Better Auth docs).
+
+## Route protection
+
+- **Middleware:** `apps/web/middleware.ts` checks for a session cookie (`better-auth.session_token` or `__Secure-better-auth.session_token`). If missing, redirect to `/login?callbackUrl=<current path>`. Exceptions: `/login`, `/signup`, `/check-email`, `/verify-email`, `/api/auth`, `_next`, favicon, etc.
+- **Client guard:** For pages that must not render until auth is known, use `useRequireAuth("/login")` (or another redirect path). It uses `useConvexAuth()` so that while the Convex JWT is loading (`isLoading`), the app does not redirect; only when `!isLoading && !isAuthenticated` does it redirect. This avoids flashing protected content before redirect.
+
+## User identity
+
+- **Stable id:** In Convex, the user’s document id is `user._id`. This is the value stored as `userId` in `garments`, `outfits`, `userPreferences`, etc.
+- **Do not** use `user.userId` — that is an optional plugin field and is not set for email/password accounts.
+- **Frontend:** When you need the current user id (e.g. for recommendations), get it from `useQuery(api.auth.getCurrentUser)` and use `user._id` (or the string id your types expect).
+
+## Convex handlers
+
+- In every query/mutation that reads or writes user-scoped data: call `const user = await getAuthUser(ctx);`. If `!user`, return `[]` (queries) or throw `new Error("Unauthorized")` (mutations).
+- Always scope by `user._id` (e.g. `q.eq("userId", user._id)`); never trust client-provided userId for authorization.
+
+## Adding auth-dependent behavior
+
+- **New protected page:** Ensure the path is not excluded in middleware, and use `useRequireAuth("/login")` in the page so unauthenticated users are redirected after Convex auth has loaded.
+- **New Convex handler:** Use `getAuthUser(ctx)` and enforce presence + userId scoping.
+- **Server-side API route that needs user:** Today, recommendations and analyze-garment-image receive userId (or similar) from the client. If you need server-side session resolution, use the Better Auth/Convex helpers (e.g. `auth-server.ts`: `isAuthenticated`, `getToken`, etc.) in the route and resolve the user before calling services.

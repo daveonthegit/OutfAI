@@ -1,0 +1,38 @@
+---
+description: Database — Convex schema and functions only (no Prisma)
+globs: ["convex/schema.ts", "convex/**/*.ts"]
+alwaysApply: false
+---
+
+# Database Patterns — OutfAI
+
+Purpose: This repo uses **Convex** as the only database. There is **no Prisma**, no SQL, and no `server/db`. All persistence is defined in `convex/schema.ts` and accessed via Convex queries/mutations.
+
+## Schema
+
+- **Location:** `convex/schema.ts`.
+- **Definition:** `defineSchema({ ... })` with `defineTable({ ... }).index("indexName", ["field1", "field2"])`.
+- **Indexes:** Define an index for every query pattern. User-scoped tables use `by_userId` on `["userId"]`; add more indexes when you add new query patterns.
+- **Naming:** Tables are plural (`garments`, `outfits`, `userPreferences`, `recommendationLogs`). Fields are camelCase.
+
+## Data access
+
+- **Only in Convex:** All reads and writes go through Convex query/mutation handlers in `convex/*.ts`. Use `ctx.db.get(id)`, `ctx.db.query("tableName").withIndex("indexName", q => q.eq("field", value)).collect()`, `ctx.db.insert()`, `ctx.db.patch()`, `ctx.db.delete()`.
+- **No direct DB from Next.js or server services:** Server services (e.g. `OutfitRecommendationService`) receive data as arguments (e.g. garments array from the client or from a Convex query run elsewhere). They do not import Convex or a DB client.
+- **File storage:** Use `ctx.storage.generateUploadUrl()` and `ctx.storage.getUrl(storageId)` inside Convex mutations; store `storageId` or the resulting URL in table fields as needed.
+
+## Validation
+
+- **Args:** Use Convex value validators `v.*` in every query/mutation `args`. Do not rely only on TypeScript.
+- **Shared types:** Use `shared/types` for DTOs shared with the frontend and server services. Convex table shapes are inferred from the schema; for API contracts, align with `shared/types` where they represent the same entity.
+
+## Migrations and docs
+
+- **Schema changes:** Edit `convex/schema.ts` and run `npx convex dev` (or deploy); Convex handles schema evolution.
+- **Docs:** The repo has `npm run db:doc` / `gen:db-docs` that generate Convex schema docs (see `scripts/generate-convex-docs.ts`). Use them to keep `docs/convex-schema.md` (or equivalent) up to date after schema changes; do not reference Prisma or Supabase in these rules.
+
+## Anti-patterns
+
+- Do **not** add Prisma or any other ORM/SQL layer.
+- Do **not** query Convex from `server/services`; services are pure functions that receive input and return output.
+- Do **not** skip indexes for fields you filter or order by in `ctx.db.query(...).withIndex(...)`.

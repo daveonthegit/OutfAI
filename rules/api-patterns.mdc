@@ -1,0 +1,42 @@
+---
+description: When to use Convex vs Next.js API routes vs tRPC
+globs: ["convex/**/*.ts", "server/**/*.ts", "apps/web/app/api/**/*.ts", "apps/web/hooks/**/*.ts"]
+alwaysApply: false
+---
+
+# API and Data Entry Patterns — OutfAI
+
+Purpose: Clarify which backend surface to use for what. The codebase uses **Convex** as the main data and auth API, **Next.js API routes** for server-side workflows that call server services, and **tRPC** only in a legacy/secondary role.
+
+## Decision guide
+
+| Need | Use | Where |
+|------|-----|--------|
+| CRUD for garments, outfits, user prefs, auth state | **Convex** | `convex/*.ts`; frontend uses `useQuery` / `useMutation` with `api` from `@convex/_generated/api` |
+| File upload URL / storage URL | **Convex** | Convex mutations that call `ctx.storage.generateUploadUrl()` and `ctx.storage.getUrl()` |
+| Generate outfit recommendations from garment list | **Next.js API route** | `POST /api/recommendations` → `OutfitRecommendationService`; client uses `fetch("/api/recommendations")` or hook that does |
+| Analyze garment image (e.g. Vision API) | **Next.js API route** | `POST /api/analyze-garment-image` → `garmentImageAnalysisService`; keeps API keys server-side |
+| Auth (sign in, sign up, sign out, session) | **Better Auth** | Proxied via Convex HTTP; client uses `authClient` from `lib/auth-client.ts` |
+
+## Convex
+
+- **Use for:** All persistent app data and auth. Queries and mutations are the primary API.
+- **Frontend:** `useQuery(api.<module>.<name>)`, `useMutation(api.<module>.<name>)`. No `fetch` to Convex from the client for standard CRUD.
+- **Validation:** Convex `args` with `v.*` in each handler; no separate `shared/schemas` in this repo.
+
+## Next.js API routes
+
+- **Use for:** Workflows that (1) need server-only secrets (e.g. Google Vision), or (2) run heavy logic in `server/services` and are called with a body (e.g. recommendations with a list of garments).
+- **Pattern:** One route per “action” (e.g. `/api/recommendations`, `/api/analyze-garment-image`). Parse JSON, validate required fields, call service, return `NextResponse.json(...)`.
+- **Auth:** Rely on middleware + Convex for “user is logged in”; if the route needs userId, the client sends it (from Convex auth state) or you add server-side session resolution later.
+
+## tRPC
+
+- **Current role:** Routers exist for `garments.analyzeGarmentImage` and `recommendations.generate`; the app does **not** use the tRPC client for these — it uses the Next.js API routes above.
+- **Preference:** For new server-service entry points, prefer **Next.js API routes**. Use tRPC only if you introduce a tRPC client and want end-to-end typing for that path.
+
+## Response shape
+
+- **Convex:** Returns whatever the query/mutation handler returns (serialized by Convex).
+- **API routes:** Return JSON: `{ ...data }` on success; `{ error: "message" }` (or similar) on failure; use HTTP status 400 for bad input, 500 for server errors.
+- **Consistency:** Keep error payloads minimal and safe; do not expose stack traces or internal details.

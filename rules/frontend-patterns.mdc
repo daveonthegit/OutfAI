@@ -1,5 +1,5 @@
 ---
-description: Frontend patterns — Next.js App Router conventions for OutfAI UI development
+description: Frontend patterns — Next.js App Router + Convex + React for OutfAI
 globs:
   - apps/web/**/*.tsx
   - apps/web/**/*.ts
@@ -7,149 +7,105 @@ globs:
 alwaysApply: true
 ---
 
-# Frontend Patterns (Next.js App Router) — OutfAI
+# Frontend Patterns — OutfAI
 
-Purpose: enforce consistent, fast-to-build UI patterns for OutfAI using Next.js App Router + React + TypeScript.
-This file should be treated as an always-on rule when generating or editing frontend features.
+Purpose: Consistent UI patterns for the OutfAI web app using **Next.js 15 App Router**, **React 19**, **Convex** (primary data), and **Tailwind CSS 4**. This rule reflects the current codebase and preferred conventions.
+
+## Tech context
+
+- **Framework:** Next.js 15 App Router under `apps/web/app/**`
+- **Data (primary):** Convex — `useQuery(api.*)` and `useMutation(api.*)` from `convex/react`; `api` from `@convex/_generated/api`
+- **Data (secondary):** Next.js API routes — e.g. `fetch("/api/recommendations")` for the recommendation engine; no tRPC client usage for main flows
+- **Auth:** Better Auth (client in `lib/auth-client.ts`); route protection via `useRequireAuth` and middleware (session cookie check)
+- **Styling:** Tailwind CSS 4, Radix-based UI in `components/ui/`, design system “cybersigilism” (see `docs/style.md`)
 
 ## Non-negotiables
-- Use **Next.js App Router** under `apps/web/app/**`.
-- Keep pages thin: pages compose components + hooks; they do not contain heavy business logic.
-- All server calls go through **tRPC client hooks** (or a single typed API wrapper), not fetch sprinkled everywhere.
-- Every feature must define:
-  - UI states: `loading`, `empty`, `error`, `success`
-  - A clear "happy path" for demo reliability
+
+- Use **App Router**; pages live under `apps/web/app/<route>/page.tsx`
+- **Convex for CRUD:** Garments, outfits, user preferences, auth state — use Convex hooks only; do not add ad-hoc `fetch` for these
+- **Thin pages:** Pages compose components and hooks; keep heavy logic in hooks or feature components
+- **Explicit UI states:** Every data-dependent view must handle **loading**, **empty**, **error**, and **success**
+- **No `any`:** Use `shared/types` or Convex-generated types; avoid untyped APIs
 
 ## Directory conventions
-- Pages (routes): `apps/web/app/<route>/page.tsx`
-- Shared layout: `apps/web/app/layout.tsx`
-- Route-specific UI components: `apps/web/components/<feature>/*`
-- Generic shared components: `apps/web/components/ui/*` (buttons, dialogs, cards, inputs)
-- Hooks: `apps/web/hooks/use-<thing>.ts`
-- Client utilities: `apps/web/lib/*`
-- Shared types: `shared/types/*`
 
-## Routing patterns (App Router)
-- Routes should represent user-visible pages, not internal state machines.
-- Use route groups when helpful:
-  - `apps/web/app/(authed)/...` for authenticated pages
-  - `apps/web/app/(marketing)/...` for landing pages (optional)
-- Prefer readable, stable routes:
-  - `/onboarding`
-  - `/closet`
-  - `/recommend`
-  - `/outfits/[id]`
+| Purpose | Location |
+|--------|----------|
+| Routes (pages) | `apps/web/app/<route>/page.tsx` |
+| Root layout | `apps/web/app/layout.tsx` |
+| API route handlers | `apps/web/app/api/<name>/route.ts` |
+| Feature-specific components | `apps/web/components/<feature>/` or next to usage |
+| Shared UI primitives | `apps/web/components/ui/` (shadcn-style) |
+| Hooks | `apps/web/hooks/use-<name>.ts` |
+| Client utilities / helpers | `apps/web/lib/*` |
+| Shared types | `shared/types/index.ts` |
+
+## Routing
+
+- Use readable, stable paths: `/`, `/closet`, `/add`, `/outfit`, `/archive`, `/profile`, `/login`, `/signup`, etc.
+- Route groups (e.g. `(authed)`) are optional; middleware already protects all routes except login/signup/verify-email/check-email and `/api/auth`
+- Prefer a single `page.tsx` per route that composes a main view; split large UIs into components, not multiple pages for the same URL
 
 ## Component patterns
-### 1) Page components
+
+### Page components
+
 - Default export in `page.tsx`
-- Compose:
-  - a page header
-  - a single "panel" component that contains the feature UI
-- Example responsibilities:
-  - read search params if needed
-  - pass `userId` (or use auth hook)
-  - render skeleton/error boundary components
+- Mark as `"use client"` when using Convex hooks, `useRequireAuth`, or other client-only APIs
+- Responsibilities:
+  - Call `useRequireAuth(redirectPath)` when the page requires auth
+  - Call Convex `useQuery` / `useMutation` (and optionally hooks like `useOutfitRecommendations`)
+  - Handle loading / empty / error (see below)
+  - Compose a header + main content; avoid huge inline JSX — extract sections into named components where it helps readability
 
-### 2) Panel components
-- Example: `ClosetPanel`, `OutfitRecommendationPanel`
-- Own the UI state machine.
-- Uses hooks (`useGarments`, `useOutfitRecommendations`) to fetch/mutate.
-- Should not know about routing unless necessary.
+### Loading / empty / error / success
 
-### 3) Presentational components
-- Stateless if possible.
-- Receive props; no data fetching.
-- Example: `GarmentCard`, `OutfitGrid`, `WeatherBadge`, `MoodPicker`.
+- **Convex loading:** `useQuery` returns `undefined` while loading. Treat `data === undefined` as loading; do not treat `[]` as loading.
+- **Loading UI:** Show a short, consistent message (e.g. “Loading…”) or a small skeleton; avoid full-page spinners without context. Prefer `components/ui/skeleton` or inline text like existing closet/archive pages.
+- **Empty:** When `data !== undefined` and `data.length === 0` (or equivalent), show a clear empty state and one primary CTA (e.g. “Add your first piece” → `/add`, “Create your first look” → `/`).
+- **Error:** For Convex, errors surface via query/mutation failure; show a user-visible message and, where possible, a retry or navigation. For `fetch` (e.g. recommendations), use hook-level error state and display it in the UI.
+- **Success:** Keep the main content path obvious; avoid cluttering the happy path.
 
-## Hooks patterns
-- Every backend resource gets a dedicated hook file:
-  - `use-garments.ts`
-  - `use-outfits.ts`
-  - `use-recommendations.ts`
-- Hook responsibilities:
-  - calling tRPC queries/mutations
-  - managing local UI state where it improves UX (filters, selected items)
-  - returning a consistent API:
-    - `data`, `loading`, `error`
-    - mutations: `create/update/delete` with `mutateAsync`
-    - helpers: `refetch`, `reset`
+### Forms and validation
 
-### Hook return shape (standard)
-- Queries:
-  - `data`
-  - `isLoading`
-  - `error`
-- Mutations:
-  - `mutateAsync`
-  - `isPending`
-  - `error`
+- Use **react-hook-form** with the shared `components/ui/form` (shadcn) when building multi-field forms that benefit from validation and error display
+- For simpler flows (e.g. add-garment with many optional fields), controlled components and local state are acceptable; validate required fields before calling Convex mutations
+- Prefer shared types from `shared/types` for payloads; Convex validates on the backend with `v.*` validators
+- Keep forms accessible: labels, disabled submit while pending, inline error text
 
-## Loading / Error / Empty patterns
-Every page/panel must explicitly implement:
+## Hooks
 
-### Loading
-- Render skeletons or lightweight placeholders.
-- Do not show spinners forever without context.
-- Use consistent components:
-  - `LoadingState` or `Skeleton*` components.
+- **Convex:** Use `useQuery(api.<module>.<name>)` and `useMutation(api.<module>.<name>)` with `api` from `@convex/_generated/api`; type IDs with `Id<"tableName">` from `@convex/_generated/dataModel`
+- **Auth:** `useRequireAuth("/login")` for redirect-if-unauthenticated; `useConvexAuth()` for `isLoading` / `isAuthenticated`; `useQuery(api.auth.getCurrentUser)` when you need the user document
+- **Recommendations:** `useOutfitRecommendations({ userId, ... })` — it uses `fetch("/api/recommendations")` internally; expose `outfits`, `loading`, `error`, `explanation`, `generate`, `reset`
+- **Naming:** `use-<thing>.ts` (kebab-case file), hook name `useThing` (camelCase)
 
-### Error
-- User-visible error message, not console-only.
-- Provide a retry action where possible (`refetch()`).
-- Map common failure modes:
-  - unauthenticated
-  - network
-  - validation
+## Styling
 
-### Empty
-- Empty closet: show CTA "Add your first garment"
-- No outfits generated: show guidance + "Generate again"
-- Empty states should include one primary action.
+- Use **Tailwind** utility classes; avoid ad-hoc inline styles except for dynamic values (e.g. animation, layout)
+- Use design tokens and existing UI primitives (`Button`, `Card`, `Input`, etc.) from `components/ui/`
+- Respect reduced motion: use `lib/animations/prefers-reduced-motion` when adding motion
+- Keep styling consistent with the existing “cybersigilism” direction (see `docs/style.md` and current pages)
 
-### Success
-- Keep the "demo happy path" visible:
-  - show garments
-  - show generated outfits
-  - show explanation text
+## Data flow
 
-## Forms and validation
-- Always validate inputs with shared Zod schemas if available.
-- If no shared schema exists yet, create it in `shared/types` and import it.
-- Keep forms accessible:
-  - labels for inputs
-  - disabled submit while pending
-  - show inline error text
+- **No direct DB assumptions in UI.** The UI consumes Convex query results and shared types; Convex holds the single source of truth.
+- **Transformations:** Keep data shaping close to the consuming component or in a small helper in the same feature; avoid global “model” mappers unless reused in multiple places.
+- **IDs:** Use Convex `Id<"garments">` etc. in the app when passing IDs to mutations; do not assume numeric or UUID strings.
 
-## Styling rules
-- Keep styling consistent with existing UI (Tailwind if already used).
-- Avoid ad-hoc inline styles.
-- Use small reusable UI primitives (Card, Button, Input).
+## Anti-patterns
 
-## Data flow rules
-- No direct DB assumptions in UI. UI consumes API models.
-- Never "fake" types with `any`.
-- Keep transformations close to the consuming component (not global utils), unless reused.
+- Do **not** use tRPC client for Convex-backed data (garments, outfits, auth) — use Convex hooks
+- Do **not** treat Convex `useQuery` result `[]` as “loading”; only `undefined` is loading
+- Do **not** add new `fetch` calls for Convex data; use Convex mutations/queries
+- Do **not** skip loading or empty states for list/detail views
+- Do **not** introduce `any` for Convex or API payloads
 
-## Example: canonical "Closet" page composition
-- Route:
-  - `apps/web/app/closet/page.tsx`
-- Panel:
-  - `apps/web/components/closet/closet-panel.tsx`
-- Hook:
-  - `apps/web/hooks/use-garments.ts`
-- Presentational:
-  - `apps/web/components/closet/garment-card.tsx`
-  - `apps/web/components/closet/garment-grid.tsx`
-- UI states:
-  - `apps/web/components/states/loading-state.tsx`
-  - `apps/web/components/states/error-state.tsx`
-  - `apps/web/components/states/empty-state.tsx`
+## Adding a new frontend feature
 
-## PR checklist (frontend)
-- [ ] Page is thin; logic in panel + hooks
-- [ ] All 4 states handled (loading/error/empty/success)
-- [ ] Uses shared types/schemas where applicable
-- [ ] No `any` types added
-- [ ] UI has one clear primary CTA per screen
-- [ ] Feature is demo-stable (can run end-to-end without hidden setup)
+1. Add route under `app/<route>/page.tsx`; use `useRequireAuth` if the page is authenticated
+2. Add Convex queries/mutations in `convex/<resource>.ts` if new data is needed; otherwise use existing `api.*`
+3. Add or reuse hooks under `hooks/` for non-trivial state or API calls
+4. Handle loading (`undefined`), empty, error, and success in the page or a dedicated panel component
+5. Use shared types from `shared/types` and Convex-generated types; add to `shared/types` if new DTOs are shared with the server
+6. Reuse `components/ui` and existing patterns (e.g. closet/archive) for consistency
