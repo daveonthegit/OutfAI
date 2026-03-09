@@ -33,7 +33,7 @@ export function BrutalistAvatar({
     <div className="relative inline-block">
       <div
         className={cn(
-          "relative border border-border bg-secondary overflow-hidden flex items-center justify-center",
+          "relative border border-border bg-secondary overflow-hidden flex items-center justify-center shrink-0",
           sizeClasses[size]
         )}
       >

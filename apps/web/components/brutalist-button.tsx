@@ -8,6 +8,7 @@ interface BrutalistButtonProps {
   children: React.ReactNode;
   variant?: "solid" | "outline" | "ghost";
   size?: "sm" | "md" | "lg";
+  type?: "button" | "submit" | "reset";
   className?: string;
   onClick?: () => void;
   disabled?: boolean;
@@ -17,12 +18,14 @@ export function BrutalistButton({
   children,
   variant = "solid",
   size = "md",
+  type = "button",
   className,
   onClick,
   disabled,
 }: BrutalistButtonProps) {
   return (
     <button
+      type={type}
       onClick={onClick}
       disabled={disabled}
       className={cn(

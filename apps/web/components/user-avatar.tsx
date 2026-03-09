@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useQuery } from "convex/react";
 import { useConvexAuth } from "convex/react";
 import { api } from "@convex/_generated/api";
+import { BrutalistAvatar } from "@/components/brutalist-avatar";
 
 function initials(name: string): string {
   return name
@@ -16,11 +17,13 @@ function initials(name: string): string {
 export function UserAvatar() {
   const { isLoading, isAuthenticated } = useConvexAuth();
   const currentUser = useQuery(api.auth.getCurrentUser);
+  const profileData = useQuery(api.profile.getWithAvatarUrl);
 
   if (isLoading || !isAuthenticated) return null;
 
   const display = currentUser?.name ?? currentUser?.email ?? "?";
   const abbr = initials(display);
+  const avatarUrl = currentUser?.image ?? profileData?.avatarUrl ?? undefined;
 
   return (
     <Link
@@ -28,8 +31,8 @@ export function UserAvatar() {
       className="flex items-center gap-2 group"
       aria-label="View profile"
     >
-      <span className="flex items-center justify-center w-7 h-7 rounded-full border border-border bg-muted text-[10px] font-medium tracking-wide uppercase text-foreground group-hover:border-signal-orange group-hover:text-signal-orange transition-colors duration-100">
-        {abbr}
+      <span className="shrink-0 block w-8 h-8 border border-border group-hover:border-signal-orange transition-colors duration-100 overflow-hidden">
+        <BrutalistAvatar src={avatarUrl} alt="" initials={abbr} size="sm" />
       </span>
       <span className="hidden sm:block text-[10px] uppercase tracking-[0.15em] text-muted-foreground group-hover:text-foreground transition-colors duration-100 max-w-[96px] truncate">
         {currentUser?.name ?? currentUser?.email}
