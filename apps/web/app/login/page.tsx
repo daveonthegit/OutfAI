@@ -109,7 +109,7 @@ function LoginForm() {
       </div>
 
       <div className="relative mx-auto flex h-full w-full max-w-[100vw] flex-col px-4 py-3 sm:px-6 sm:py-4 md:px-8 md:py-4 lg:px-10 lg:py-5 xl:px-12 xl:py-5">
-        <div className="mx-auto flex min-h-0 w-full max-w-[min(96vw,3200px)] flex-1 flex-col min-w-0">
+        <div className="mx-auto flex min-h-0 w-full max-w-[min(96vw,80rem)] flex-1 flex-col min-w-0">
           {/* Top bar */}
           <div className="mb-3 flex shrink-0 items-center justify-between sm:mb-4 lg:mb-4">
             <Link
