@@ -10,7 +10,7 @@
 # OutfAI — Convex Schema
 
 > Auto-generated from [`convex/schema.ts`](../convex/schema.ts) by [`scripts/generate-convex-docs.ts`](../scripts/generate-convex-docs.ts).
-> Last generated: 2026-03-09
+> Last generated: 2026-03-14
 
 ---
 
@@ -21,6 +21,8 @@
 - [`recommendationLogs`](#recommendationLogs)
 - [`userPreferences`](#userPreferences)
 - [`profiles`](#profiles)
+- [`external_products`](#external_products)
+- [`commerceInteractionLogs`](#commerceInteractionLogs)
 
 ---
 
@@ -92,5 +94,41 @@
 | `bio` | `string` | no |
 | `avatarStorageId` | `id<_storage>` | no |
 | `updatedAt` | `number` | yes |
+
+---
+
+## `external_products`
+
+| Field | Type | Required |
+|-------|------|----------|
+| `source` | `string` | yes |
+| `sourceProductId` | `string` | yes |
+| `name` | `string` | yes |
+| `brand` | `string` | no |
+| `category` | `string` | yes |
+| `subcategory` | `string` | no |
+| `color` | `string` | no |
+| `styleTags` | `array<string>` | no |
+| `occasionTags` | `array<string>` | no |
+| `price` | `number` | no |
+| `currency` | `string` | no |
+| `imageUrl` | `string` | no |
+| `productUrl` | `string` | yes |
+| `affiliateUrl` | `string` | no |
+| `availability` | `string` | no |
+| `metadata` | `any` | no |
+| `createdAt` | `number` | yes |
+| `updatedAt` | `number` | yes |
+
+---
+
+## `commerceInteractionLogs`
+
+| Field | Type | Required |
+|-------|------|----------|
+| `userId` | `string` | yes |
+| `productId` | `id<external_products>` | yes |
+| `action` | `string` | yes |
+| `loggedAt` | `number` | yes |
 
 ---
