@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { Inter, Instrument_Serif } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { ThemeProvider } from "@/components/theme-provider";
-import { BottomNav } from "@/components/bottom-nav";
+import { ConditionalBottomNav } from "@/components/layout/conditional-bottom-nav";
 import { Providers } from "@/components/providers";
 import { PageTransition } from "@/components/page-transition";
 import "./globals.css";
@@ -48,7 +48,7 @@ export default function RootLayout({
             disableTransitionOnChange
           >
             <PageTransition>{children}</PageTransition>
-            <BottomNav />
+            <ConditionalBottomNav />
           </ThemeProvider>
         </Providers>
         <Analytics />
