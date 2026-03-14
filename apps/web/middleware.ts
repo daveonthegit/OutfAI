@@ -25,11 +25,13 @@ export const config = {
   matcher: [
     /*
      * Protect all routes except:
+     * - / (public landing page)
      * - /login and /signup (auth pages)
+     * - /check-email and /verify-email
      * - /api/auth (BetterAuth endpoints)
      * - /_next (Next.js internals)
-     * - /favicon.ico, /icon*, /apple-icon* (static assets)
+     * - common public static files in /public
      */
-    "/((?!login|signup|check-email|verify-email|api/auth|_next/static|_next/image|favicon\\.ico|icon|apple-icon).*)",
+    "/((?!$|login|signup|check-email|verify-email|api/auth|_next/static|_next/image|favicon\\.ico|icon|apple-icon|.*\\.(?:svg|png|jpg|jpeg|webp|gif|ico)$).*)",
   ],
 };
