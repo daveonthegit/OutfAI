@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useMemo } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { OutfitRecommendationCard } from "@/components/outfit-recommendation-card";
 import { StyleInsightsSection } from "@/components/style-insights-section";
 import { useOutfitRecommendations } from "@/hooks/use-outfit-recommendations";
@@ -12,6 +13,7 @@ import type { Doc, Id } from "@convex/_generated/dataModel";
 import type { Mood, WeatherCondition } from "@shared/types";
 import { MOCK_CLOSET_ITEMS } from "@shared/data/mock-closet";
 import { UserAvatar } from "@/components/user-avatar";
+import { MoodSelectModal } from "@/components/mood-select-modal";
 import { animateShuffleGrid, staggerFadeInContainer } from "@/lib/animations";
 
 /** Display shape for one garment in the recommendation grid (from Convex doc + UI fields). */
@@ -62,14 +64,46 @@ function codeToWeatherLabel(
   return "cloudy";
 }
 
+const VALID_MOODS: Mood[] = [
+  "casual",
+  "formal",
+  "adventurous",
+  "cozy",
+  "energetic",
+  "minimalist",
+  "bold",
+];
+
+function isMood(value: string | null): value is Mood {
+  return value !== null && (VALID_MOODS as string[]).includes(value);
+}
+
 export default function Home() {
   const currentUser = useRequireAuth("/");
+  const searchParams = useSearchParams();
   // Keep the raw value so we can tell "loading" (undefined) from "empty" ([])
   const convexGarmentsRaw = useQuery(api.garments.list);
   const convexGarments = convexGarmentsRaw ?? [];
 
   const [isShuffling, setIsShuffling] = useState(false);
   const [mood, setMood] = useState<Mood>("bold");
+  const [moodModalOpen, setMoodModalOpen] = useState(false);
+
+  // Sync mood from URL when coming from /mood (e.g. ?mood=minimalist)
+  useEffect(() => {
+    const moodParam = searchParams.get("mood");
+    if (isMood(moodParam)) {
+      setMood(moodParam);
+    }
+  }, [searchParams]);
+
+  // Open mood modal when navigating from /mood (e.g. ?openMood=1)
+  useEffect(() => {
+    const openMood = searchParams.get("openMood");
+    if (openMood === "1" || openMood === "true") {
+      setMoodModalOpen(true);
+    }
+  }, [searchParams]);
   const [weather, setWeather] = useState<WeatherCondition | null>(null);
   // Always store temperature in Celsius internally so the recommendation engine's
   // thresholds (< 10 °C = cold, > 25 °C = hot) are always in the right unit.
@@ -552,54 +586,29 @@ export default function Home() {
                 </>
               )}
             </div>
-            {/* Mood line - oversized editorial */}
-            <h2 className="font-serif text-4xl sm:text-5xl md:text-7xl lg:text-8xl italic text-foreground leading-[0.9] tracking-tight mb-0">
-              today feels
-            </h2>
-            <h2 className="font-serif text-4xl sm:text-5xl md:text-7xl lg:text-8xl italic text-signal-orange leading-[0.9] tracking-tight">
-              {mood}
-            </h2>
+            {/* Mood line - oversized editorial; click opens mood modal */}
+            <button
+              type="button"
+              onClick={() => setMoodModalOpen(true)}
+              className="text-left group focus:outline-none focus-visible:ring-2 focus-visible:ring-signal-orange focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-sm"
+              aria-label="Change mood"
+            >
+              <h2 className="font-serif text-4xl sm:text-5xl md:text-7xl lg:text-8xl italic text-foreground leading-[0.9] tracking-tight mb-0">
+                today feels
+              </h2>
+              <h2 className="font-serif text-4xl sm:text-5xl md:text-7xl lg:text-8xl italic text-signal-orange leading-[0.9] tracking-tight group-hover:underline underline-offset-2">
+                {mood}
+              </h2>
+            </button>
           </div>
         </section>
 
-        {/* Mood Selector */}
-        <section className="mb-16 md:mb-24">
-          <div className="space-y-6">
-            {/* Mood Selection */}
-            <div>
-              <p className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground mb-3">
-                Select Mood
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {(
-                  [
-                    "casual",
-                    "formal",
-                    "adventurous",
-                    "cozy",
-                    "energetic",
-                    "minimalist",
-                    "bold",
-                  ] as Mood[]
-                ).map((m) => (
-                  <button
-                    key={m}
-                    onClick={() => setMood(m)}
-                    className={`px-4 py-2 text-[10px] uppercase tracking-[0.2em] border transition-all duration-100 cursor-pointer ${
-                      mood === m
-                        ? "bg-signal-orange text-background border-signal-orange"
-                        : "bg-transparent text-muted-foreground border-border hover:border-foreground hover:text-foreground"
-                    }`}
-                  >
-                    {m}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Weather Selection removed per user request */}
-          </div>
-        </section>
+        <MoodSelectModal
+          open={moodModalOpen}
+          onOpenChange={setMoodModalOpen}
+          currentMood={mood}
+          onSelect={setMood}
+        />
 
         {/* Editorial divider */}
         <div className="flex items-center gap-6 mb-12 md:mb-16">
