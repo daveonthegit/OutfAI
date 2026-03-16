@@ -236,3 +236,46 @@ export const removeAvatar = mutation({
     });
   },
 });
+
+/**
+ * Activity and stats for profile "Your activity" section.
+ * Returns garment count, total outfits, outfits saved this week, and worn count (from recommendationLogs).
+ */
+export const getActivityStats = query({
+  args: {},
+  handler: async (ctx) => {
+    const user = await getAuthUser(ctx);
+    if (!user) return null;
+
+    const userId = user._id;
+
+    const garments = await ctx.db
+      .query("garments")
+      .withIndex("by_userId", (q) => q.eq("userId", userId))
+      .collect();
+
+    const outfits = await ctx.db
+      .query("outfits")
+      .withIndex("by_userId", (q) => q.eq("userId", userId))
+      .collect();
+
+    const now = Date.now();
+    const oneWeekAgo = now - 7 * 24 * 60 * 60 * 1000;
+    const outfitsSavedThisWeek = outfits.filter(
+      (o) => o.savedAt >= oneWeekAgo
+    ).length;
+
+    const logs = await ctx.db
+      .query("recommendationLogs")
+      .withIndex("by_userId_loggedAt", (q) => q.eq("userId", userId))
+      .collect();
+    const wornCount = logs.filter((l) => l.action === "worn").length;
+
+    return {
+      garmentCount: garments.length,
+      outfitCount: outfits.length,
+      outfitsSavedThisWeek,
+      wornCount,
+    };
+  },
+});

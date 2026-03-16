@@ -58,7 +58,9 @@ Focus: Calendar, packing, style insights refinement, optional commerce visibilit
 | 6   | **Accessibility audit and fixes**       | Run axe/Lighthouse on login, signup, closet, Today, profile. Fix focus order, labels, contrast, aria; document limitations. See docs/issues/28-accessibility-audit.md.                                                                       | —                         |
 | 7   | **Storefront visibility and config**    | Optional: enable product suggestions on home when provider is configured; or add "Shop" tab. Internal: doc or simple admin view of provider status (no secrets).                                                                             | —                         |
 
-**Exit criteria for Phase 3:** Calendar and packing are usable; profile shows activity; weather is cached; E2E covers critical path; a11y improved; optional commerce has a clear path.
+**Exit criteria for Phase 3:** Calendar and packing are usable; profile shows activity; weather is cached; E2E covers critical path; optional commerce has a clear path.
+
+**Status (implemented):** Outfit calendar (outfitPlans, /plan, /calendar), packing planner (packingLists, /packing, /packing/[id]), activity stats (profile.getActivityStats, Profile "Your activity"), weather API (GET /api/weather with 10 min cache), E2E (Playwright e2e/critical-path.spec.ts), storefront visibility (docs in commerce/IMPLEMENTATION.md). Accessibility audit remains follow-up.
 
 ---
 

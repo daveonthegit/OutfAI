@@ -42,6 +42,28 @@ export default defineSchema({
     mood: v.optional(v.string()),
     weather: v.optional(v.string()),
     loggedAt: v.number(),
+  })
+    .index("by_userId", ["userId"])
+    .index("by_userId_loggedAt", ["userId", "loggedAt"]),
+
+  // Outfit calendar: plan which outfit to wear on a given date.
+  outfitPlans: defineTable({
+    userId: v.string(),
+    date: v.string(), // YYYY-MM-DD
+    outfitId: v.id("outfits"),
+  })
+    .index("by_userId", ["userId"])
+    .index("by_userId_date", ["userId", "date"]),
+
+  // Packing lists (trip capsule): name, dates, selected garment IDs.
+  packingLists: defineTable({
+    userId: v.string(),
+    name: v.string(),
+    startDate: v.number(),
+    endDate: v.number(),
+    garmentIds: v.array(v.id("garments")),
+    createdAt: v.number(),
+    updatedAt: v.number(),
   }).index("by_userId", ["userId"]),
 
   // Per-user style preferences that can be used to personalize recommendations.

@@ -49,14 +49,22 @@
 
 ---
 
+## Shipped (Phase 3 complete)
+
+| Feature                   | Notes                                                                                                                                                     |
+| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Outfit calendar**       | Plan hub (/plan), calendar view (/calendar). outfitPlans (userId, date, outfitId); assign/remove from archive; week/month grid.                           |
+| **Packing planner**       | Plan hub, packing list (/packing). packingLists CRUD; trip name/dates; add from closet; generate outfits from packed pieces only.                         |
+| **Activity/stats**        | Profile "Your activity" section: outfits saved, saved this week, marked worn. Convex profile.getActivityStats.                                            |
+| **Weather API caching**   | GET /api/weather?lat=&lon= or ?city=; server-side in-memory cache 10 min TTL. Home uses /api/weather instead of direct Open-Meteo.                        |
+| **E2E tests**             | Playwright in e2e/; critical-path smoke (landing, login, signup, forgot-password). Optional authenticated flow when E2E_TEST_EMAIL/E2E_TEST_PASSWORD set. |
+| **Storefront visibility** | Commerce IMPLEMENTATION.md documents optional Shop/suggestions entry when provider configured; no secrets in UI.                                          |
+
+---
+
 ## Not shipped (backlog)
 
-- **Outfit calendar** — Plan outfits by date. Phase 3.
-- **Packing planner** — Trip capsule wardrobe. Phase 3.
-- **Activity/stats on profile** — Phase 3.
-- **Weather API caching** — Server-side cache for weather. Phase 3.
-- **E2E tests** — Playwright/Cypress critical path. Phase 3.
-- **Accessibility audit** — Phase 3.
+- **Accessibility audit** — axe/Lighthouse and fixes; Phase 3 follow-up.
 - **Learning pipeline** — Improve scoring from logs. Phase 4.
 - **AI vision auto-tagging** — Suggest from photo. Phase 4.
 - **Tag suggestions in UI** — Surface default tags in add/edit. Phase 4.
