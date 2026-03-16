@@ -2,19 +2,16 @@
 
 import { usePathname } from "next/navigation";
 import { BottomNav } from "@/components/bottom-nav";
+import { isNoNavRoute } from "@/lib/routes";
 
-const HIDDEN_NAV_ROUTES = [
-  "/",
-  "/login",
-  "/signup",
-  "/check-email",
-  "/verify-email",
-];
-
+/**
+ * Renders the bottom nav on app routes and hides it on landing + auth routes.
+ * Uses shared NO_NAV_ROUTES (via isNoNavRoute) and normalizes pathname (e.g. trailing slash).
+ */
 export function ConditionalBottomNav() {
   const pathname = usePathname();
 
-  if (pathname && HIDDEN_NAV_ROUTES.includes(pathname)) {
+  if (isNoNavRoute(pathname)) {
     return null;
   }
 

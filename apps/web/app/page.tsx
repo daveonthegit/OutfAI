@@ -6,13 +6,46 @@ import { useEffect, useState } from "react";
 import { useConvexAuth } from "convex/react";
 import AuthenticatedHome from "@/components/home/authenticated-home";
 
-const galleryImages = [
-  "/outfit-1.jpg",
-  "/outfit-2.jpg",
-  "/outfit-3.jpg",
-  "/outfit-4.jpg",
-  "/outfit-5.jpg",
+/** Gallery image paths and distinct alt text for accessibility. */
+const GALLERY_IMAGES: { src: string; alt: string }[] = [
+  {
+    src: "/outfit-1.jpg",
+    alt: "Editorial menswear look in a tailored black suit",
+  },
+  {
+    src: "/outfit-2.jpg",
+    alt: "Expressive personal style with layered textures and denim",
+  },
+  { src: "/outfit-3.jpg", alt: "Minimalist neutral outfit with clean lines" },
+  {
+    src: "/outfit-4.jpg",
+    alt: "Smart casual layered look with jacket and sneakers",
+  },
+  {
+    src: "/outfit-5.jpg",
+    alt: "Relaxed weekend style with comfortable layers",
+  },
 ];
+
+/** Minimal loading UI so the root never shows a fully blank screen during auth check. */
+function LandingLoadingState() {
+  return (
+    <main className="flex min-h-[100dvh] items-center justify-center bg-[#050505]">
+      <div className="flex flex-col items-center gap-4">
+        <span className="font-serif text-xl italic tracking-tight text-[rgba(249,244,237,0.7)]">
+          OutfAI
+        </span>
+        <div
+          className="h-6 w-6 animate-spin rounded-full border-2 border-[rgba(214,188,140,0.3)] border-t-[rgba(214,188,140,0.9)]"
+          aria-hidden
+        />
+        <span className="text-xs uppercase tracking-widest text-[rgba(224,211,188,0.5)]">
+          Loading
+        </span>
+      </div>
+    </main>
+  );
+}
 
 export default function HomePage() {
   const { isLoading, isAuthenticated } = useConvexAuth();
@@ -20,14 +53,14 @@ export default function HomePage() {
 
   useEffect(() => {
     const interval = window.setInterval(() => {
-      setActiveImage((current) => (current + 1) % galleryImages.length);
+      setActiveImage((current) => (current + 1) % GALLERY_IMAGES.length);
     }, 2500);
 
     return () => window.clearInterval(interval);
   }, []);
 
   if (isLoading) {
-    return null;
+    return <LandingLoadingState />;
   }
 
   if (isAuthenticated) {
@@ -203,9 +236,9 @@ export default function HomePage() {
 
                     <div className="overflow-hidden rounded-lg border border-[rgba(255,255,255,0.07)] bg-black/[0.18] shadow-[inset_0_1px_0_rgba(255,255,255,0.025)] sm:rounded-[1rem]">
                       <div className="relative aspect-[10/13] sm:aspect-[7/9] lg:aspect-[10/13] xl:aspect-[11/14] w-full">
-                        {galleryImages.map((src, index) => (
+                        {GALLERY_IMAGES.map((item, index) => (
                           <div
-                            key={src}
+                            key={item.src}
                             className={`absolute inset-0 transition-opacity duration-1000 ${
                               activeImage === index
                                 ? "opacity-100"
@@ -213,12 +246,8 @@ export default function HomePage() {
                             }`}
                           >
                             <Image
-                              src={src}
-                              alt={
-                                index === 0
-                                  ? "Editorial menswear look in a tailored black suit"
-                                  : "Expressive personal style with layered textures and denim"
-                              }
+                              src={item.src}
+                              alt={item.alt}
                               fill
                               priority={index === 0}
                               className="object-cover"
@@ -243,7 +272,7 @@ export default function HomePage() {
                     </div>
 
                     <div className="mt-2 flex items-center justify-center gap-2">
-                      {galleryImages.map((_, index) => (
+                      {GALLERY_IMAGES.map((_, index) => (
                         <span
                           key={index}
                           className={`h-1.5 w-1.5 rounded-full transition-all duration-500 ${

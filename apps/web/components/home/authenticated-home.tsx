@@ -8,10 +8,38 @@ import { useOutfitRecommendations } from "@/hooks/use-outfit-recommendations";
 import { useRequireAuth } from "@/hooks/use-require-auth";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@convex/_generated/api";
-import type { Doc } from "@convex/_generated/dataModel";
+import type { Doc, Id } from "@convex/_generated/dataModel";
+import type { Mood, WeatherCondition } from "@shared/types";
 import { MOCK_CLOSET_ITEMS } from "@shared/data/mock-closet";
 import { UserAvatar } from "@/components/user-avatar";
 import { animateShuffleGrid, staggerFadeInContainer } from "@/lib/animations";
+
+/** Display shape for one garment in the recommendation grid (from Convex doc + UI fields). */
+export interface DisplayGarment {
+  id: Id<"garments">;
+  src: string;
+  name: string;
+  category: string;
+  type: string;
+  color: string;
+  traits: {
+    style?: string[];
+    fit?: string;
+    occasion?: string[];
+    versatility?: string;
+    vibrancy?: string;
+  };
+}
+
+/** One outfit as shown in the home grid (label + resolved garments + context). */
+export interface DisplayOutfit {
+  label: string;
+  garments: DisplayGarment[];
+  explanation: string;
+  contextMood?: Mood;
+  contextWeather?: WeatherCondition;
+  contextTemperature?: number;
+}
 
 function codeToWeatherLabel(
   code: number
@@ -41,16 +69,20 @@ export default function Home() {
   const convexGarments = convexGarmentsRaw ?? [];
 
   const [isShuffling, setIsShuffling] = useState(false);
-  const [mood, setMood] = useState<any>("bold");
-  const [weather, setWeather] = useState<any>(null);
+  const [mood, setMood] = useState<Mood>("bold");
+  const [weather, setWeather] = useState<WeatherCondition | null>(null);
   // Always store temperature in Celsius internally so the recommendation engine's
   // thresholds (< 10 °C = cold, > 25 °C = hot) are always in the right unit.
   const [temperatureCelsius, setTemperatureCelsius] = useState<number | null>(
     null
   );
   const [locationError, setLocationError] = useState<string | null>(null);
-  const [allRecommendedOutfits, setAllRecommendedOutfits] = useState<any[]>([]);
-  const [recommendedOutfit, setRecommendedOutfit] = useState<any[]>([]);
+  const [allRecommendedOutfits, setAllRecommendedOutfits] = useState<
+    DisplayOutfit[]
+  >([]);
+  const [recommendedOutfit, setRecommendedOutfit] = useState<DisplayOutfit[]>(
+    []
+  );
   const [tempUnit, setTempUnit] = useState<"F" | "C">("F");
   const [lastFetched, setLastFetched] = useState<string | null>(null);
 
@@ -120,8 +152,10 @@ export default function Home() {
           if (typeof code === "number") setWeather(codeToWeatherLabel(code));
 
           setLocationError(null);
-        } catch (e: any) {
-          setLocationError(e?.message ?? "Failed to fetch weather.");
+        } catch (e: unknown) {
+          setLocationError(
+            e instanceof Error ? e.message : "Failed to fetch weather."
+          );
         }
       },
       (err) => {
@@ -227,16 +261,14 @@ export default function Home() {
   // Update displayed outfit when recommendations change
   useEffect(() => {
     if (outfits && outfits.length > 0) {
-      const convertedOutfits = outfits.map((outfit, index) => ({
-        label: `Option ${index + 1}`,
-        garments: outfit.garmentIds
+      const convertedOutfits: DisplayOutfit[] = outfits.map((outfit, index) => {
+        const rawGarments = outfit.garmentIds
           .map((id) => {
-            // Look up the garment from Convex data
             const item = convexGarments.find(
               (g: Doc<"garments">) => g._id === id
             );
             if (!item) return null;
-            return {
+            const g: DisplayGarment = {
               id: item._id,
               src: item.imageUrl ?? "",
               name: item.name,
@@ -251,13 +283,18 @@ export default function Home() {
                 vibrancy: item.vibrancy,
               },
             };
+            return g;
           })
-          .filter(Boolean),
-        explanation: outfit.explanation,
-        contextMood: mood,
-        contextWeather: weather ?? undefined,
-        contextTemperature: temperatureCelsius ?? undefined,
-      }));
+          .filter((g): g is DisplayGarment => g != null);
+        return {
+          label: `Option ${index + 1}`,
+          garments: rawGarments,
+          explanation: outfit.explanation,
+          contextMood: mood,
+          contextWeather: weather ?? undefined,
+          contextTemperature: temperatureCelsius ?? undefined,
+        };
+      });
       // Store full pool and show top 6 by default
       setAllRecommendedOutfits(convertedOutfits);
       setRecommendedOutfit(convertedOutfits.slice(0, 6));
@@ -323,7 +360,7 @@ export default function Home() {
         if (!outfit?.garments?.length) continue;
         const garmentIds = convexGarments
           .filter((g: Doc<"garments">) =>
-            outfit.garments.some((fg: { id?: string }) => fg?.id === g._id)
+            outfit.garments.some((fg) => fg.id === g._id)
           )
           .map((g: Doc<"garments">) => g._id);
         if (garmentIds.length === 0) continue;
@@ -475,15 +512,17 @@ export default function Home() {
                 Select Mood
               </p>
               <div className="flex flex-wrap gap-2">
-                {[
-                  "casual",
-                  "formal",
-                  "adventurous",
-                  "cozy",
-                  "energetic",
-                  "minimalist",
-                  "bold",
-                ].map((m) => (
+                {(
+                  [
+                    "casual",
+                    "formal",
+                    "adventurous",
+                    "cozy",
+                    "energetic",
+                    "minimalist",
+                    "bold",
+                  ] as Mood[]
+                ).map((m) => (
                   <button
                     key={m}
                     onClick={() => setMood(m)}
@@ -618,9 +657,9 @@ export default function Home() {
         <SuggestedProductsSection
           userId={userId}
           garments={convexGarments}
-          outfitGarmentIds={recommendedOutfit?.[0]?.garments
-            ?.map((g: { id?: string }) => g?.id)
-            ?.filter(Boolean)}
+          outfitGarmentIds={recommendedOutfit?.[0]?.garments?.map(
+            (g) => g.id as string
+          )}
           mood={mood}
           weather={weather ?? undefined}
           temperature={temperatureCelsius ?? undefined}

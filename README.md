@@ -134,13 +134,14 @@ See [docs/OutfAI_Project_Structure.md](docs/OutfAI_Project_Structure.md) for the
 
 ## Documentation
 
-| Document                                                    | Description                               |
-| ----------------------------------------------------------- | ----------------------------------------- |
-| [OutfAI_PRD.md](docs/OutfAI_PRD.md)                         | Product requirements, goals, and strategy |
-| [OutfAI_Architecture.md](docs/OutfAI_Architecture.md)       | System architecture and key decisions     |
-| [OutfAI_Database_Design.md](docs/OutfAI_Database_Design.md) | Database schema and design                |
-| [convex-schema.md](docs/convex-schema.md)                   | Auto-generated Convex schema reference    |
-| [MIGRATION_NOTES.md](MIGRATION_NOTES.md)                    | Migration decisions and assumptions       |
+| Document                                                          | Description                                             |
+| ----------------------------------------------------------------- | ------------------------------------------------------- |
+| [OutfAI_PRD.md](docs/OutfAI_PRD.md)                               | Product requirements, goals, and strategy               |
+| [OutfAI_Architecture.md](docs/OutfAI_Architecture.md)             | System architecture and key decisions                   |
+| [OutfAI_Database_Design.md](docs/OutfAI_Database_Design.md)       | Database schema and design                              |
+| [convex-schema.md](docs/convex-schema.md)                         | Auto-generated Convex schema reference                  |
+| [landing-and-public-routes.md](docs/landing-and-public-routes.md) | Landing page, public routes, and no-nav route constants |
+| [MIGRATION_NOTES.md](MIGRATION_NOTES.md)                          | Migration decisions and assumptions                     |
 
 ---
 
