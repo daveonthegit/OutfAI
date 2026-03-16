@@ -149,6 +149,7 @@ export const recommendationRouter = router({
         temperature: z.number().min(-50).max(50).optional(),
         occasion: z.string().optional(),
         limitCount: z.number().min(1).max(10).default(5),
+        recentGarmentIds: z.array(z.string()).optional(),
         garments: z
           .array(
             z.object({
@@ -197,6 +198,7 @@ export const recommendationRouter = router({
         temperature: input.temperature,
         occasion: input.occasion,
         limitCount: input.limitCount,
+        recentGarmentIds: input.recentGarmentIds,
       };
 
       const result = await OutfitRecommendationService.generateOutfits(

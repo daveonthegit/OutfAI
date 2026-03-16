@@ -44,6 +44,7 @@ export function useOutfitRecommendations(
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [explanation, setExplanation] = useState("");
+  const [recentGarmentIds, setRecentGarmentIds] = useState<string[]>([]);
 
   const generate = useCallback(
     async (
@@ -78,6 +79,7 @@ export function useOutfitRecommendations(
             occasion: options.occasion,
             limitCount: options.limitCount,
             preferences: options.preferences,
+            recentGarmentIds,
             garments,
           }),
         });
@@ -87,8 +89,27 @@ export function useOutfitRecommendations(
         }
 
         const data = await response.json();
-        setOutfits(data.outfits || []);
+        const nextOutfits: Outfit[] = data.outfits || [];
+        setOutfits(nextOutfits);
         setExplanation(data.explanation || "");
+
+        // Keep a short rolling history of recently used garment IDs
+        const nextRecent = nextOutfits
+          .flatMap((o) => o.garmentIds ?? [])
+          .filter(Boolean);
+        if (nextRecent.length > 0) {
+          setRecentGarmentIds((prev) => {
+            const merged = [...nextRecent, ...prev];
+            // de-dupe while preserving order
+            const seen = new Set<string>();
+            const unique = merged.filter((id) => {
+              if (seen.has(id)) return false;
+              seen.add(id);
+              return true;
+            });
+            return unique.slice(0, 20);
+          });
+        }
       } catch (err) {
         const errorMessage =
           err instanceof Error ? err.message : "Unknown error occurred";
@@ -98,13 +119,14 @@ export function useOutfitRecommendations(
         setLoading(false);
       }
     },
-    [initialOptions]
+    [initialOptions, recentGarmentIds]
   );
 
   const reset = useCallback(() => {
     setOutfits([]);
     setError(null);
     setExplanation("");
+    setRecentGarmentIds([]);
   }, []);
 
   return { outfits, loading, error, explanation, generate, reset };
