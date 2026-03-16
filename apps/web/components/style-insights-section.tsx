@@ -1,10 +1,10 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import type { Doc } from "@convex/_generated/dataModel";
 import type { Garment, Mood, WeatherCondition } from "@shared/types";
-import type { StyleInsight } from "@shared/types";
 import { useStyleInsights } from "@/hooks/use-style-insights";
+import { StyleInsightsModal } from "@/components/style-insights-modal";
 
 interface StyleInsightsSectionProps {
   userId: string;
@@ -37,19 +37,6 @@ function mapConvexGarmentToGarment(g: Doc<"garments">): Garment {
   };
 }
 
-function InsightItem({ insight }: { insight: StyleInsight }) {
-  return (
-    <li className="text-[13px] text-foreground">
-      <span>{insight.text}</span>
-      {insight.reason && (
-        <span className="block text-[11px] text-muted-foreground mt-0.5">
-          {insight.reason}
-        </span>
-      )}
-    </li>
-  );
-}
-
 export function StyleInsightsSection({
   userId: _userId,
   garments,
@@ -59,6 +46,7 @@ export function StyleInsightsSection({
   temperature,
   showWhenHasOutfits,
 }: StyleInsightsSectionProps) {
+  const [modalOpen, setModalOpen] = useState(false);
   const garmentList = useMemo(
     () => garments.map(mapConvexGarmentToGarment),
     [garments]
@@ -121,45 +109,27 @@ export function StyleInsightsSection({
       )}
 
       {!loading && !error && hasAny && (
-        <div className="space-y-8">
-          {gaps.length > 0 && (
-            <div>
-              <h3 className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground mb-2">
-                Wardrobe gaps
-              </h3>
-              <ul className="space-y-2 list-none pl-0">
-                {gaps.map((insight, i) => (
-                  <InsightItem key={`gap-${i}`} insight={insight} />
-                ))}
-              </ul>
-            </div>
-          )}
-          {completeTheLook.length > 0 && (
-            <div>
-              <h3 className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground mb-2">
-                Complete the look
-              </h3>
-              <ul className="space-y-2 list-none pl-0">
-                {completeTheLook.map((insight, i) => (
-                  <InsightItem key={`ctl-${i}`} insight={insight} />
-                ))}
-              </ul>
-            </div>
-          )}
-          {styleTips.length > 0 && (
-            <div>
-              <h3 className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground mb-2">
-                Style tips
-              </h3>
-              <ul className="space-y-2 list-none pl-0">
-                {styleTips.map((insight, i) => (
-                  <InsightItem key={`tip-${i}`} insight={insight} />
-                ))}
-              </ul>
-            </div>
-          )}
-        </div>
+        <button
+          type="button"
+          onClick={() => setModalOpen(true)}
+          className="w-full text-left border border-border bg-card hover:border-signal-orange hover:bg-secondary/30 transition-colors duration-100 px-5 py-4 rounded flex items-center justify-between group"
+        >
+          <span className="text-[13px] text-foreground">
+            View style insights
+          </span>
+          <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground group-hover:text-foreground transition-colors">
+            {gaps.length + completeTheLook.length + styleTips.length} tips
+          </span>
+        </button>
       )}
+
+      <StyleInsightsModal
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        gaps={gaps}
+        completeTheLook={completeTheLook}
+        styleTips={styleTips}
+      />
     </section>
   );
 }
