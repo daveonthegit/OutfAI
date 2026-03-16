@@ -8,6 +8,14 @@ import { api } from "@convex/_generated/api";
 import { useRequireAuth } from "@/hooks/use-require-auth";
 import { authClient } from "@/lib/auth-client";
 import { BrutalistButton } from "@/components/brutalist-button";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 import { toast } from "sonner";
 
 const DELETE_CONFIRM_TEXT = "DELETE";
@@ -162,6 +170,19 @@ export default function ProfileSettingsPage() {
       </header>
 
       <div className="pt-24 md:pt-32 px-4 md:px-8 lg:px-12 pb-28 max-w-xl">
+        <Breadcrumb className="mb-6">
+          <BreadcrumbList className="text-[10px] uppercase tracking-[0.2em]">
+            <BreadcrumbItem>
+              <BreadcrumbLink asChild>
+                <Link href="/profile">Profile</Link>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage>Settings</BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
         <h1 className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground mb-6">
           Settings
         </h1>

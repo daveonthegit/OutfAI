@@ -7,6 +7,7 @@ import { getStaggerVariants, getCardHoverMotionProps } from "@/lib/animations";
 import { PageContainer } from "@/components/layout/page-container";
 import { ContentGrid } from "@/components/layout/content-grid";
 import { SectionHeader } from "@/components/layout/section-header";
+import { FilterBar } from "@/components/layout/filter-bar";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useQuery, useMutation } from "convex/react";
@@ -86,6 +87,11 @@ export default function ArchivePage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterMood, setFilterMood] = useState<string>("all");
   const [sortBy, setSortBy] = useState<SortOption>("newest");
+  const [woreThisLoadingId, setWoreThisLoadingId] =
+    useState<Id<"outfits"> | null>(null);
+  const [removeLoadingId, setRemoveLoadingId] = useState<Id<"outfits"> | null>(
+    null
+  );
   const gridRef = useRef<HTMLDivElement>(null);
   const staggerVariants = getStaggerVariants();
   const cardHoverProps = getCardHoverMotionProps();
@@ -140,7 +146,12 @@ export default function ArchivePage() {
   const handleRemove = async (id: Id<"outfits">, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    await removeOutfit({ id });
+    setRemoveLoadingId(id);
+    try {
+      await removeOutfit({ id });
+    } finally {
+      setRemoveLoadingId(null);
+    }
   };
 
   const handleWoreThis = async (
@@ -149,13 +160,27 @@ export default function ArchivePage() {
   ) => {
     e.preventDefault();
     e.stopPropagation();
-    await logRecommendation({
-      action: "worn",
-      outfitId: outfit._id,
-      garmentIds: outfit.garmentIds.map(String),
-      mood: outfit.contextMood,
-      weather: outfit.contextWeather,
-    }).catch(console.error);
+    setWoreThisLoadingId(outfit._id);
+    try {
+      await logRecommendation({
+        action: "worn",
+        outfitId: outfit._id,
+        garmentIds: outfit.garmentIds.map(String),
+        mood: outfit.contextMood,
+        weather: outfit.contextWeather,
+      });
+    } finally {
+      setWoreThisLoadingId(null);
+    }
+  };
+
+  const filtersActive =
+    searchQuery.trim() !== "" || filterMood !== "all" || sortBy !== "newest";
+
+  const handleClearFilters = () => {
+    setSearchQuery("");
+    setFilterMood("all");
+    setSortBy("newest");
   };
 
   const handleViewOutfit = (outfit: OutfitWithGarments) => {
@@ -177,7 +202,9 @@ export default function ArchivePage() {
       contextWeather: outfit.contextWeather,
       contextTemperature: outfit.contextTemperature,
     });
-    router.push(`/outfit?outfit=${encodeURIComponent(outfitData)}`);
+    router.push(
+      `/outfit?outfit=${encodeURIComponent(outfitData)}&source=archive`
+    );
   };
 
   return (
@@ -242,63 +269,36 @@ export default function ArchivePage() {
             </section>
           ) : (
             <>
-              {/* Toolbar: search, mood filter, sort */}
-              <section className="mb-8 flex flex-col gap-4">
-                <div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
-                  <input
-                    type="search"
-                    placeholder="Search by piece or mood…"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full sm:max-w-[280px] rounded border border-border bg-background px-3 py-2 text-[11px] uppercase tracking-[0.12em] text-foreground placeholder:text-muted-foreground outline-none focus:border-signal-orange/60"
-                    aria-label="Search saved looks"
-                  />
-                  <select
-                    value={sortBy}
-                    onChange={(e) => setSortBy(e.target.value as SortOption)}
-                    className="w-full sm:w-auto rounded border border-border bg-background px-3 py-2 text-[11px] uppercase tracking-[0.12em] text-foreground outline-none focus:border-signal-orange/60"
-                    aria-label="Sort order"
-                  >
-                    {(Object.keys(SORT_LABELS) as SortOption[]).map((key) => (
-                      <option key={key} value={key}>
-                        {SORT_LABELS[key]}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setFilterMood("all")}
-                    className={`px-3 py-1.5 text-[10px] uppercase tracking-[0.2em] border transition-colors duration-100 ${
-                      filterMood === "all"
-                        ? "border-signal-orange text-signal-orange bg-signal-orange/10"
-                        : "border-border text-muted-foreground hover:text-foreground hover:border-foreground/40"
-                    }`}
-                  >
-                    All
-                  </button>
-                  {uniqueMoods.map((m) => (
-                    <button
-                      key={m}
-                      type="button"
-                      onClick={() => setFilterMood(m)}
-                      className={`px-3 py-1.5 text-[10px] uppercase tracking-[0.2em] border transition-colors duration-100 ${
-                        filterMood.toLowerCase() === m.toLowerCase()
-                          ? "border-signal-orange text-signal-orange bg-signal-orange/10"
-                          : "border-border text-muted-foreground hover:text-foreground hover:border-foreground/40"
-                      }`}
-                    >
-                      {m}
-                    </button>
-                  ))}
-                </div>
-                {filteredAndSorted.length < (outfits?.length ?? 0) && (
-                  <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
-                    Showing {filteredAndSorted.length} of {outfits.length} looks
-                  </p>
-                )}
-              </section>
+              {/* Toolbar — FilterBar (UI/UX audit) */}
+              <FilterBar
+                search={{
+                  value: searchQuery,
+                  onChange: setSearchQuery,
+                  placeholder: "Search by piece or mood…",
+                  "aria-label": "Search saved looks",
+                }}
+                sort={{
+                  value: sortBy,
+                  onChange: (v) => setSortBy(v as SortOption),
+                  options: (Object.keys(SORT_LABELS) as SortOption[]).map(
+                    (key) => ({ value: key, label: SORT_LABELS[key] })
+                  ),
+                  "aria-label": "Sort order",
+                }}
+                chips={{
+                  options: uniqueMoods.map((m) => ({ value: m, label: m })),
+                  value: filterMood,
+                  onChange: setFilterMood,
+                  allLabel: "All",
+                }}
+                onClearAll={handleClearFilters}
+                showClearAll={filtersActive}
+                resultSummary={
+                  filteredAndSorted.length < (outfits?.length ?? 0)
+                    ? `Showing ${filteredAndSorted.length} of ${outfits?.length ?? 0} looks`
+                    : undefined
+                }
+              />
 
               {filteredAndSorted.length === 0 ? (
                 <section className="text-center py-12">
@@ -363,18 +363,28 @@ export default function ArchivePage() {
                                 {isHovered && (
                                   <div className="absolute top-2 right-2 left-2 z-20 flex justify-between gap-2">
                                     <button
+                                      type="button"
                                       onClick={(e) => handleWoreThis(outfit, e)}
-                                      className="p-1.5 bg-background/80 border border-border hover:border-signal-orange hover:text-signal-orange transition-colors text-[9px] uppercase tracking-widest"
+                                      disabled={
+                                        woreThisLoadingId === outfit._id
+                                      }
+                                      className="p-1.5 bg-background/80 border border-border hover:border-signal-orange hover:text-signal-orange transition-colors text-[9px] uppercase tracking-widest disabled:opacity-60 focus-visible:ring-2 focus-visible:ring-signal-orange focus-visible:ring-offset-1 focus-visible:outline-none"
                                     >
-                                      I wore this
+                                      {woreThisLoadingId === outfit._id
+                                        ? "…"
+                                        : "I wore this"}
                                     </button>
                                     <button
+                                      type="button"
                                       onClick={(e) =>
                                         handleRemove(outfit._id, e)
                                       }
-                                      className="p-1.5 bg-background/80 border border-border hover:border-destructive hover:text-destructive transition-colors text-[9px] uppercase tracking-widest"
+                                      disabled={removeLoadingId === outfit._id}
+                                      className="p-1.5 bg-background/80 border border-border hover:border-destructive hover:text-destructive transition-colors text-[9px] uppercase tracking-widest disabled:opacity-60 focus-visible:ring-2 focus-visible:ring-signal-orange focus-visible:ring-offset-1 focus-visible:outline-none"
                                     >
-                                      Remove
+                                      {removeLoadingId === outfit._id
+                                        ? "…"
+                                        : "Remove"}
                                     </button>
                                   </div>
                                 )}

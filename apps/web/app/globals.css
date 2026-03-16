@@ -186,3 +186,23 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Focus-visible ring for keyboard users (UI/UX audit) */
+@layer utilities {
+  .focus-visible-ring {
+    @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-signal-orange focus-visible:ring-offset-2 focus-visible:ring-offset-background;
+  }
+}
+
+/* Apply focus-visible ring to interactive elements that may not have it */
+@layer base {
+  a:not([class*="focus-visible"]):focus-visible,
+  button:not([class*="focus-visible"]):focus-visible {
+    @apply outline-none ring-2 ring-signal-orange ring-offset-2 ring-offset-background;
+  }
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible {
+    @apply outline-none ring-2 ring-signal-orange/60 ring-offset-0;
+  }
+}

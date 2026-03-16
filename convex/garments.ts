@@ -24,6 +24,17 @@ export const list = query({
   },
 });
 
+export const getById = query({
+  args: { id: v.id("garments") },
+  handler: async (ctx, { id }) => {
+    const user = await getAuthUser(ctx);
+    if (!user) return null;
+    const garment = await ctx.db.get(id);
+    if (!garment || garment.userId !== user._id) return null;
+    return garment;
+  },
+});
+
 export const create = mutation({
   args: {
     name: v.string(),

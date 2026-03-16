@@ -12,6 +12,7 @@ import { PageContainer } from "@/components/layout/page-container";
 import { SplitPane } from "@/components/layout/split-pane";
 import { SectionHeader } from "@/components/layout/section-header";
 import { UserAvatar } from "@/components/user-avatar";
+import { BrutalistInput } from "@/components/brutalist-input";
 import { getDefaultTagsForGarment } from "@shared/garment-default-tags";
 import { toast } from "sonner";
 
@@ -414,20 +415,15 @@ export default function AddGarmentPage() {
 
             {/* Form inputs */}
             <section className="flex flex-col gap-10">
-              {/* Name */}
-              <div>
-                <label className="block text-[10px] uppercase tracking-[0.25em] text-muted-foreground mb-4">
-                  Name{" "}
-                  <span className="text-muted-foreground/50">(optional)</span>
-                </label>
-                <input
-                  type="text"
-                  value={garmentName}
-                  onChange={(e) => setGarmentName(e.target.value)}
-                  placeholder="e.g. Cashmere crewneck"
-                  className="w-full bg-transparent border border-border px-4 py-3 text-[11px] uppercase tracking-widest text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-foreground transition-colors duration-100"
-                />
-              </div>
+              {/* Name — BrutalistInput (UI/UX audit) */}
+              <BrutalistInput
+                label="Name (optional)"
+                type="text"
+                value={garmentName}
+                onChange={(e) => setGarmentName(e.target.value)}
+                placeholder="e.g. Cashmere crewneck"
+                className="bg-transparent uppercase tracking-widest text-[11px] placeholder:uppercase placeholder:tracking-wider placeholder:text-[11px]"
+              />
 
               {/* Category */}
               <div>
@@ -489,6 +485,7 @@ export default function AddGarmentPage() {
                       >
                         {tag}
                         <button
+                          type="button"
                           onClick={() => removeTag(tag)}
                           className="hover:text-signal-orange transition-colors duration-100"
                         >
@@ -499,13 +496,13 @@ export default function AddGarmentPage() {
                   </div>
                 )}
 
-                <input
+                <BrutalistInput
                   type="text"
                   value={tagInput}
                   onChange={(e) => setTagInput(e.target.value)}
                   onKeyDown={handleAddTag}
                   placeholder="Type and press enter"
-                  className="w-full bg-transparent border border-border px-4 py-3 text-[11px] uppercase tracking-widest text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-foreground transition-colors duration-100"
+                  className="bg-transparent uppercase tracking-widest text-[11px] placeholder:uppercase placeholder:tracking-wider placeholder:text-[11px]"
                 />
               </div>
 
@@ -641,8 +638,8 @@ export default function AddGarmentPage() {
             </section>
           </SplitPane>
 
-          {/* Add action - inline */}
-          <section className="mt-12 border-t border-border pt-8">
+          {/* Add action — sticky on small viewports above bottom nav (UI/UX audit) */}
+          <section className="mt-12 border-t border-border pt-8 sticky bottom-24 z-10 bg-background pb-4 lg:bottom-auto lg:pb-0 lg:static">
             <div className="flex items-center justify-between">
               <span className="text-[9px] uppercase tracking-[0.2em] text-muted-foreground">
                 {saveError ? (

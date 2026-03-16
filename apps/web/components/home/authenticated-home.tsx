@@ -137,6 +137,10 @@ export default function Home() {
     Set<number>
   >(new Set());
   const [isSaving, setIsSaving] = useState(false);
+  /** Index of the card currently saving from the direct Save button (single save). */
+  const [savingSingleIndex, setSavingSingleIndex] = useState<number | null>(
+    null
+  );
   // Indices of outfit cards the user skipped (hidden from grid, logged as "skipped")
   const [skippedIndices, setSkippedIndices] = useState<Set<number>>(new Set());
 
@@ -535,6 +539,48 @@ export default function Home() {
     setSkippedIndices((prev) => new Set([...prev, index]));
   };
 
+  const handleSaveSingle = async (index: number) => {
+    const outfit = recommendedOutfit?.[index];
+    if (!outfit?.garments?.length || convexGarments.length === 0) {
+      toast.error("Add garments to your closet to save outfits.");
+      return;
+    }
+    const garmentIds = convexGarments
+      .filter((g: Doc<"garments">) =>
+        outfit.garments.some((fg) => fg.id === g._id)
+      )
+      .map((g: Doc<"garments">) => g._id);
+    if (garmentIds.length === 0) {
+      toast.error(
+        "This outfit uses sample items. Add your own garments to save."
+      );
+      return;
+    }
+    setSavingSingleIndex(index);
+    try {
+      const outfitId = await saveOutfit({
+        garmentIds,
+        contextMood: outfit.contextMood ?? mood,
+        contextWeather: outfit.contextWeather ?? weather ?? undefined,
+        contextTemperature:
+          outfit.contextTemperature ?? temperatureCelsius ?? undefined,
+        explanation: outfit.explanation,
+      });
+      await logRecommendation({
+        action: "saved",
+        outfitId,
+        garmentIds: garmentIds.map(String),
+        mood: outfit.contextMood ?? mood,
+        weather: weather ?? undefined,
+      }).catch(console.error);
+      toast.success("Outfit saved");
+    } catch {
+      toast.error("Could not save. Try again.");
+    } finally {
+      setSavingSingleIndex(null);
+    }
+  };
+
   const handleShuffle = () => {
     setIsShuffling(true);
     justShuffledRef.current = true;
@@ -708,6 +754,23 @@ export default function Home() {
             <div className="h-px bg-border flex-1" />
           </div>
 
+          {/* Sample items notice when closet is empty (UI/UX audit) */}
+          {convexGarments.length === 0 &&
+            recommendedOutfit &&
+            recommendedOutfit.length > 0 && (
+              <section className="mb-6 border border-border bg-secondary/50 px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+                <p className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
+                  Using sample items. Add your own for personalized results.
+                </p>
+                <Link
+                  href="/add"
+                  className="text-[11px] uppercase tracking-[0.2em] text-foreground hover:text-signal-orange transition-colors duration-100 underline underline-offset-2 focus-visible:ring-2 focus-visible:ring-signal-orange focus-visible:ring-offset-2 focus-visible:outline-none"
+                >
+                  Add garments
+                </Link>
+              </section>
+            )}
+
           {/* Selection toolbar - same as closet */}
           {isSelectMode &&
             recommendedOutfit &&
@@ -817,6 +880,12 @@ export default function Home() {
                             onSkip={
                               isSelectMode ? undefined : () => handleSkip(index)
                             }
+                            onSave={
+                              isSelectMode
+                                ? undefined
+                                : () => handleSaveSingle(index)
+                            }
+                            isSaving={savingSingleIndex === index}
                           />
                         </motion.div>
                       )

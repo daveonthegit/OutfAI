@@ -58,6 +58,10 @@ interface OutfitRecommendationCardProps {
   onToggleSelect?: () => void;
   /** When provided, show Skip button; on click log "skipped" and hide card (caller handles state). */
   onSkip?: () => void;
+  /** When provided (and not in select mode), show a Save button; on click caller saves this outfit. */
+  onSave?: () => void;
+  /** When true, Save was just used for this card (e.g. show "Saved" state). */
+  isSaving?: boolean;
 }
 
 export function OutfitRecommendationCard({
@@ -72,12 +76,20 @@ export function OutfitRecommendationCard({
   isSelected = false,
   onToggleSelect,
   onSkip,
+  onSave,
+  isSaving = false,
 }: OutfitRecommendationCardProps) {
   const router = useRouter();
   const [breakdownOpen, setBreakdownOpen] = useState(false);
   const cardMotionProps = getCardHoverMotionProps();
 
   if (garments.length === 0) return null;
+
+  const handleSave = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onSave?.();
+  };
 
   const handleSkip = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -107,14 +119,16 @@ export function OutfitRecommendationCard({
         contextWeather,
         contextTemperature,
       });
-      router.push(`/outfit?outfit=${encodeURIComponent(outfitData)}`);
+      router.push(
+        `/outfit?outfit=${encodeURIComponent(outfitData)}&source=today`
+      );
     }
   };
 
   return (
     <motion.div
       {...cardMotionProps}
-      className="relative w-full aspect-square border border-border bg-card hover:bg-secondary/50 transition-colors duration-200 group overflow-hidden text-left origin-center"
+      className="relative w-full aspect-square border border-border bg-card hover:bg-secondary/50 transition-colors duration-200 group overflow-hidden text-left origin-center cursor-pointer"
       style={{
         transformOrigin: "center center",
         ...(cardMotionProps.style as React.CSSProperties),
@@ -123,7 +137,7 @@ export function OutfitRecommendationCard({
       <button
         type="button"
         onClick={handleClick}
-        className="absolute inset-0 w-full h-full flex flex-col text-left"
+        className="absolute inset-0 w-full h-full flex flex-col text-left cursor-pointer"
       >
         {/* Overlay composition preview - show first item or grid preview */}
         <div className="w-full h-full relative flex-1 min-h-0">
@@ -156,16 +170,31 @@ export function OutfitRecommendationCard({
         </div>
       </button>
 
-      {/* Skip button - when not in select mode (outside main button to avoid nested buttons) */}
-      {!isSelectMode && onSkip && (
-        <button
-          type="button"
-          onClick={handleSkip}
-          className="absolute top-2 left-2 z-10 p-1.5 bg-background/80 border border-border hover:border-foreground hover:text-foreground transition-colors text-[9px] uppercase tracking-widest"
-          aria-label="Skip this outfit"
-        >
-          Skip
-        </button>
+      {/* Skip + Save - when not in select mode (outside main button to avoid nested buttons) */}
+      {!isSelectMode && (onSkip || onSave) && (
+        <div className="absolute top-2 left-2 right-2 z-10 flex justify-between gap-2">
+          {onSkip && (
+            <button
+              type="button"
+              onClick={handleSkip}
+              className="p-1.5 bg-background/80 border border-border hover:border-foreground hover:text-foreground transition-colors text-[9px] uppercase tracking-widest focus-visible:ring-2 focus-visible:ring-signal-orange focus-visible:ring-offset-1 focus-visible:outline-none"
+              aria-label="Skip this outfit"
+            >
+              Skip
+            </button>
+          )}
+          {onSave && (
+            <button
+              type="button"
+              onClick={handleSave}
+              disabled={isSaving}
+              className="p-1.5 bg-background/80 border border-signal-orange/60 text-signal-orange hover:bg-signal-orange/10 transition-colors text-[9px] uppercase tracking-widest disabled:opacity-60 focus-visible:ring-2 focus-visible:ring-signal-orange focus-visible:ring-offset-1 focus-visible:outline-none ml-auto"
+              aria-label={isSaving ? "Saving…" : "Save this outfit"}
+            >
+              {isSaving ? "Saving…" : "Save"}
+            </button>
+          )}
+        </div>
       )}
 
       {/* Selection checkbox overlay - same as closet */}
@@ -215,14 +244,16 @@ export function OutfitRecommendationCard({
             {isSelected ? "Selected" : "Select"}
           </span>
         ) : (
-          <button
-            type="button"
-            onClick={handleClick}
-            className="text-[10px] uppercase tracking-[0.2em] text-signal-orange hover:underline cursor-pointer text-left mt-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-signal-orange focus-visible:ring-offset-2 focus-visible:ring-offset-background/95 rounded-sm"
-            aria-label="View this outfit"
-          >
-            Click to view
-          </button>
+          <div className="flex flex-wrap items-center gap-2 mt-0.5">
+            <button
+              type="button"
+              onClick={handleClick}
+              className="text-[10px] uppercase tracking-[0.2em] text-signal-orange hover:underline cursor-pointer text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-signal-orange focus-visible:ring-offset-2 focus-visible:ring-offset-background/95 rounded-sm"
+              aria-label="View this outfit"
+            >
+              Click to view
+            </button>
+          </div>
         )}
         {scoreBreakdown && (
           <div className="mt-3 flex flex-col items-stretch">

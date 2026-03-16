@@ -7,6 +7,7 @@ import { getStaggerVariants } from "@/lib/animations";
 import { PageContainer } from "@/components/layout/page-container";
 import { ContentGrid } from "@/components/layout/content-grid";
 import { SectionHeader } from "@/components/layout/section-header";
+import { FilterBar } from "@/components/layout/filter-bar";
 import Link from "next/link";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@convex/_generated/api";
@@ -14,6 +15,16 @@ import type { Id } from "@convex/_generated/dataModel";
 import { useRequireAuth } from "@/hooks/use-require-auth";
 import { UserAvatar } from "@/components/user-avatar";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 
 type Category = "all" | "top" | "bottom" | "shoes" | "outerwear" | "accessory";
@@ -203,89 +214,53 @@ export default function ClosetPage() {
         <PageContainer>
           <SectionHeader title="closet" subtitle="What you already own" />
 
-          {/* Search */}
-          <section className="mb-6">
-            <div className="relative">
-              <input
-                type="search"
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-                placeholder="Search by name..."
-                className="w-full bg-secondary border border-border px-4 py-3 pl-10 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-foreground"
-                aria-label="Search garments by name"
-              />
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none">
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                >
-                  <circle cx="11" cy="11" r="8" />
-                  <path d="M21 21l-4.35-4.35" />
-                </svg>
-              </span>
-              {searchInput && (
-                <button
-                  type="button"
-                  onClick={() => setSearchInput("")}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                  aria-label="Clear search"
-                >
-                  <svg
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                  >
-                    <line x1="18" y1="6" x2="6" y2="18" />
-                    <line x1="6" y1="6" x2="18" y2="18" />
-                  </svg>
-                </button>
-              )}
-            </div>
-          </section>
-
-          {/* Filter chips + Select toggle */}
-          <section className="mb-10 md:mb-14">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div className="flex flex-wrap gap-2">
-                {CATEGORIES.map((cat) => (
-                  <button
-                    key={cat.key}
-                    onClick={() => {
-                      setActiveCategory(cat.key);
-                      setSelectedIds(new Set());
-                    }}
-                    className={`px-4 py-2 text-[10px] uppercase tracking-[0.2em] border transition-all duration-100 ${
-                      activeCategory === cat.key
-                        ? "bg-foreground text-background border-foreground"
-                        : "bg-transparent text-muted-foreground border-border hover:border-foreground hover:text-foreground"
-                    }`}
-                  >
-                    {cat.label}
-                  </button>
-                ))}
-              </div>
-
-              {garments.length > 0 && (
-                <button
-                  onClick={toggleSelectMode}
-                  className={`px-4 py-2 text-[10px] uppercase tracking-[0.2em] border transition-all duration-100 ${
-                    isSelectMode
-                      ? "bg-foreground text-background border-foreground"
-                      : "bg-transparent text-muted-foreground border-border hover:border-foreground hover:text-foreground"
-                  }`}
-                >
-                  {isSelectMode ? "Cancel" : "Select"}
-                </button>
-              )}
-            </div>
-          </section>
+          {/* Search + category chips — FilterBar (UI/UX audit) */}
+          <FilterBar
+            search={{
+              value: searchInput,
+              onChange: setSearchInput,
+              placeholder: "Search by name…",
+              "aria-label": "Search garments by name",
+            }}
+            chips={{
+              options: CATEGORIES.filter((c) => c.key !== "all").map((c) => ({
+                value: c.key,
+                label: c.label,
+              })),
+              value: activeCategory,
+              onChange: (v) => {
+                setActiveCategory(v as Category);
+                setSelectedIds(new Set());
+              },
+              allLabel: "All",
+            }}
+            onClearAll={() => {
+              setSearchInput("");
+              setActiveCategory("all");
+              setSelectedIds(new Set());
+            }}
+            showClearAll={searchInput.trim() !== "" || activeCategory !== "all"}
+            resultSummary={
+              filteredItems.length < garments.length
+                ? `Showing ${filteredItems.length} of ${garments.length}`
+                : undefined
+            }
+            className="mb-10 md:mb-14"
+          >
+            {garments.length > 0 && (
+              <button
+                type="button"
+                onClick={toggleSelectMode}
+                className={`shrink-0 px-4 py-2 text-[10px] uppercase tracking-[0.2em] border transition-all duration-100 focus-visible:ring-2 focus-visible:ring-signal-orange focus-visible:ring-offset-2 focus-visible:outline-none ${
+                  isSelectMode
+                    ? "bg-foreground text-background border-foreground"
+                    : "bg-transparent text-muted-foreground border-border hover:border-foreground hover:text-foreground"
+                }`}
+              >
+                {isSelectMode ? "Cancel" : "Select"}
+              </button>
+            )}
+          </FilterBar>
 
           {/* Selection toolbar */}
           {isSelectMode && (
@@ -310,7 +285,7 @@ export default function ClosetPage() {
                       [...selectedIds].map((id) => id as Id<"garments">)
                     )
                   }
-                  className="flex items-center gap-2 px-4 py-2 text-[10px] uppercase tracking-[0.2em] bg-red-600 text-white border border-red-600 hover:bg-red-700 transition-colors duration-100"
+                  className="flex items-center gap-2 px-4 py-2 text-[10px] uppercase tracking-[0.2em] bg-destructive text-destructive-foreground border border-destructive hover:opacity-90 transition-colors duration-100"
                 >
                   <svg
                     width="12"
@@ -555,224 +530,242 @@ export default function ClosetPage() {
         </PageContainer>
       </div>
 
-      {/* Garment detail modal */}
-      {selectedGarment && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-          onClick={() => setSelectedGarment(null)}
+      {/* Garment detail — Radix Dialog (focus trap, Escape) */}
+      <Dialog
+        open={!!selectedGarment}
+        onOpenChange={(open) => !open && setSelectedGarment(null)}
+      >
+        <DialogContent
+          className="max-w-md w-full mx-4 p-0 gap-0 rounded-none border-border"
+          showCloseButton={true}
         >
-          <div
-            className="bg-background border border-border max-w-md w-full mx-4 shadow-lg"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Modal image */}
-            <div className="relative w-full aspect-square bg-secondary">
-              {selectedGarment.imageUrl ? (
-                <Image
-                  src={selectedGarment.imageUrl}
-                  alt={selectedGarment.name}
-                  fill
-                  className="object-cover"
-                />
-              ) : (
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <span className="text-[9px] uppercase tracking-widest text-muted-foreground">
-                    No image
-                  </span>
-                </div>
-              )}
-            </div>
-
-            {/* Modal content */}
-            <div className="p-6">
-              <div className="flex items-start justify-between mb-4">
-                <div>
-                  <h3 className="text-base font-medium tracking-tight mb-1">
-                    {selectedGarment.name}
-                  </h3>
-                  <div className="flex items-center gap-3">
-                    <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
-                      {selectedGarment.category}
-                    </span>
-                    <span className="text-muted-foreground/40">·</span>
-                    <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
-                      {selectedGarment.primaryColor}
+          {selectedGarment && (
+            <>
+              <DialogTitle className="sr-only">
+                {selectedGarment.name}
+              </DialogTitle>
+              <div className="relative w-full aspect-square bg-secondary">
+                {selectedGarment.imageUrl ? (
+                  <Image
+                    src={selectedGarment.imageUrl}
+                    alt={selectedGarment.name}
+                    fill
+                    className="object-cover"
+                  />
+                ) : (
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <span className="text-[9px] uppercase tracking-widest text-muted-foreground">
+                      No image
                     </span>
                   </div>
-                </div>
+                )}
               </div>
-
-              {(selectedGarment.style ||
-                selectedGarment.fit ||
-                selectedGarment.occasion ||
-                selectedGarment.versatility ||
-                selectedGarment.vibrancy) && (
-                <div className="mb-6 border-t border-border pt-4">
-                  <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground mb-3">
-                    Traits
-                  </p>
-                  <dl className="grid grid-cols-2 gap-x-4 gap-y-2">
-                    {selectedGarment.style && (
-                      <>
-                        <dt className="text-[10px] uppercase tracking-[0.15em] text-muted-foreground">
-                          Style
-                        </dt>
-                        <dd className="text-[11px] text-foreground">
-                          {selectedGarment.style.join(", ")}
-                        </dd>
-                      </>
-                    )}
-                    {selectedGarment.fit && (
-                      <>
-                        <dt className="text-[10px] uppercase tracking-[0.15em] text-muted-foreground">
-                          Fit
-                        </dt>
-                        <dd className="text-[11px] text-foreground">
-                          {selectedGarment.fit}
-                        </dd>
-                      </>
-                    )}
-                    {selectedGarment.occasion && (
-                      <>
-                        <dt className="text-[10px] uppercase tracking-[0.15em] text-muted-foreground">
-                          Occasion
-                        </dt>
-                        <dd className="text-[11px] text-foreground">
-                          {selectedGarment.occasion.join(", ")}
-                        </dd>
-                      </>
-                    )}
-                    {selectedGarment.versatility && (
-                      <>
-                        <dt className="text-[10px] uppercase tracking-[0.15em] text-muted-foreground">
-                          Versatility
-                        </dt>
-                        <dd className="text-[11px] text-foreground">
-                          {selectedGarment.versatility}
-                        </dd>
-                      </>
-                    )}
-                    {selectedGarment.vibrancy && (
-                      <>
-                        <dt className="text-[10px] uppercase tracking-[0.15em] text-muted-foreground">
-                          Vibrancy
-                        </dt>
-                        <dd className="text-[11px] text-foreground">
-                          {selectedGarment.vibrancy}
-                        </dd>
-                      </>
-                    )}
-                  </dl>
-                </div>
-              )}
-
-              {selectedGarment.tags.length > 0 && (
-                <div className="mb-6">
-                  <div className="flex flex-wrap gap-1.5">
-                    {selectedGarment.tags.map((tag) => (
-                      <span
-                        key={tag}
-                        className="px-2 py-1 text-[9px] uppercase tracking-widest border border-border text-muted-foreground"
-                      >
-                        {tag}
+              <div className="p-6">
+                <div className="flex items-start justify-between mb-4">
+                  <div>
+                    <h3 className="text-base font-medium tracking-tight mb-1">
+                      {selectedGarment.name}
+                    </h3>
+                    <div className="flex items-center gap-3">
+                      <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+                        {selectedGarment.category}
                       </span>
-                    ))}
+                      <span className="text-muted-foreground/40">·</span>
+                      <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+                        {selectedGarment.primaryColor}
+                      </span>
+                    </div>
                   </div>
                 </div>
-              )}
 
-              <div className="flex items-center justify-between border-t border-border pt-4">
-                <button
-                  onClick={() => requestDelete([selectedGarment._id])}
-                  className="flex items-center gap-2 text-[10px] uppercase tracking-[0.2em] text-red-500 hover:text-red-400 transition-colors duration-100"
-                >
-                  <svg
-                    width="12"
-                    height="12"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
+                {(selectedGarment.style ||
+                  selectedGarment.fit ||
+                  selectedGarment.occasion ||
+                  selectedGarment.versatility ||
+                  selectedGarment.vibrancy) && (
+                  <div className="mb-6 border-t border-border pt-4">
+                    <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground mb-3">
+                      Traits
+                    </p>
+                    <dl className="grid grid-cols-2 gap-x-4 gap-y-2">
+                      {selectedGarment.style && (
+                        <>
+                          <dt className="text-[10px] uppercase tracking-[0.15em] text-muted-foreground">
+                            Style
+                          </dt>
+                          <dd className="text-[11px] text-foreground">
+                            {selectedGarment.style.join(", ")}
+                          </dd>
+                        </>
+                      )}
+                      {selectedGarment.fit && (
+                        <>
+                          <dt className="text-[10px] uppercase tracking-[0.15em] text-muted-foreground">
+                            Fit
+                          </dt>
+                          <dd className="text-[11px] text-foreground">
+                            {selectedGarment.fit}
+                          </dd>
+                        </>
+                      )}
+                      {selectedGarment.occasion && (
+                        <>
+                          <dt className="text-[10px] uppercase tracking-[0.15em] text-muted-foreground">
+                            Occasion
+                          </dt>
+                          <dd className="text-[11px] text-foreground">
+                            {selectedGarment.occasion.join(", ")}
+                          </dd>
+                        </>
+                      )}
+                      {selectedGarment.versatility && (
+                        <>
+                          <dt className="text-[10px] uppercase tracking-[0.15em] text-muted-foreground">
+                            Versatility
+                          </dt>
+                          <dd className="text-[11px] text-foreground">
+                            {selectedGarment.versatility}
+                          </dd>
+                        </>
+                      )}
+                      {selectedGarment.vibrancy && (
+                        <>
+                          <dt className="text-[10px] uppercase tracking-[0.15em] text-muted-foreground">
+                            Vibrancy
+                          </dt>
+                          <dd className="text-[11px] text-foreground">
+                            {selectedGarment.vibrancy}
+                          </dd>
+                        </>
+                      )}
+                    </dl>
+                  </div>
+                )}
+
+                {selectedGarment.tags.length > 0 && (
+                  <div className="mb-6">
+                    <div className="flex flex-wrap gap-1.5">
+                      {selectedGarment.tags.map((tag) => (
+                        <span
+                          key={tag}
+                          className="px-2 py-1 text-[9px] uppercase tracking-widest border border-border text-muted-foreground"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex items-center justify-between gap-3 border-t border-border pt-4 flex-wrap">
+                  <Link
+                    href={`/closet/${selectedGarment._id}/edit`}
+                    className="flex items-center gap-2 text-[10px] uppercase tracking-[0.2em] text-foreground hover:text-signal-orange transition-colors duration-100 focus-visible:ring-2 focus-visible:ring-signal-orange focus-visible:ring-offset-2 focus-visible:outline-none"
                   >
-                    <polyline points="3 6 5 6 21 6" />
-                    <path d="M19 6l-1 14H6L5 6" />
-                    <path d="M10 11v6M14 11v6" />
-                    <path d="M9 6V4h6v2" />
-                  </svg>
-                  Delete
-                </button>
-                <button
-                  onClick={() => setSelectedGarment(null)}
-                  className="px-4 py-2 text-[10px] uppercase tracking-[0.2em] border border-border hover:bg-secondary transition-colors duration-100"
-                >
-                  Close
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Delete confirmation dialog */}
-      {showDeleteConfirm && (
-        <div
-          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60"
-          onClick={cancelDelete}
-        >
-          <div
-            className="bg-background border border-border max-w-sm w-full mx-4 p-6 shadow-lg"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h3 className="text-base font-medium tracking-tight mb-2">
-              {deletingIds.length === 1
-                ? "Delete garment?"
-                : `Delete ${deletingIds.length} garments?`}
-            </h3>
-            <p className="text-[11px] text-muted-foreground mb-6">
-              {deletingIds.length === 1
-                ? "This garment will be permanently removed from your closet."
-                : `${deletingIds.length} garments will be permanently removed from your closet.`}
-            </p>
-            <div className="flex items-center gap-3 justify-end">
-              <button
-                onClick={cancelDelete}
-                disabled={isDeleting}
-                className="px-4 py-2 text-[10px] uppercase tracking-[0.2em] border border-border hover:bg-secondary transition-colors duration-100 disabled:opacity-50"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={confirmDelete}
-                disabled={isDeleting}
-                className="px-4 py-2 text-[10px] uppercase tracking-[0.2em] bg-red-600 text-white hover:bg-red-700 transition-colors duration-100 disabled:opacity-50 flex items-center gap-2"
-              >
-                {isDeleting ? (
-                  <>
                     <svg
-                      className="animate-spin"
                       width="12"
                       height="12"
                       viewBox="0 0 24 24"
                       fill="none"
                       stroke="currentColor"
-                      strokeWidth="2"
+                      strokeWidth="1.5"
                     >
-                      <path
-                        d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                        opacity="0.25"
-                      />
-                      <path d="M21 12a9 9 0 01-9-9" />
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
                     </svg>
-                    Deleting…
-                  </>
-                ) : (
-                  "Delete"
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+                    Edit
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={() => requestDelete([selectedGarment._id])}
+                    className="flex items-center gap-2 text-[10px] uppercase tracking-[0.2em] text-destructive hover:opacity-90 transition-colors duration-100 focus-visible:ring-2 focus-visible:ring-signal-orange focus-visible:ring-offset-2 focus-visible:outline-none"
+                  >
+                    <svg
+                      width="12"
+                      height="12"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                    >
+                      <polyline points="3 6 5 6 21 6" />
+                      <path d="M19 6l-1 14H6L5 6" />
+                      <path d="M10 11v6M14 11v6" />
+                      <path d="M9 6V4h6v2" />
+                    </svg>
+                    Delete
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedGarment(null)}
+                    className="px-4 py-2 text-[10px] uppercase tracking-[0.2em] border border-border hover:bg-secondary transition-colors duration-100 focus-visible:ring-2 focus-visible:ring-signal-orange focus-visible:ring-offset-2 focus-visible:outline-none"
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete confirmation — Radix AlertDialog (focus trap, Escape) */}
+      <AlertDialog
+        open={showDeleteConfirm}
+        onOpenChange={(open) => !open && cancelDelete()}
+      >
+        <AlertDialogContent className="max-w-sm rounded-none border-border">
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {deletingIds.length === 1
+                ? "Delete garment?"
+                : `Delete ${deletingIds.length} garments?`}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {deletingIds.length === 1
+                ? "This garment will be permanently removed from your closet."
+                : `${deletingIds.length} garments will be permanently removed from your closet.`}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="gap-3 sm:gap-0">
+            <AlertDialogCancel
+              disabled={isDeleting}
+              className="px-4 py-2 text-[10px] uppercase tracking-[0.2em] border-border"
+            >
+              Cancel
+            </AlertDialogCancel>
+            <button
+              type="button"
+              onClick={() => confirmDelete()}
+              disabled={isDeleting}
+              className="px-4 py-2 text-[10px] uppercase tracking-[0.2em] bg-destructive text-destructive-foreground hover:opacity-90 border-0 rounded-none focus-visible:ring-2 focus-visible:ring-signal-orange focus-visible:ring-offset-2 focus-visible:outline-none disabled:opacity-50 flex items-center gap-2"
+            >
+              {isDeleting ? (
+                <>
+                  <svg
+                    className="animate-spin shrink-0"
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
+                    <path
+                      d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                      opacity="0.25"
+                    />
+                    <path d="M21 12a9 9 0 01-9-9" />
+                  </svg>
+                  Deleting…
+                </>
+              ) : (
+                "Delete"
+              )}
+            </button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </main>
   );
 }

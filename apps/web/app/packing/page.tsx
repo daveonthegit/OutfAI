@@ -11,6 +11,14 @@ import { PageContainer } from "@/components/layout/page-container";
 import { SectionHeader } from "@/components/layout/section-header";
 import { UserAvatar } from "@/components/user-avatar";
 import { BrutalistButton } from "@/components/brutalist-button";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 import { TripDateRangePicker } from "@/components/ui/trip-date-range-picker";
 import { toast } from "sonner";
 
@@ -73,6 +81,19 @@ export default function PackingPage() {
 
       <div className="pt-20 sm:pt-24 md:pt-28 lg:pt-32 pb-24 md:pb-28">
         <PageContainer>
+          <Breadcrumb className="mb-6">
+            <BreadcrumbList className="text-[10px] uppercase tracking-[0.2em]">
+              <BreadcrumbItem>
+                <BreadcrumbLink asChild>
+                  <Link href="/plan">Plan</Link>
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbPage>Packing</BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
           <SectionHeader
             title="packing planner"
             subtitle="Capsule wardrobes for your trips"
