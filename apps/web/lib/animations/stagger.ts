@@ -14,14 +14,19 @@ const EASE = "outCubic";
 /**
  * Staggered fade-in with slight translateY for a list of elements.
  * delay = index * 60ms by default.
+ * Skips null/disconnected elements to avoid "reading 'duration' of null" in anime.js.
  */
 export function staggerFadeIn(
   elements: HTMLElement[],
   options?: { delayPerItem?: number; duration?: number }
 ): void {
-  if (elements.length === 0) return;
+  const valid = elements.filter(
+    (el): el is HTMLElement =>
+      el != null && typeof el.isConnected === "boolean" && el.isConnected
+  );
+  if (valid.length === 0) return;
   if (prefersReducedMotion()) {
-    elements.forEach((el) => {
+    valid.forEach((el) => {
       el.style.opacity = "1";
       el.style.transform = "";
     });
@@ -29,23 +34,22 @@ export function staggerFadeIn(
   }
 
   const delayPerItem = options?.delayPerItem ?? STAGGER_DELAY_MS;
-  const duration = options?.duration ?? DURATION_MS;
+  const durationMs = options?.duration ?? DURATION_MS;
+  const durationSec = Number(durationMs) / 1000;
+  if (!Number.isFinite(durationSec) || durationSec <= 0) return;
 
   const tl = createTimeline();
 
-  elements.forEach((el, i) => {
+  valid.forEach((el, i) => {
     const delay = (i * delayPerItem) / 1000;
-    tl.add(
-      el,
-      {
-        opacity: [0, 1],
-        y: [TRANSLATE_Y_PX, 0],
-        duration: duration / 1000,
-        delay,
-        ease: EASE,
-      } as AnimationParams,
-      "<"
-    );
+    const params: AnimationParams = {
+      opacity: [0, 1],
+      y: [TRANSLATE_Y_PX, 0],
+      duration: durationSec,
+      delay,
+      ease: EASE,
+    };
+    tl.add(el, params, "<");
   });
 
   tl.play();
@@ -53,13 +57,15 @@ export function staggerFadeIn(
 
 /**
  * Run stagger fade-in on a container's direct children.
+ * No-op if container is null or disconnected (avoids anime.js errors on slow/hydration).
  */
 export function staggerFadeInContainer(
-  container: HTMLElement,
+  container: HTMLElement | null,
   options?: { delayPerItem?: number; duration?: number }
 ): void {
+  if (container == null || !container.isConnected) return;
   const children = Array.from(container.children).filter(
-    (c): c is HTMLElement => c instanceof HTMLElement
+    (c): c is HTMLElement => c instanceof HTMLElement && c.isConnected
   );
   staggerFadeIn(children, options);
 }

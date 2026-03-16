@@ -312,16 +312,17 @@ export default function Home() {
     setRecommendedOutfit(convertedOutfits.slice(0, 6));
   }, [outfits, mood, weather, temperatureCelsius]);
 
-  // Shuffle animation: run after grid updates from handleShuffle
+  // Shuffle animation: run after grid updates from handleShuffle (defer so DOM is committed)
   useEffect(() => {
     if (!recommendedOutfit?.length || !recommendationGridRef.current) return;
     if (justShuffledRef.current) {
-      animateShuffleGrid(recommendationGridRef.current);
       justShuffledRef.current = false;
+      const el = recommendationGridRef.current;
+      requestAnimationFrame(() => animateShuffleGrid(el));
     }
   }, [recommendedOutfit]);
 
-  // Staggered entry when recommendations first appear
+  // Staggered entry when recommendations first appear (defer so DOM is committed; avoids duration-of-null on slow/hydration)
   useEffect(() => {
     if (
       !recommendedOutfit?.length ||
@@ -330,7 +331,8 @@ export default function Home() {
     )
       return;
     hasStaggeredInitialRef.current = true;
-    staggerFadeInContainer(recommendationGridRef.current);
+    const el = recommendationGridRef.current;
+    requestAnimationFrame(() => staggerFadeInContainer(el));
   }, [recommendedOutfit]);
 
   const toggleSelectMode = () => {
