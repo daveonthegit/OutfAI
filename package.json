@@ -17,6 +17,8 @@
     "db:doc": "npx tsx scripts/generate-convex-docs.ts",
     "gen:db-docs": "npx tsx scripts/generate-convex-docs.ts",
     "ci": "npm run format:check && npm run lint && npm run typecheck && npm run test && npm run build",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
     "prepare": "husky",
     "postinstall": "patch-package"
   },
@@ -98,6 +100,7 @@
     "tw-animate-css": "1.3.3",
     "typescript": "^5.0.0",
     "typescript-eslint": "^8.56.0",
-    "vitest": "^4.0.18"
+    "vitest": "^4.0.18",
+    "@playwright/test": "^1.49.0"
   }
 }

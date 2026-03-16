@@ -46,6 +46,11 @@ External product cards (“Suggested for your wardrobe”) and live retailer API
 
 - **commerceInteractionLogs.log** — Mutation for `clicked` / `dismissed`. Used only when the app has consent; not called by default.
 
+### Phase 3: Storefront visibility
+
+- **Optional visibility:** When at least one product provider is configured, product suggestions can be surfaced via a dedicated "Shop" or "Suggested for you" entry point (e.g. link from Plan hub or a conditional section on home). Not on home by default to keep wardrobe-first flow primary.
+- **Internal status:** Provider status (which sources are configured, last sync) can be exposed in an internal doc or admin view only; no secrets in UI.
+
 ### Limitations
 
 - At least one provider must be configured (env vars in [PROVIDERS.md](./PROVIDERS.md)) for product suggestions to return data. If none are configured or all fail, the API returns `recommendations: []` and `providerStatus: { available: false }`; the UI must not show fake product cards.
