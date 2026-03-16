@@ -58,8 +58,8 @@
 
 ## Docs Updated
 
-- `FEATURE_STATUS.md` — Phase 2 features moved to “Shipped (Phase 2 complete)”.
-- `FEATURE_CANONICAL.md` — Phase 2 features marked Shipped with implementation refs.
+- `docs/implementation/FEATURE_STATUS.md` — Phase 2 features moved to “Shipped (Phase 2 complete)”.
+- `docs/implementation/FEATURES_CANONICAL.md` — Phase 2 features marked Shipped with implementation refs.
 - `docs/implementation/EXPANSION_ROADMAP.md` — Phase 2 status note and link to this summary.
 - `docs/implementation/PHASE_2_SUMMARY.md` — This file.
 

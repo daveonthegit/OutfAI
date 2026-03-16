@@ -1,7 +1,6 @@
 # OutfAI — Master Plan
 
-> Single source of truth for **what is done** vs **what remains**. Issue files live in [docs/issues/](issues/) and are linked below.  
-> **Note:** [implementation-plan.md](implementation-plan.md) and [commit-plan.md](commit-plan.md) describe a Supabase/Prisma/tRPC stack and are **outdated**; the app uses **Convex** and **BetterAuth**.
+> **What is done** vs **what remains**: use [implementation/FEATURE_STATUS.md](implementation/FEATURE_STATUS.md) as the source of truth for shipped features. This doc indexes issue files in [issues/](issues/) and links to them. The app uses **Convex** and **BetterAuth** (no Supabase/Prisma/tRPC).
 
 ---
 
@@ -35,13 +34,13 @@
 
 - **Outfit generation**: `OutfitRecommendationService`; home page uses mood, weather (Open-Meteo + geolocation), temperature; displays outfits and explanation.
 - **Outfit persistence**: Convex `outfits.list`, `save`, `remove`; home page saves outfit; archive page lists saved outfits with garments.
-- **Recommendation logs**: Convex `recommendationLogs.log` mutation exists; **not yet called from UI** (see remaining).
+- **Recommendation logs**: Convex `recommendationLogs.log` called from UI — Today (shown/saved/skipped), Archive (worn).
 
 ### Profile and navigation
 
-- **Profile page**: Read-only name, username, email; wardrobe stats (items, categories); My Closet link; Sign out.
-- **Onboarding**: Stub page only.
-- **Bottom nav**: Today, Mood, Closet, Add, Archive; theme toggle.
+- **Profile page**: Editable name, username, bio, avatar; wardrobe stats; user preferences (favorite moods, style goal, preferred/avoided colors); Settings for password, email, data export, delete account.
+- **Onboarding**: Multi-step wizard at `/onboarding` (welcome → garments → preferences → try outfit → done); redirect guard until complete.
+- **Bottom nav**: Today, Mood, Closet, Add, Archive; theme toggle. Closet search (debounced by name). Password reset (forgot/reset pages). Loading/toasts/empty states; score breakdown UI; manual weather fallback (city input).
 
 ### DevOps and docs
 
@@ -51,62 +50,64 @@
 
 ---
 
-## Remaining work (by area)
+## Issue index (backlog reference)
+
+**Shipped vs not:** See [implementation/FEATURE_STATUS.md](implementation/FEATURE_STATUS.md). Below, issues 1–5, 7–10, 15, 17–19, 21–22 are **done**; the rest are backlog.
 
 ### Profile and account settings
 
-| #   | Issue                                                      | Doc                                                                                  |
-| --- | ---------------------------------------------------------- | ------------------------------------------------------------------------------------ |
-| 1   | Editable profile (name, username, avatar)                  | [issues/01-editable-profile.md](issues/01-editable-profile.md)                       |
-| 2   | Profile image upload                                       | [issues/02-profile-image-upload.md](issues/02-profile-image-upload.md)               |
-| 3   | Account settings — change password and email               | [issues/03-account-password-email.md](issues/03-account-password-email.md)           |
-| 4   | Delete account                                             | [issues/04-delete-account.md](issues/04-delete-account.md)                           |
-| 5   | Settings route and layout                                  | [issues/05-settings-route-layout.md](issues/05-settings-route-layout.md)             |
-| 6   | Connected sessions and 2FA (optional)                      | [issues/06-sessions-2fa.md](issues/06-sessions-2fa.md)                               |
-| 7   | User preferences (Convex)                                  | [issues/07-user-preferences.md](issues/07-user-preferences.md)                       |
-| 8   | Onboarding — complete profile flow                         | [issues/08-onboarding-complete-profile.md](issues/08-onboarding-complete-profile.md) |
-| 9   | Onboarding checklist                                       | [issues/09-onboarding-checklist.md](issues/09-onboarding-checklist.md)               |
-| 10  | Data export (Download my data)                             | [issues/10-data-export.md](issues/10-data-export.md)                                 |
-| 11  | Activity and stats on profile                              | [issues/11-activity-stats.md](issues/11-activity-stats.md)                           |
-| 12  | Quick actions and help on profile                          | [issues/12-quick-actions-help.md](issues/12-quick-actions-help.md)                   |
-| 13  | Display name vs username and profile visibility (optional) | [issues/13-display-name-visibility.md](issues/13-display-name-visibility.md)         |
-| 14  | Invite / referral (optional)                               | [issues/14-invite-referral.md](issues/14-invite-referral.md)                         |
+| #   | Issue                                                      | Doc                                                                                  | Status  |
+| --- | ---------------------------------------------------------- | ------------------------------------------------------------------------------------ | ------- |
+| 1   | Editable profile (name, username, avatar)                  | [issues/01-editable-profile.md](issues/01-editable-profile.md)                       | Done    |
+| 2   | Profile image upload                                       | [issues/02-profile-image-upload.md](issues/02-profile-image-upload.md)               | Done    |
+| 3   | Account settings — change password and email               | [issues/03-account-password-email.md](issues/03-account-password-email.md)           | Done    |
+| 4   | Delete account                                             | [issues/04-delete-account.md](issues/04-delete-account.md)                           | Done    |
+| 5   | Settings route and layout                                  | [issues/05-settings-route-layout.md](issues/05-settings-route-layout.md)             | Done    |
+| 6   | Connected sessions and 2FA (optional)                      | [issues/06-sessions-2fa.md](issues/06-sessions-2fa.md)                               | Backlog |
+| 7   | User preferences (Convex)                                  | [issues/07-user-preferences.md](issues/07-user-preferences.md)                       | Done    |
+| 8   | Onboarding — complete profile flow                         | [issues/08-onboarding-complete-profile.md](issues/08-onboarding-complete-profile.md) | Done    |
+| 9   | Onboarding checklist                                       | [issues/09-onboarding-checklist.md](issues/09-onboarding-checklist.md)               | Done    |
+| 10  | Data export (Download my data)                             | [issues/10-data-export.md](issues/10-data-export.md)                                 | Done    |
+| 11  | Activity and stats on profile                              | [issues/11-activity-stats.md](issues/11-activity-stats.md)                           | Backlog |
+| 12  | Quick actions and help on profile                          | [issues/12-quick-actions-help.md](issues/12-quick-actions-help.md)                   | Backlog |
+| 13  | Display name vs username and profile visibility (optional) | [issues/13-display-name-visibility.md](issues/13-display-name-visibility.md)         | Backlog |
+| 14  | Invite / referral (optional)                               | [issues/14-invite-referral.md](issues/14-invite-referral.md)                         | Backlog |
 
 ### Recommendation and logging
 
-| #   | Issue                          | Doc                                                                        |
-| --- | ------------------------------ | -------------------------------------------------------------------------- |
-| 15  | Wire recommendation logs in UI | [issues/15-recommendation-logs-ui.md](issues/15-recommendation-logs-ui.md) |
+| #   | Issue                          | Doc                                                                        | Status |
+| --- | ------------------------------ | -------------------------------------------------------------------------- | ------ |
+| 15  | Wire recommendation logs in UI | [issues/15-recommendation-logs-ui.md](issues/15-recommendation-logs-ui.md) | Done   |
 
 ### Documentation and hygiene
 
-| #   | Issue                                                 | Doc                                                                            |
-| --- | ----------------------------------------------------- | ------------------------------------------------------------------------------ |
-| 16  | Update implementation-plan and commit-plan for Convex | [issues/16-update-impl-commit-plans.md](issues/16-update-impl-commit-plans.md) |
+| #   | Issue                                                 | Doc                                                                            | Status                        |
+| --- | ----------------------------------------------------- | ------------------------------------------------------------------------------ | ----------------------------- |
+| 16  | Update implementation-plan and commit-plan for Convex | [issues/16-update-impl-commit-plans.md](issues/16-update-impl-commit-plans.md) | Obsolete (those docs removed) |
 
 ---
 
 ## Further backlog (UX, product, and post-MVP)
 
-| #   | Issue                                                       | Doc                                                                                                                |
-| --- | ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| 17  | Manual weather fallback (city input)                        | [issues/17-weather-manual-fallback.md](issues/17-weather-manual-fallback.md)                                       |
-| 18  | Closet search by name                                       | [issues/18-closet-search.md](issues/18-closet-search.md)                                                           |
-| 19  | Loading states, toasts, and empty state polish              | [issues/19-loading-empty-states.md](issues/19-loading-empty-states.md)                                             |
-| 20  | Swipe gestures on outfit cards                              | [issues/20-swipe-gestures-outfits.md](issues/20-swipe-gestures-outfits.md)                                         |
-| 21  | Score breakdown UI (expand outfit for category scores)      | [issues/21-score-breakdown-ui.md](issues/21-score-breakdown-ui.md)                                                 |
-| 22  | Password reset (forgot password) flow                       | [issues/22-password-reset.md](issues/22-password-reset.md)                                                         |
-| 23  | Storefront integration (optional product suggestions)       | [issues/23-storefront-integration.md](issues/23-storefront-integration.md)                                         |
-| 24  | Outfit calendar (plan outfits for upcoming days)            | [issues/24-outfit-calendar.md](issues/24-outfit-calendar.md)                                                       |
-| 25  | Packing planner (trip capsule wardrobe)                     | [issues/25-packing-planner.md](issues/25-packing-planner.md)                                                       |
-| 26  | AI vision auto-tagging (extract from photo)                 | [issues/26-ai-vision-autotagging.md](issues/26-ai-vision-autotagging.md)                                           |
-| 27  | Learning pipeline (improve scoring from feedback)           | [issues/27-learning-pipeline.md](issues/27-learning-pipeline.md)                                                   |
-| 28  | Accessibility audit and fixes                               | [issues/28-accessibility-audit.md](issues/28-accessibility-audit.md)                                               |
-| 29  | E2E tests for critical flows                                | [issues/29-e2e-tests.md](issues/29-e2e-tests.md)                                                                   |
-| 30  | Garment auto-tagging stub (rules-based defaults)            | [issues/30-garment-autotagging-stub.md](issues/30-garment-autotagging-stub.md)                                     |
-| 31  | Mobile app (React Native / Expo)                            | [issues/31-mobile-app.md](issues/31-mobile-app.md)                                                                 |
-| 32  | Social features (share outfits, community feed)             | [issues/32-social-features.md](issues/32-social-features.md)                                                       |
-| 33  | Style insights + optional storefront/product recommendation | [issues/33-storefront-scraping-product-recommendation.md](issues/33-storefront-scraping-product-recommendation.md) |
+| #   | Issue                                                       | Doc                                                                                                                | Status  |
+| --- | ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ | ------- |
+| 17  | Manual weather fallback (city input)                        | [issues/17-weather-manual-fallback.md](issues/17-weather-manual-fallback.md)                                       | Done    |
+| 18  | Closet search by name                                       | [issues/18-closet-search.md](issues/18-closet-search.md)                                                           | Done    |
+| 19  | Loading states, toasts, and empty state polish              | [issues/19-loading-empty-states.md](issues/19-loading-empty-states.md)                                             | Done    |
+| 20  | Swipe gestures on outfit cards                              | [issues/20-swipe-gestures-outfits.md](issues/20-swipe-gestures-outfits.md)                                         | Backlog |
+| 21  | Score breakdown UI (expand outfit for category scores)      | [issues/21-score-breakdown-ui.md](issues/21-score-breakdown-ui.md)                                                 | Done    |
+| 22  | Password reset (forgot password) flow                       | [issues/22-password-reset.md](issues/22-password-reset.md)                                                         | Done    |
+| 23  | Storefront integration (optional product suggestions)       | [issues/23-storefront-integration.md](issues/23-storefront-integration.md)                                         | Backlog |
+| 24  | Outfit calendar (plan outfits for upcoming days)            | [issues/24-outfit-calendar.md](issues/24-outfit-calendar.md)                                                       | Backlog |
+| 25  | Packing planner (trip capsule wardrobe)                     | [issues/25-packing-planner.md](issues/25-packing-planner.md)                                                       | Backlog |
+| 26  | AI vision auto-tagging (extract from photo)                 | [issues/26-ai-vision-autotagging.md](issues/26-ai-vision-autotagging.md)                                           | Backlog |
+| 27  | Learning pipeline (improve scoring from feedback)           | [issues/27-learning-pipeline.md](issues/27-learning-pipeline.md)                                                   | Backlog |
+| 28  | Accessibility audit and fixes                               | [issues/28-accessibility-audit.md](issues/28-accessibility-audit.md)                                               | Backlog |
+| 29  | E2E tests for critical flows                                | [issues/29-e2e-tests.md](issues/29-e2e-tests.md)                                                                   | Backlog |
+| 30  | Garment auto-tagging stub (rules-based defaults)            | [issues/30-garment-autotagging-stub.md](issues/30-garment-autotagging-stub.md)                                     | Backlog |
+| 31  | Mobile app (React Native / Expo)                            | [issues/31-mobile-app.md](issues/31-mobile-app.md)                                                                 | Backlog |
+| 32  | Social features (share outfits, community feed)             | [issues/32-social-features.md](issues/32-social-features.md)                                                       | Backlog |
+| 33  | Style insights + optional storefront/product recommendation | [issues/33-storefront-scraping-product-recommendation.md](issues/33-storefront-scraping-product-recommendation.md) | Backlog |
 
 ---
 

@@ -22,17 +22,17 @@
 
 ## 2. Core User Flows
 
-| Flow                 | Steps                                                                                                    | Status                                       |
-| -------------------- | -------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
-| **Sign up / Log in** | Signup (email + password + username) → email verification → login → redirect to home                     | ✅ Implemented                               |
-| **Add garments**     | Go to Add → fill form (name, category, color, season, material, photo) → upload → garment in closet      | ✅ Implemented                               |
-| **Browse closet**    | Closet page → grid of garments; filter by category/season                                                | ✅ Implemented                               |
-| **Get outfit ideas** | Home (Today) → set mood + weather (auto or manual) → Generate → see scored outfit cards with explanation | ✅ Implemented                               |
-| **Save outfit**      | On outfit card → Save → outfit persisted to Convex; appears in Archive                                   | ✅ Implemented                               |
-| **View archive**     | Archive page → list of saved outfits with “I wore this”                                                  | ✅ Implemented (logging not wired)           |
-| **Style insights**   | Home → after outfits, see gaps / complete-the-look / style tips                                          | ✅ Implemented                               |
-| **Profile**          | Profile page → read-only name, username, email, wardrobe stats; Settings sub-route                       | ✅ Implemented (editable profile in backlog) |
-| **Onboarding**       | Stub page only; full “complete profile” flow in backlog                                                  | ⚠️ Stub only                                 |
+| Flow                 | Steps                                                                                                                                                    | Status         |
+| -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------- |
+| **Sign up / Log in** | Signup (email + password + username) → email verification → login → redirect to home                                                                     | ✅ Implemented |
+| **Add garments**     | Go to Add → fill form (name, category, color, season, material, photo) → upload → garment in closet                                                      | ✅ Implemented |
+| **Browse closet**    | Closet page → grid of garments; filter by category/season                                                                                                | ✅ Implemented |
+| **Get outfit ideas** | Home (Today) → set mood + weather (auto or manual) → Generate → see scored outfit cards with explanation                                                 | ✅ Implemented |
+| **Save outfit**      | On outfit card → Save → outfit persisted to Convex; appears in Archive                                                                                   | ✅ Implemented |
+| **View archive**     | Archive page → list of saved outfits with “I wore this”                                                                                                  | ✅ Implemented |
+| **Style insights**   | Home → after outfits, see gaps / complete-the-look / style tips                                                                                          | ✅ Implemented |
+| **Profile**          | Profile page: editable name, username, bio, avatar; preferences; Settings (password, email, export, delete)                                              | ✅ Implemented |
+| **Onboarding**       | Multi-step wizard at /onboarding; redirect until complete; skip option. Replaces: stub only; full “complete profile” flow in backlog — now implemented.) | ✅ Implemented |
 
 ---
 
@@ -106,13 +106,10 @@ External: Open-Meteo (weather), Google Vision (optional), Resend (email), retail
 ## 5. Limitations or Missing Capabilities
 
 - **Recommendation logging:** Wired in UI (shown/saved/skipped/worn). Learning pipeline (Phase 4) can use logs.
-- **Onboarding:** Only a stub; no guided “complete profile” or checklist flow.
-- **Profile/settings:** Editable profile (name, username, avatar), change password/email, delete account, sessions/2FA are in issue docs but not implemented.
-- **UX polish:** Loading skeletons, Sonner toasts, and empty states with CTAs are implemented (Phase 1).
-- **Password reset:** Forgot-password flow implemented (Phase 1).
-- **Closet search:** No search-by-name (issue #18).
-- **Weather fallback:** Manual city input when geolocation denied is implemented (Phase 1).
-- **Score breakdown UI:** Implemented (Phase 1): API returns scoreBreakdown; outfit card "See why" expandable.
+- **Onboarding:** Multi-step wizard implemented; redirect guard and skip option “complete profile” or checklist flow.
+- **Profile/settings:** Editable profile, avatar, user preferences, change password/email, delete account, data export implemented. Sessions/2FA remain backlog.
+- **UX polish:** Loading skeletons, Sonner toasts, empty states, password reset, manual weather fallback, score breakdown UI implemented.
+- **Closet search:** Debounced search by name on closet page implemented.
 - **Storefront:** Product suggestions require provider config; not on home by default; Amazon PA-API deprecated 2026.
 - **E2E tests:** Not implemented (issue #29).
 - **Accessibility:** Audit and fixes in backlog (issue #28).
