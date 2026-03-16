@@ -10,11 +10,13 @@ import { useRequireAuth } from "@/hooks/use-require-auth";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@convex/_generated/api";
 import type { Doc, Id } from "@convex/_generated/dataModel";
-import type { Mood, WeatherCondition } from "@shared/types";
+import type { Mood, WeatherCondition, ScoreBreakdown } from "@shared/types";
 import { MOCK_CLOSET_ITEMS } from "@shared/data/mock-closet";
 import { UserAvatar } from "@/components/user-avatar";
 import { MoodSelectModal } from "@/components/mood-select-modal";
 import { animateShuffleGrid, staggerFadeInContainer } from "@/lib/animations";
+import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "sonner";
 
 /** Display shape for one garment in the recommendation grid (from Convex doc + UI fields). */
 export interface DisplayGarment {
@@ -41,6 +43,7 @@ export interface DisplayOutfit {
   contextMood?: Mood;
   contextWeather?: WeatherCondition;
   contextTemperature?: number;
+  scoreBreakdown?: ScoreBreakdown;
 }
 
 function codeToWeatherLabel(
@@ -119,6 +122,9 @@ export default function Home() {
   );
   const [tempUnit, setTempUnit] = useState<"F" | "C">("F");
   const [lastFetched, setLastFetched] = useState<string | null>(null);
+  // Manual weather fallback when geolocation is denied or fails
+  const [cityInput, setCityInput] = useState("");
+  const [weatherCityLoading, setWeatherCityLoading] = useState(false);
 
   // Select mode for Save Look (same UI as closet: multi-select options)
   const [isSelectMode, setIsSelectMode] = useState(false);
@@ -161,7 +167,12 @@ export default function Home() {
     [outfitIdsKey]
   );
 
-  const { outfits, loading, generate } = useOutfitRecommendations({
+  const {
+    outfits,
+    loading,
+    error: recommendationError,
+    generate,
+  } = useOutfitRecommendations({
     userId,
     mood,
     weather: weather ?? "cloudy",
@@ -213,6 +224,63 @@ export default function Home() {
       }
     );
   }, []); // Run once on mount — unit toggle just converts displayTemp client-side
+
+  const fetchWeatherByCity = async () => {
+    const city = cityInput.trim();
+    if (!city || city.length < 2) return;
+    setWeatherCityLoading(true);
+    try {
+      const geoRes = await fetch(
+        `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1`
+      );
+      if (!geoRes.ok) throw new Error("City lookup failed");
+      const geoData = await geoRes.json();
+      const results = geoData?.results;
+      if (!results?.length) {
+        toast.error("City not found. Try another name.");
+        return;
+      }
+      const { latitude, longitude } = results[0];
+      const url =
+        `https://api.open-meteo.com/v1/forecast` +
+        `?latitude=${latitude}&longitude=${longitude}` +
+        `&current=temperature_2m,weather_code`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error("Weather request failed");
+      const data = await res.json();
+      const temp = data?.current?.temperature_2m;
+      const code = data?.current?.weather_code;
+      setLastFetched(new Date().toISOString());
+      if (typeof temp === "number") setTemperatureCelsius(Math.round(temp));
+      if (typeof code === "number") setWeather(codeToWeatherLabel(code));
+      setLocationError(null);
+      if (typeof localStorage !== "undefined") {
+        localStorage.setItem("outfai_last_weather_city", city);
+      }
+      toast.success(`Weather set for ${city}`);
+    } catch (e) {
+      toast.error(
+        e instanceof Error ? e.message : "Could not get weather for that city"
+      );
+    } finally {
+      setWeatherCityLoading(false);
+    }
+  };
+
+  // Pre-fill city from localStorage when location is off
+  useEffect(() => {
+    if (locationError && !cityInput && typeof localStorage !== "undefined") {
+      const last = localStorage.getItem("outfai_last_weather_city");
+      if (last) setCityInput(last);
+    }
+  }, [locationError]);
+
+  // Toast when recommendation API fails
+  useEffect(() => {
+    if (recommendationError) {
+      toast.error(recommendationError);
+    }
+  }, [recommendationError]);
 
   // Seed the closet with mock items on the user's first visit (empty closet).
   useEffect(() => {
@@ -344,6 +412,7 @@ export default function Home() {
         contextMood: mood,
         contextWeather: weather ?? undefined,
         contextTemperature: temperatureCelsius ?? undefined,
+        scoreBreakdown: outfit.scoreBreakdown,
       };
     });
     setAllRecommendedOutfits(convertedOutfits);
@@ -454,6 +523,13 @@ export default function Home() {
       setSavedOutfitId("done");
       setSelectedOptionIndices(new Set());
       setIsSelectMode(false);
+      toast.success(
+        selectedOptionIndices.size === 1
+          ? "Outfit saved"
+          : `${selectedOptionIndices.size} outfits saved`
+      );
+    } catch {
+      toast.error("Could not save. Try again.");
     } finally {
       setIsSaving(false);
     }
@@ -543,7 +619,7 @@ export default function Home() {
               </h2>
             </button>
             {/* Weather context - below mood */}
-            <div className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-background/60 px-3 py-1 text-[10px] uppercase tracking-[0.28em] text-muted-foreground backdrop-blur w-fit">
+            <div className="inline-flex flex-wrap items-center gap-2 rounded-full border border-border/60 bg-background/60 px-3 py-1 text-[10px] uppercase tracking-[0.28em] text-muted-foreground backdrop-blur w-fit">
               <span
                 className={`h-1.5 w-1.5 rounded-full ${locationError ? "bg-destructive" : "bg-acid-lime"}`}
               />
@@ -552,8 +628,29 @@ export default function Home() {
                   <span className="text-foreground/80">Location off</span>
                   <span className="opacity-40">·</span>
                   <span className="normal-case tracking-normal text-muted-foreground">
-                    ENABLE LOCATION, THEN REFRESH
+                    Enter city
                   </span>
+                  <input
+                    type="text"
+                    value={cityInput}
+                    onChange={(e) => setCityInput(e.target.value)}
+                    placeholder="e.g. London"
+                    className="ml-1 w-28 rounded border border-border/60 bg-background/80 px-2 py-0.5 text-[10px] normal-case text-foreground placeholder:text-muted-foreground outline-none focus:border-signal-orange/50"
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        fetchWeatherByCity();
+                      }
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => fetchWeatherByCity()}
+                    disabled={weatherCityLoading || cityInput.trim().length < 2}
+                    className="rounded border border-border/60 bg-background/80 px-2 py-0.5 text-[9px] uppercase tracking-wider text-foreground hover:border-signal-orange/50 disabled:opacity-50"
+                  >
+                    {weatherCityLoading ? "…" : "Use"}
+                  </button>
                 </>
               ) : (
                 <>
@@ -687,7 +784,16 @@ export default function Home() {
 
         {/* Recommendation Grid */}
         <section className="mb-16 md:mb-24">
-          {recommendedOutfit && recommendedOutfit.length > 0 ? (
+          {loading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 lg:gap-8">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <Skeleton
+                  key={i}
+                  className="aspect-square w-full rounded-none border border-border"
+                />
+              ))}
+            </div>
+          ) : recommendedOutfit && recommendedOutfit.length > 0 ? (
             <div
               ref={recommendationGridRef}
               className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 lg:gap-8 transition-opacity duration-100 ${
@@ -706,6 +812,7 @@ export default function Home() {
                       contextMood={outfit.contextMood}
                       contextWeather={outfit.contextWeather}
                       contextTemperature={outfit.contextTemperature}
+                      scoreBreakdown={outfit.scoreBreakdown}
                       isSelectMode={isSelectMode}
                       isSelected={selectedOptionIndices.has(index)}
                       onToggleSelect={() => toggleOptionIndex(index)}

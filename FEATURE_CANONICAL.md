@@ -19,7 +19,7 @@
 | User preferences UI                                       | Backlog | docs/issues/07, FEATURE_EXPANSION §2, Phase 2                                                                     |
 | Editable profile (name, username, avatar)                 | Backlog | docs/issues/01, 02, FEATURE_EXPANSION §4, Phase 2                                                                 |
 | Onboarding (complete profile + checklist)                 | Backlog | docs/issues/08, 09, FEATURE_EXPANSION §3, Phase 2                                                                 |
-| Password reset                                            | Backlog | docs/issues/22, FEATURE_EXPANSION §5, Phase 1                                                                     |
+| Password reset                                            | Shipped | apps/web/app/forgot-password, reset-password, login link; convex/auth.ts sendResetPassword                        |
 | Delete account                                            | Backlog | docs/issues/04, FEATURE_EXPANSION §12, Phase 2                                                                    |
 | Data export                                               | Backlog | docs/issues/10, FEATURE_EXPANSION §6, Phase 2                                                                     |
 | Account settings (password, email)                        | Backlog | docs/issues/03, Phase 2                                                                                           |
@@ -29,15 +29,15 @@
 
 ## Recommendations and intelligence
 
-| Feature                                                  | Status  | Doc / implementation                                            |
-| -------------------------------------------------------- | ------- | --------------------------------------------------------------- |
-| Rule-based scoring (color, mood, diversity, preferences) | Shipped | server/services/outfitRecommendationService.ts, shared/types    |
-| Explainable explanation per outfit                       | Shipped | Same service, returned in API and UI                            |
-| Score breakdown UI (expand for category scores)          | Backlog | docs/issues/21, FEATURE_EXPANSION §9, Phase 1                   |
-| Learning pipeline (improve from feedback)                | Backlog | docs/issues/27, FEATURE_EXPANSION §14, Phase 4                  |
-| Garment default tags (rules)                             | Shipped | shared/garment-default-tags, convex/garments create             |
-| Garment auto-tagging stub in UI                          | Backlog | docs/issues/30, FEATURE_EXPANSION §15, Phase 4                  |
-| AI vision auto-tagging                                   | Backlog | docs/issues/26, FEATURE_EXPANSION §13, Phase 4; API stub exists |
+| Feature                                                  | Status  | Doc / implementation                                                                           |
+| -------------------------------------------------------- | ------- | ---------------------------------------------------------------------------------------------- |
+| Rule-based scoring (color, mood, diversity, preferences) | Shipped | server/services/outfitRecommendationService.ts, shared/types                                   |
+| Explainable explanation per outfit                       | Shipped | Same service, returned in API and UI                                                           |
+| Score breakdown UI (expand for category scores)          | Shipped | outfitRecommendationService scoreBreakdown; outfit card "See why"; shared/types ScoreBreakdown |
+| Learning pipeline (improve from feedback)                | Backlog | docs/issues/27, FEATURE_EXPANSION §14, Phase 4                                                 |
+| Garment default tags (rules)                             | Shipped | shared/garment-default-tags, convex/garments create                                            |
+| Garment auto-tagging stub in UI                          | Backlog | docs/issues/30, FEATURE_EXPANSION §15, Phase 4                                                 |
+| AI vision auto-tagging                                   | Backlog | docs/issues/26, FEATURE_EXPANSION §13, Phase 4; API stub exists                                |
 
 ---
 
@@ -56,17 +56,17 @@
 
 ## UX and infrastructure
 
-| Feature                              | Status  | Doc / implementation                           |
-| ------------------------------------ | ------- | ---------------------------------------------- |
-| Loading states, toasts, empty states | Partial | docs/issues/19, Phase 1                        |
-| Manual weather fallback (city)       | Backlog | docs/issues/17, FEATURE_EXPANSION §8, Phase 1  |
-| Activity/stats on profile            | Backlog | docs/issues/11, FEATURE_EXPANSION §20, Phase 3 |
-| Outfit calendar                      | Backlog | docs/issues/24, FEATURE_EXPANSION §10, Phase 3 |
-| Packing planner                      | Backlog | docs/issues/25, FEATURE_EXPANSION §11, Phase 3 |
-| E2E tests                            | Backlog | docs/issues/29, Phase 3                        |
-| Accessibility audit                  | Backlog | docs/issues/28, Phase 3                        |
-| Weather API caching                  | Backlog | FEATURE_EXPANSION §18, Phase 3                 |
-| Recommendation digest (email)        | Backlog | FEATURE_EXPANSION §16, Phase 4                 |
+| Feature                              | Status  | Doc / implementation                                                                                   |
+| ------------------------------------ | ------- | ------------------------------------------------------------------------------------------------------ |
+| Loading states, toasts, empty states | Shipped | Sonner in layout; closet skeleton/empty/toasts; home skeleton/toasts; docs/issues/19                   |
+| Manual weather fallback (city)       | Shipped | authenticated-home city input; Open-Meteo geocoding + forecast; localStorage last city; docs/issues/17 |
+| Activity/stats on profile            | Backlog | docs/issues/11, FEATURE_EXPANSION §20, Phase 3                                                         |
+| Outfit calendar                      | Backlog | docs/issues/24, FEATURE_EXPANSION §10, Phase 3                                                         |
+| Packing planner                      | Backlog | docs/issues/25, FEATURE_EXPANSION §11, Phase 3                                                         |
+| E2E tests                            | Backlog | docs/issues/29, Phase 3                                                                                |
+| Accessibility audit                  | Backlog | docs/issues/28, Phase 3                                                                                |
+| Weather API caching                  | Backlog | FEATURE_EXPANSION §18, Phase 3                                                                         |
+| Recommendation digest (email)        | Backlog | FEATURE_EXPANSION §16, Phase 4                                                                         |
 
 ---
 

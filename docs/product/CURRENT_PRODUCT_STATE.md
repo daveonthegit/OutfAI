@@ -55,7 +55,7 @@
 
 - **OutfitRecommendationService** (server): filter by context → generate candidates → score (color harmony, mood, diversity, user preferences) → rank; min score 60.
 - **POST /api/recommendations**: accepts userId, mood, weather, temperature, garments; returns outfits + explanation. Client uses `useOutfitRecommendations` and passes garments from Convex.
-- Convex: `outfits.list`, `save`, `remove`. Recommendation logs: `recommendationLogs.log` mutation exists but **is not called from the UI** (issue #15).
+- Convex: `outfits.list`, `save`, `remove`. Recommendation logs: `recommendationLogs.log` is **called from the UI** (Today: shown/saved/skipped; Archive: worn).
 
 ### Style Insights
 
@@ -105,14 +105,14 @@ External: Open-Meteo (weather), Google Vision (optional), Resend (email), retail
 
 ## 5. Limitations or Missing Capabilities
 
-- **Recommendation logging:** `recommendationLogs.log` is never called from the frontend (shown/saved/skipped/worn). No analytics or learning from feedback yet.
+- **Recommendation logging:** Wired in UI (shown/saved/skipped/worn). Learning pipeline (Phase 4) can use logs.
 - **Onboarding:** Only a stub; no guided “complete profile” or checklist flow.
 - **Profile/settings:** Editable profile (name, username, avatar), change password/email, delete account, sessions/2FA are in issue docs but not implemented.
-- **UX polish:** Loading skeletons, consistent toasts, empty states with CTAs, and friendly error handling are partially done (issue #19).
-- **Password reset:** Forgot-password flow not implemented (issue #22).
+- **UX polish:** Loading skeletons, Sonner toasts, and empty states with CTAs are implemented (Phase 1).
+- **Password reset:** Forgot-password flow implemented (Phase 1).
 - **Closet search:** No search-by-name (issue #18).
-- **Weather fallback:** Manual city input when geolocation denied is in backlog (issue #17).
-- **Score breakdown UI:** Expand outfit for category-level scores (issue #21); data exists in service.
+- **Weather fallback:** Manual city input when geolocation denied is implemented (Phase 1).
+- **Score breakdown UI:** Implemented (Phase 1): API returns scoreBreakdown; outfit card "See why" expandable.
 - **Storefront:** Product suggestions require provider config; not on home by default; Amazon PA-API deprecated 2026.
 - **E2E tests:** Not implemented (issue #29).
 - **Accessibility:** Audit and fixes in backlog (issue #28).

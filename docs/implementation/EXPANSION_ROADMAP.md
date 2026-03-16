@@ -20,6 +20,8 @@ Focus: Close the recommendation loop, improve trust and safety, and fix high-imp
 
 **Exit criteria for Phase 1:** Recommendation loop is closed (logs in Convex); users can reset password; main flows have loading/empty states and toasts; users can see score breakdown and set weather by city.
 
+**Status (implemented):** All five Phase 1 items are complete. See [PHASE_1_SUMMARY.md](./PHASE_1_SUMMARY.md).
+
 ---
 
 ## Phase 2 — Product Expansion

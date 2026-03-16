@@ -13,6 +13,8 @@ export const NO_NAV_ROUTES = [
   "/signup",
   "/check-email",
   "/verify-email",
+  "/forgot-password",
+  "/reset-password",
 ] as const;
 
 export type NoNavRoute = (typeof NO_NAV_ROUTES)[number];

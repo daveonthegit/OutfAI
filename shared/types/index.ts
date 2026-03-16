@@ -48,6 +48,18 @@ export interface Garment {
   createdAt: Date;
 }
 
+/** Per-category score breakdown for explainability (Phase 1). */
+export interface ScoreBreakdown {
+  base: number;
+  colorHarmony: number;
+  moodAlignment: number;
+  styleCoherence: number;
+  occasionMatching: number;
+  versatility: number;
+  diversity: number;
+  preferences: number;
+}
+
 export interface Outfit {
   id: string;
   userId: string;
@@ -56,6 +68,8 @@ export interface Outfit {
   contextMood?: Mood;
   explanation: string;
   score: number;
+  /** Optional per-category breakdown when returned from recommendation API. */
+  scoreBreakdown?: ScoreBreakdown;
   createdAt: Date;
 }
 

@@ -385,6 +385,15 @@ function LoginForm() {
                       </div>
                     </form>
 
+                    <div className="mt-4 text-center">
+                      <Link
+                        href="/forgot-password"
+                        className="text-xs uppercase tracking-[0.18em] text-[rgba(242,236,227,0.6)] transition-colors duration-150 hover:text-[rgba(214,188,140,0.96)] sm:text-sm"
+                      >
+                        Forgot password?
+                      </Link>
+                    </div>
+
                     <div className="mt-5 flex items-center gap-2">
                       <div className="h-px flex-1 bg-white/[0.08]" />
                       <span className="px-2 text-xs uppercase tracking-[0.22em] text-[rgba(210,194,167,0.32)]">
