@@ -24,6 +24,8 @@ interface OutfitRecommendationCardProps {
   isSelectMode?: boolean;
   isSelected?: boolean;
   onToggleSelect?: () => void;
+  /** When provided, show Skip button; on click log "skipped" and hide card (caller handles state). */
+  onSkip?: () => void;
 }
 
 export function OutfitRecommendationCard({
@@ -36,11 +38,18 @@ export function OutfitRecommendationCard({
   isSelectMode = false,
   isSelected = false,
   onToggleSelect,
+  onSkip,
 }: OutfitRecommendationCardProps) {
   const router = useRouter();
-  const cardRef = useRef<HTMLButtonElement>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
 
   if (garments.length === 0) return null;
+
+  const handleSkip = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onSkip?.();
+  };
 
   const handleClick = () => {
     if (isSelectMode && onToggleSelect) {
@@ -63,48 +72,64 @@ export function OutfitRecommendationCard({
   };
 
   return (
-    <button
+    <div
       ref={cardRef}
-      type="button"
-      onClick={handleClick}
+      className="relative w-full aspect-square border border-border bg-card hover:bg-secondary/50 transition-colors duration-200 group overflow-hidden text-left origin-center"
+      style={{ transformOrigin: "center center" }}
       onMouseEnter={() =>
         cardRef.current && animateCardHoverIn(cardRef.current)
       }
       onMouseLeave={() =>
         cardRef.current && animateCardHoverOut(cardRef.current)
       }
-      className="relative w-full aspect-square border border-border bg-card hover:bg-secondary/50 transition-colors duration-200 group overflow-hidden text-left origin-center"
-      style={{ transformOrigin: "center center" }}
     >
-      {/* Overlay composition preview - show first item or grid preview */}
-      <div className="w-full h-full relative">
-        {garments.length === 1 ? (
-          // Single item - show it large
-          <Image
-            src={garments[0].src || "/placeholder.svg"}
-            alt={garments[0].name}
-            fill
-            className={`object-cover ${isSelectMode && isSelected ? "brightness-75" : ""}`}
-          />
-        ) : (
-          // Multiple items - show grid preview
-          <div className="grid grid-cols-2 w-full h-full">
-            {garments.slice(0, 4).map((garment, idx) => (
-              <div
-                key={idx}
-                className="relative bg-secondary border-l border-t border-border"
-              >
-                <Image
-                  src={garment.src || "/placeholder.svg"}
-                  alt={garment.name}
-                  fill
-                  className={`object-cover ${isSelectMode && isSelected ? "brightness-75" : ""}`}
-                />
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+      <button
+        type="button"
+        onClick={handleClick}
+        className="absolute inset-0 w-full h-full flex flex-col text-left"
+      >
+        {/* Overlay composition preview - show first item or grid preview */}
+        <div className="w-full h-full relative flex-1 min-h-0">
+          {garments.length === 1 ? (
+            // Single item - show it large
+            <Image
+              src={garments[0].src || "/placeholder.svg"}
+              alt={garments[0].name}
+              fill
+              className={`object-cover ${isSelectMode && isSelected ? "brightness-75" : ""}`}
+            />
+          ) : (
+            // Multiple items - show grid preview
+            <div className="grid grid-cols-2 w-full h-full">
+              {garments.slice(0, 4).map((garment, idx) => (
+                <div
+                  key={idx}
+                  className="relative bg-secondary border-l border-t border-border"
+                >
+                  <Image
+                    src={garment.src || "/placeholder.svg"}
+                    alt={garment.name}
+                    fill
+                    className={`object-cover ${isSelectMode && isSelected ? "brightness-75" : ""}`}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </button>
+
+      {/* Skip button - when not in select mode (outside main button to avoid nested buttons) */}
+      {!isSelectMode && onSkip && (
+        <button
+          type="button"
+          onClick={handleSkip}
+          className="absolute top-2 left-2 z-10 p-1.5 bg-background/80 border border-border hover:border-foreground hover:text-foreground transition-colors text-[9px] uppercase tracking-widest"
+          aria-label="Skip this outfit"
+        >
+          Skip
+        </button>
+      )}
 
       {/* Selection checkbox overlay - same as closet */}
       {isSelectMode && (
@@ -138,8 +163,8 @@ export function OutfitRecommendationCard({
         <div className="absolute inset-0 border-2 border-signal-orange pointer-events-none" />
       )}
 
-      {/* Info Overlay */}
-      <div className="absolute bottom-0 left-0 right-0 bg-background/95 px-4 py-4 translate-y-full group-hover:translate-y-0 transition-transform duration-200">
+      {/* Info Overlay - inside clickable area via sibling so overlay is still visible */}
+      <div className="absolute bottom-0 left-0 right-0 bg-background/95 px-4 py-4 translate-y-full group-hover:translate-y-0 transition-transform duration-200 pointer-events-none">
         <p className="text-[11px] uppercase tracking-widest text-foreground mb-2">
           {label}
         </p>
@@ -157,8 +182,8 @@ export function OutfitRecommendationCard({
 
       {/* Accent line on hover (only when not in select mode) */}
       {!isSelectMode && (
-        <div className="absolute top-0 left-0 w-0.5 h-full bg-signal-orange opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+        <div className="absolute top-0 left-0 w-0.5 h-full bg-signal-orange opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none" />
       )}
-    </button>
+    </div>
   );
 }

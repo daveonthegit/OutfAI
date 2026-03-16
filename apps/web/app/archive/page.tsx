@@ -66,11 +66,27 @@ export default function ArchivePage() {
     | OutfitWithGarments[]
     | undefined;
   const removeOutfit = useMutation(api.outfits.remove);
+  const logRecommendation = useMutation(api.recommendationLogs.log);
 
   const handleRemove = async (id: Id<"outfits">, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     await removeOutfit({ id });
+  };
+
+  const handleWoreThis = async (
+    outfit: OutfitWithGarments,
+    e: React.MouseEvent
+  ) => {
+    e.preventDefault();
+    e.stopPropagation();
+    await logRecommendation({
+      action: "worn",
+      outfitId: outfit._id,
+      garmentIds: outfit.garmentIds.map(String),
+      mood: outfit.contextMood,
+      weather: outfit.contextWeather,
+    }).catch(console.error);
   };
 
   useEffect(() => {
@@ -198,14 +214,22 @@ export default function ArchivePage() {
                     transition: "opacity 100ms",
                   }}
                 >
-                  {/* Remove button - same z as overlay */}
+                  {/* I wore this + Remove - same z as overlay */}
                   {isHovered && (
-                    <button
-                      onClick={(e) => handleRemove(outfit._id, e)}
-                      className="absolute top-2 right-2 z-20 p-1.5 bg-background/80 border border-border hover:border-destructive hover:text-destructive transition-colors text-[9px] uppercase tracking-widest"
-                    >
-                      Remove
-                    </button>
+                    <div className="absolute top-2 right-2 left-2 z-20 flex justify-between gap-2">
+                      <button
+                        onClick={(e) => handleWoreThis(outfit, e)}
+                        className="p-1.5 bg-background/80 border border-border hover:border-signal-orange hover:text-signal-orange transition-colors text-[9px] uppercase tracking-widest"
+                      >
+                        I wore this
+                      </button>
+                      <button
+                        onClick={(e) => handleRemove(outfit._id, e)}
+                        className="p-1.5 bg-background/80 border border-border hover:border-destructive hover:text-destructive transition-colors text-[9px] uppercase tracking-widest"
+                      >
+                        Remove
+                      </button>
+                    </div>
                   )}
 
                   {/* Clickable area: same square layout as recommendation options */}
