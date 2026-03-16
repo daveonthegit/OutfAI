@@ -1,6 +1,6 @@
 # OutfAI
 
-**Wardrobe-first outfit intelligence.** OutfAI helps you decide what to wear by generating context-aware outfits from your own closet—using mood and weather—with optional, explainable suggestions for new pieces that fit what you already own.
+**Wardrobe-first outfit intelligence.** Deploys from `main` via Vercel. OutfAI helps you decide what to wear by generating context-aware outfits from your own closet—using mood and weather—with optional, explainable suggestions for new pieces that fit what you already own.
 
 ---
 
