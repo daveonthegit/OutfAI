@@ -527,9 +527,23 @@ export default function Home() {
       <div className="pt-24 md:pt-32 px-4 md:px-8 lg:px-12 pb-28">
         {/* Hero Typography */}
         <section className="mb-16 md:mb-24 lg:mb-32">
-          <div className="max-w-4xl">
-            {/* Weather context - small, peripheral */}
-            <div className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-background/60 px-3 py-1 text-[10px] uppercase tracking-[0.28em] text-muted-foreground mb-6 md:mb-8 backdrop-blur">
+          <div className="max-w-4xl flex flex-col gap-6 md:gap-8">
+            {/* Mood line - oversized editorial; click opens mood modal */}
+            <button
+              type="button"
+              onClick={() => setMoodModalOpen(true)}
+              className="text-left group focus:outline-none focus-visible:ring-2 focus-visible:ring-signal-orange focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-sm w-fit"
+              aria-label="Change mood"
+            >
+              <h2 className="font-serif text-4xl sm:text-5xl md:text-7xl lg:text-8xl italic text-foreground leading-[0.9] tracking-tight mb-0">
+                today feels
+              </h2>
+              <h2 className="font-serif text-4xl sm:text-5xl md:text-7xl lg:text-8xl italic text-signal-orange leading-[0.9] tracking-tight group-hover:underline underline-offset-2">
+                {mood}
+              </h2>
+            </button>
+            {/* Weather context - below mood */}
+            <div className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-background/60 px-3 py-1 text-[10px] uppercase tracking-[0.28em] text-muted-foreground backdrop-blur w-fit">
               <span
                 className={`h-1.5 w-1.5 rounded-full ${locationError ? "bg-destructive" : "bg-acid-lime"}`}
               />
@@ -586,20 +600,6 @@ export default function Home() {
                 </>
               )}
             </div>
-            {/* Mood line - oversized editorial; click opens mood modal */}
-            <button
-              type="button"
-              onClick={() => setMoodModalOpen(true)}
-              className="text-left group focus:outline-none focus-visible:ring-2 focus-visible:ring-signal-orange focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-sm"
-              aria-label="Change mood"
-            >
-              <h2 className="font-serif text-4xl sm:text-5xl md:text-7xl lg:text-8xl italic text-foreground leading-[0.9] tracking-tight mb-0">
-                today feels
-              </h2>
-              <h2 className="font-serif text-4xl sm:text-5xl md:text-7xl lg:text-8xl italic text-signal-orange leading-[0.9] tracking-tight group-hover:underline underline-offset-2">
-                {mood}
-              </h2>
-            </button>
           </div>
         </section>
 
