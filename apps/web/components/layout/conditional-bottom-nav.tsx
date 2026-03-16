@@ -1,17 +1,35 @@
 "use client";
 
 import { usePathname } from "next/navigation";
+import { useConvexAuth } from "convex/react";
 import { BottomNav } from "@/components/bottom-nav";
-import { isNoNavRoute } from "@/lib/routes";
+import { normalizePathname } from "@/lib/routes";
+
+const AUTH_ONLY_NO_NAV = [
+  "/login",
+  "/signup",
+  "/check-email",
+  "/verify-email",
+] as const;
 
 /**
- * Renders the bottom nav on app routes and hides it on landing + auth routes.
- * Uses shared NO_NAV_ROUTES (via isNoNavRoute) and normalizes pathname (e.g. trailing slash).
+ * Renders the bottom nav on app routes and hides it on landing (when signed out) + auth routes.
+ * On "/", nav is shown when authenticated so users can navigate from Today to Closet, etc.
  */
 export function ConditionalBottomNav() {
   const pathname = usePathname();
+  const { isAuthenticated } = useConvexAuth();
+  const normalized = normalizePathname(pathname);
 
-  if (isNoNavRoute(pathname)) {
+  // Always hide on auth pages
+  if (
+    AUTH_ONLY_NO_NAV.includes(normalized as (typeof AUTH_ONLY_NO_NAV)[number])
+  ) {
+    return null;
+  }
+
+  // On home "/", only hide when signed out (landing page)
+  if (normalized === "/" && !isAuthenticated) {
     return null;
   }
 
