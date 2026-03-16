@@ -116,7 +116,7 @@ export function BottomNav() {
   const isDark = resolvedTheme === "dark";
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background border-t border-border">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background border-t border-border lg:hidden">
       <div className="flex items-center justify-between px-2 md:px-4">
         {/* Nav items */}
         <div className="flex items-center justify-around flex-1">

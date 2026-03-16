@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { Inter, Instrument_Serif } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { ThemeProvider } from "@/components/theme-provider";
+import { ConditionalAppShell } from "@/components/layout/conditional-app-shell";
 import { ConditionalBottomNav } from "@/components/layout/conditional-bottom-nav";
 import { Providers } from "@/components/providers";
 import { PageTransition } from "@/components/page-transition";
@@ -48,7 +49,9 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
-            <PageTransition>{children}</PageTransition>
+            <ConditionalAppShell>
+              <PageTransition>{children}</PageTransition>
+            </ConditionalAppShell>
             <ConditionalBottomNav />
             <Toaster richColors position="bottom-center" />
           </ThemeProvider>
