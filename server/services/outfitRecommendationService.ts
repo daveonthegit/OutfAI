@@ -1,12 +1,12 @@
 import {
   Garment,
-  Outfit,
   RecommendationInput,
   RecommendationOutput,
   Mood,
   WeatherCondition,
   GarmentCategory,
   UserStylePreferences,
+  ScoreBreakdown,
 } from "../../shared/types";
 
 /**
@@ -35,6 +35,7 @@ interface OutfitCandidate {
   garmentIds: string[];
   score: number;
   reasons: string[];
+  scoreBreakdown?: ScoreBreakdown;
 }
 
 export class OutfitRecommendationService {
@@ -101,6 +102,7 @@ export class OutfitRecommendationService {
       contextMood: input.mood,
       explanation: candidate.reasons.join(" • "),
       score: candidate.score,
+      scoreBreakdown: candidate.scoreBreakdown,
       createdAt: new Date(),
     }));
 
@@ -255,13 +257,18 @@ export class OutfitRecommendationService {
           const outfitPieces = isBarefoot
             ? [top, bottom]
             : [top, bottom, shoe as Garment];
-          const score = this.scoreOutfit(outfitPieces, mood, preferences);
+          const { score, breakdown } = this.scoreOutfitWithBreakdown(
+            outfitPieces,
+            mood,
+            preferences
+          );
           const reasons = this.generateReasons(outfitPieces, mood);
 
           candidates.push({
             garmentIds,
             score,
             reasons,
+            scoreBreakdown: breakdown,
           });
         }
 
@@ -274,7 +281,7 @@ export class OutfitRecommendationService {
           }
           garmentIds.push(accessory.id);
 
-          const score = this.scoreOutfit(
+          const { score, breakdown } = this.scoreOutfitWithBreakdown(
             [top, bottom, ...shoes.slice(0, 1), accessory],
             mood,
             preferences
@@ -288,6 +295,7 @@ export class OutfitRecommendationService {
             garmentIds,
             score,
             reasons,
+            scoreBreakdown: breakdown,
           });
         }
       }
@@ -315,43 +323,20 @@ export class OutfitRecommendationService {
   }
 
   /**
-   * Score an outfit based on color harmony, mood fit, and diversity
+   * Score an outfit and return per-category breakdown for explainability.
    */
-  private static scoreOutfit(
+  private static scoreOutfitWithBreakdown(
     garments: Garment[],
     mood: Mood,
     preferences?: UserStylePreferences
-  ): number {
-    let score = 0;
-
-    // Base score
-    score += 50;
-
-    // Color harmony bonus
-    const colorScore = this.scoreColorHarmony(garments);
-    score += colorScore;
-
-    // Mood alignment bonus
-    const moodScore = this.scoreMoodAlignment(garments, mood);
-    score += moodScore;
-
-    // Style coherence bonus (new)
-    const styleScore = this.scoreStyleCoherence(garments);
-    score += styleScore;
-
-    // Occasion matching bonus (new)
-    const occasionScore = this.scoreOccasionMatching(garments, mood);
-    score += occasionScore;
-
-    // Versatility bonus (new)
-    const versatilityScore = this.scoreVersatility(garments);
-    score += versatilityScore;
-
-    // Diversity bonus (prefer mixing different items)
-    const diversityScore = this.scoreDiversity(garments);
-    score += diversityScore;
-
-    // User preference bonuses (explicit + learned, if provided on input)
+  ): { score: number; breakdown: ScoreBreakdown } {
+    const base = 50;
+    const colorHarmony = this.scoreColorHarmony(garments);
+    const moodAlignment = this.scoreMoodAlignment(garments, mood);
+    const styleCoherence = this.scoreStyleCoherence(garments);
+    const occasionMatching = this.scoreOccasionMatching(garments, mood);
+    const versatility = this.scoreVersatility(garments);
+    const diversity = this.scoreDiversity(garments);
     const explicitScore = this.scoreExplicitPreferences(
       garments,
       preferences?.explicit
@@ -360,9 +345,44 @@ export class OutfitRecommendationService {
       garments,
       preferences?.learned
     );
-    score += explicitScore + learnedScore;
+    const preferencesTotal = explicitScore + learnedScore;
 
-    return Math.min(score, 100); // Cap at 100
+    const score = Math.min(
+      base +
+        colorHarmony +
+        moodAlignment +
+        styleCoherence +
+        occasionMatching +
+        versatility +
+        diversity +
+        preferencesTotal,
+      100
+    );
+
+    return {
+      score,
+      breakdown: {
+        base,
+        colorHarmony,
+        moodAlignment,
+        styleCoherence,
+        occasionMatching,
+        versatility,
+        diversity,
+        preferences: preferencesTotal,
+      },
+    };
+  }
+
+  /**
+   * Score an outfit based on color harmony, mood fit, and diversity
+   */
+  private static scoreOutfit(
+    garments: Garment[],
+    mood: Mood,
+    preferences?: UserStylePreferences
+  ): number {
+    return this.scoreOutfitWithBreakdown(garments, mood, preferences).score;
   }
 
   /**

@@ -167,8 +167,12 @@ export default function Home() {
     [outfitIdsKey]
   );
 
-  const { outfits, loading, error: recommendationError, generate } =
-    useOutfitRecommendations({
+  const {
+    outfits,
+    loading,
+    error: recommendationError,
+    generate,
+  } = useOutfitRecommendations({
     userId,
     mood,
     weather: weather ?? "cloudy",

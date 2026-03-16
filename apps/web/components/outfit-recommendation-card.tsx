@@ -1,10 +1,11 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import type { Id } from "@convex/_generated/dataModel";
 import { animateCardHoverIn, animateCardHoverOut } from "@/lib/animations";
+import type { ScoreBreakdown } from "@shared/types";
 
 interface Garment {
   id?: Id<"garments">;
@@ -13,6 +14,28 @@ interface Garment {
   type: string;
 }
 
+const BREAKDOWN_MAX: Record<keyof ScoreBreakdown, number> = {
+  base: 50,
+  colorHarmony: 20,
+  moodAlignment: 20,
+  styleCoherence: 15,
+  occasionMatching: 12,
+  versatility: 8,
+  diversity: 10,
+  preferences: 15,
+};
+
+const BREAKDOWN_LABELS: Record<keyof ScoreBreakdown, string> = {
+  base: "Base",
+  colorHarmony: "Color harmony",
+  moodAlignment: "Mood",
+  styleCoherence: "Style",
+  occasionMatching: "Occasion",
+  versatility: "Versatility",
+  diversity: "Diversity",
+  preferences: "Preferences",
+};
+
 interface OutfitRecommendationCardProps {
   label: string;
   garments: Garment[];
@@ -20,6 +43,8 @@ interface OutfitRecommendationCardProps {
   contextMood?: string;
   contextWeather?: string;
   contextTemperature?: number;
+  /** Per-category score breakdown (Phase 1). When set, show "See why" expandable. */
+  scoreBreakdown?: ScoreBreakdown;
   /** When true, card toggles selection instead of navigating; show checkbox + selected border (same UI as closet). */
   isSelectMode?: boolean;
   isSelected?: boolean;
@@ -35,6 +60,7 @@ export function OutfitRecommendationCard({
   contextMood,
   contextWeather,
   contextTemperature,
+  scoreBreakdown,
   isSelectMode = false,
   isSelected = false,
   onToggleSelect,
@@ -42,6 +68,7 @@ export function OutfitRecommendationCard({
 }: OutfitRecommendationCardProps) {
   const router = useRouter();
   const cardRef = useRef<HTMLDivElement>(null);
+  const [breakdownOpen, setBreakdownOpen] = useState(false);
 
   if (garments.length === 0) return null;
 
@@ -49,6 +76,12 @@ export function OutfitRecommendationCard({
     e.preventDefault();
     e.stopPropagation();
     onSkip?.();
+  };
+
+  const handleSeeWhy = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setBreakdownOpen((prev) => !prev);
   };
 
   const handleClick = () => {
@@ -179,6 +212,50 @@ export function OutfitRecommendationCard({
             : "Click to view"}
         </span>
       </div>
+
+      {/* Score breakdown - expandable "See why" (pointer-events-auto so it's clickable) */}
+      {scoreBreakdown && (
+        <div className="absolute bottom-0 left-0 right-0 flex flex-col items-stretch translate-y-full group-hover:translate-y-0 transition-transform duration-200 pt-1">
+          <button
+            type="button"
+            onClick={handleSeeWhy}
+            className="pointer-events-auto self-start px-2 py-1 text-[9px] uppercase tracking-widest text-muted-foreground hover:text-signal-orange border border-border hover:border-signal-orange/50 bg-background/95 transition-colors"
+            aria-expanded={breakdownOpen}
+          >
+            {breakdownOpen ? "Hide why" : "See why"}
+          </button>
+          {breakdownOpen && (
+            <div className="pointer-events-auto mt-2 bg-background/98 border border-border px-3 py-2 space-y-1.5 max-h-32 overflow-y-auto">
+              {(Object.keys(BREAKDOWN_LABELS) as (keyof ScoreBreakdown)[]).map(
+                (key) => {
+                  const value = scoreBreakdown[key];
+                  const max = BREAKDOWN_MAX[key];
+                  const pct = max > 0 ? Math.min(100, (value / max) * 100) : 0;
+                  return (
+                    <div
+                      key={key}
+                      className="flex items-center gap-2 text-[9px] uppercase tracking-wider"
+                    >
+                      <span className="text-muted-foreground w-24 shrink-0">
+                        {BREAKDOWN_LABELS[key]}
+                      </span>
+                      <div className="flex-1 h-1.5 bg-secondary overflow-hidden">
+                        <div
+                          className="h-full bg-signal-orange/80 transition-all"
+                          style={{ width: `${Math.max(0, pct)}%` }}
+                        />
+                      </div>
+                      <span className="text-foreground w-6 text-right">
+                        {value}
+                      </span>
+                    </div>
+                  );
+                }
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Accent line on hover (only when not in select mode) */}
       {!isSelectMode && (
