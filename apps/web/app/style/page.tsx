@@ -120,7 +120,7 @@ export default function StyleDocPage() {
     <main className="min-h-screen bg-background">
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
-        <div className="flex items-center justify-between px-4 md:px-8 lg:px-12 py-4">
+        <div className="flex items-center justify-between px-4 py-5 md:px-8 lg:px-10 xl:px-12">
           <div className="flex items-center gap-3">
             <span className="text-xs uppercase tracking-[0.3em] font-medium">
               OutfAI

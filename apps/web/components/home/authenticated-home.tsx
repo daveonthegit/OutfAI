@@ -16,6 +16,8 @@ import { MOCK_CLOSET_ITEMS } from "@shared/data/mock-closet";
 import { UserAvatar } from "@/components/user-avatar";
 import { MoodSelectModal } from "@/components/mood-select-modal";
 import { animateShuffleGrid, getStaggerVariants } from "@/lib/animations";
+import { PageContainer } from "@/components/layout/page-container";
+import { ContentGrid } from "@/components/layout/content-grid";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 
@@ -579,7 +581,7 @@ export default function Home() {
     <main className="min-h-screen bg-background text-foreground selection:bg-signal-orange selection:text-background">
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-background border-b border-border">
-        <div className="flex items-center justify-between px-4 py-5 md:px-8 lg:px-12">
+        <div className="flex items-center justify-between px-4 py-5 md:px-8 lg:px-10 xl:px-12">
           <h1 className="text-[10px] md:text-xs uppercase tracking-[0.3em] font-medium">
             OutfAI
           </h1>
@@ -588,338 +590,350 @@ export default function Home() {
       </header>
 
       {/* Main content */}
-      <div className="pt-24 md:pt-32 px-4 md:px-8 lg:px-12 pb-28">
-        {/* Hero Typography */}
-        <section className="mb-16 md:mb-24 lg:mb-32">
-          <div className="max-w-4xl flex flex-col gap-6 md:gap-8">
-            {/* Mood line - oversized editorial; click opens mood modal */}
-            <button
-              type="button"
-              onClick={() => setMoodModalOpen(true)}
-              className="text-left group focus:outline-none focus-visible:ring-2 focus-visible:ring-signal-orange focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-sm w-fit"
-              aria-label="Change mood"
-            >
-              <h2 className="font-serif text-4xl sm:text-5xl md:text-7xl lg:text-8xl italic text-foreground leading-[0.9] tracking-tight mb-0">
-                today feels
-              </h2>
-              <h2 className="font-serif text-4xl sm:text-5xl md:text-7xl lg:text-8xl italic text-signal-orange leading-[0.9] tracking-tight group-hover:underline underline-offset-2">
-                {mood}
-              </h2>
-            </button>
-            {/* Weather context - below mood */}
-            <div className="inline-flex flex-wrap items-center gap-2 rounded-full border border-border/60 bg-background/60 px-3 py-1 text-[10px] uppercase tracking-[0.28em] text-muted-foreground backdrop-blur w-fit">
-              <span
-                className={`h-1.5 w-1.5 rounded-full ${locationError ? "bg-destructive" : "bg-acid-lime"}`}
-              />
-              {locationError ? (
-                <>
-                  <span className="text-foreground/80">Location off</span>
-                  <span className="opacity-40">·</span>
-                  <span className="normal-case tracking-normal text-muted-foreground">
-                    Enter city
-                  </span>
-                  <input
-                    type="text"
-                    value={cityInput}
-                    onChange={(e) => setCityInput(e.target.value)}
-                    placeholder="e.g. London"
-                    className="ml-1 w-28 rounded border border-border/60 bg-background/80 px-2 py-0.5 text-[10px] normal-case text-foreground placeholder:text-muted-foreground outline-none focus:border-signal-orange/50"
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        e.preventDefault();
-                        fetchWeatherByCity();
-                      }
-                    }}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => fetchWeatherByCity()}
-                    disabled={weatherCityLoading || cityInput.trim().length < 2}
-                    className="rounded border border-border/60 bg-background/80 px-2 py-0.5 text-[9px] uppercase tracking-wider text-foreground hover:border-signal-orange/50 disabled:opacity-50"
-                  >
-                    {weatherCityLoading ? "…" : "Use"}
-                  </button>
-                </>
-              ) : (
-                <>
-                  <span className="text-foreground/80">
-                    {displayTemp === null ? "--" : displayTemp}°{tempUnit}
-                  </span>
-                  <span className="opacity-40">·</span>
-                  <span className="text-foreground/80">
-                    {weather === null
-                      ? "Loading…"
-                      : weather === "sunny"
-                        ? "Sunny"
-                        : weather === "cloudy"
-                          ? "Cloudy"
-                          : weather === "rainy"
-                            ? "Rainy"
-                            : weather === "snowy"
-                              ? "Snowy"
-                              : weather === "foggy"
-                                ? "Foggy"
-                                : weather === "windy"
-                                  ? "Windy"
-                                  : "Cloudy"}
-                  </span>
-                  {lastFetched && (
-                    <>
-                      <span className="opacity-40">·</span>
-                      <span className="text-muted-foreground">
-                        Updated{" "}
-                        {new Date(lastFetched).toLocaleTimeString([], {
-                          hour: "numeric",
-                          minute: "2-digit",
-                        })}
-                      </span>
-                    </>
-                  )}
-                  <button
-                    type="button"
-                    onClick={() => setTempUnit((u) => (u === "F" ? "C" : "F"))}
-                    className="ml-2 rounded-full border border-border/60 px-2 py-0.5 text-[9px] uppercase tracking-[0.28em] text-muted-foreground hover:text-foreground hover:border-border transition-colors"
-                  >
-                    {tempUnit === "F" ? "°C" : "°F"}
-                  </button>
-                </>
-              )}
-            </div>
-          </div>
-        </section>
-
-        <MoodSelectModal
-          open={moodModalOpen}
-          onOpenChange={setMoodModalOpen}
-          currentMood={mood}
-          onSelect={setMood}
-        />
-
-        {/* Editorial divider */}
-        <div className="flex items-center gap-6 mb-12 md:mb-16">
-          <div className="h-px bg-border flex-1" />
-          <span className="text-[9px] uppercase tracking-[0.35em] text-muted-foreground">
-            {loading ? "Generating..." : `${recommendedOutfit.length} Options`}
-          </span>
-          <div className="h-px bg-border flex-1" />
-        </div>
-
-        {/* Selection toolbar - same as closet */}
-        {isSelectMode && recommendedOutfit && recommendedOutfit.length > 0 && (
-          <section className="mb-6 flex flex-wrap items-center justify-between gap-3 border border-border px-4 py-3">
-            <div className="flex items-center gap-4">
-              <span className="text-[11px] uppercase tracking-[0.2em] text-foreground">
-                {selectedOptionIndices.size === 0
-                  ? "None selected"
-                  : `${selectedOptionIndices.size} selected`}
-              </span>
+      <div className="pt-20 sm:pt-24 md:pt-28 lg:pt-32 pb-24 md:pb-28">
+        <PageContainer>
+          {/* Hero Typography */}
+          <section className="mb-16 md:mb-24 lg:mb-32">
+            <div className="max-w-4xl flex flex-col gap-6 md:gap-8">
+              {/* Mood line - oversized editorial; click opens mood modal */}
               <button
                 type="button"
-                onClick={
-                  allOptionsSelected ? deselectAllOptions : selectAllOptions
-                }
-                className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground hover:text-foreground transition-colors duration-100 underline underline-offset-2"
+                onClick={() => setMoodModalOpen(true)}
+                className="text-left group focus:outline-none focus-visible:ring-2 focus-visible:ring-signal-orange focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-sm w-fit"
+                aria-label="Change mood"
               >
-                {allOptionsSelected ? "Deselect all" : "Select all"}
+                <h2 className="font-serif text-4xl sm:text-5xl md:text-7xl lg:text-8xl italic text-foreground leading-[0.9] tracking-tight mb-0">
+                  today feels
+                </h2>
+                <h2 className="font-serif text-4xl sm:text-5xl md:text-7xl lg:text-8xl italic text-signal-orange leading-[0.9] tracking-tight group-hover:underline underline-offset-2">
+                  {mood}
+                </h2>
               </button>
-            </div>
-            {selectedOptionIndices.size > 0 && (
-              <button
-                type="button"
-                onClick={handleSaveSelectedLooks}
-                disabled={isSaving}
-                className="flex items-center gap-2 px-4 py-2 text-[10px] uppercase tracking-[0.2em] bg-signal-orange text-background border border-signal-orange hover:opacity-90 transition-colors duration-100 disabled:opacity-50"
-              >
-                {isSaving ? (
+              {/* Weather context - below mood */}
+              <div className="inline-flex flex-wrap items-center gap-2 rounded-full border border-border/60 bg-background/60 px-3 py-1 text-[10px] uppercase tracking-[0.28em] text-muted-foreground backdrop-blur w-fit">
+                <span
+                  className={`h-1.5 w-1.5 rounded-full ${locationError ? "bg-destructive" : "bg-acid-lime"}`}
+                />
+                {locationError ? (
                   <>
-                    <svg
-                      className="animate-spin"
-                      width="12"
-                      height="12"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
+                    <span className="text-foreground/80">Location off</span>
+                    <span className="opacity-40">·</span>
+                    <span className="normal-case tracking-normal text-muted-foreground">
+                      Enter city
+                    </span>
+                    <input
+                      type="text"
+                      value={cityInput}
+                      onChange={(e) => setCityInput(e.target.value)}
+                      placeholder="e.g. London"
+                      className="ml-1 w-28 rounded border border-border/60 bg-background/80 px-2 py-0.5 text-[10px] normal-case text-foreground placeholder:text-muted-foreground outline-none focus:border-signal-orange/50"
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          fetchWeatherByCity();
+                        }
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => fetchWeatherByCity()}
+                      disabled={
+                        weatherCityLoading || cityInput.trim().length < 2
+                      }
+                      className="rounded border border-border/60 bg-background/80 px-2 py-0.5 text-[9px] uppercase tracking-wider text-foreground hover:border-signal-orange/50 disabled:opacity-50"
                     >
-                      <path
-                        d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                        opacity="0.25"
-                      />
-                      <path d="M21 12a9 9 0 01-9-9" />
-                    </svg>
-                    Saving…
+                      {weatherCityLoading ? "…" : "Use"}
+                    </button>
                   </>
                 ) : (
                   <>
-                    <svg
-                      width="12"
-                      height="12"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1.5"
+                    <span className="text-foreground/80">
+                      {displayTemp === null ? "--" : displayTemp}°{tempUnit}
+                    </span>
+                    <span className="opacity-40">·</span>
+                    <span className="text-foreground/80">
+                      {weather === null
+                        ? "Loading…"
+                        : weather === "sunny"
+                          ? "Sunny"
+                          : weather === "cloudy"
+                            ? "Cloudy"
+                            : weather === "rainy"
+                              ? "Rainy"
+                              : weather === "snowy"
+                                ? "Snowy"
+                                : weather === "foggy"
+                                  ? "Foggy"
+                                  : weather === "windy"
+                                    ? "Windy"
+                                    : "Cloudy"}
+                    </span>
+                    {lastFetched && (
+                      <>
+                        <span className="opacity-40">·</span>
+                        <span className="text-muted-foreground">
+                          Updated{" "}
+                          {new Date(lastFetched).toLocaleTimeString([], {
+                            hour: "numeric",
+                            minute: "2-digit",
+                          })}
+                        </span>
+                      </>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setTempUnit((u) => (u === "F" ? "C" : "F"))
+                      }
+                      className="ml-2 rounded-full border border-border/60 px-2 py-0.5 text-[9px] uppercase tracking-[0.28em] text-muted-foreground hover:text-foreground hover:border-border transition-colors"
                     >
-                      <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
-                    </svg>
-                    Save {selectedOptionIndices.size} look
-                    {selectedOptionIndices.size !== 1 ? "s" : ""}
+                      {tempUnit === "F" ? "°C" : "°F"}
+                    </button>
                   </>
                 )}
-              </button>
-            )}
+              </div>
+            </div>
           </section>
-        )}
 
-        {/* Recommendation Grid */}
-        <section className="mb-16 md:mb-24">
-          {loading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 lg:gap-8">
-              {Array.from({ length: 6 }).map((_, i) => (
-                <Skeleton
-                  key={i}
-                  className="aspect-square w-full rounded-none border border-border"
-                />
-              ))}
-            </div>
-          ) : recommendedOutfit && recommendedOutfit.length > 0 ? (
-            <motion.div
-              ref={recommendationGridRef}
-              variants={staggerVariants.container}
-              initial="hidden"
-              animate="visible"
-              className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 lg:gap-8 transition-opacity duration-100 ${
-                isShuffling ? "opacity-30" : "opacity-100"
-              }`}
-            >
-              {recommendedOutfit.map(
-                (outfit, index) =>
-                  outfit.garments.length > 0 &&
-                  !skippedIndices.has(index) && (
-                    <motion.div key={index} variants={staggerVariants.item}>
-                      <OutfitRecommendationCard
-                        label={outfit.label}
-                        garments={outfit.garments}
-                        explanation={outfit.explanation}
-                        contextMood={outfit.contextMood}
-                        contextWeather={outfit.contextWeather}
-                        contextTemperature={outfit.contextTemperature}
-                        scoreBreakdown={outfit.scoreBreakdown}
-                        isSelectMode={isSelectMode}
-                        isSelected={selectedOptionIndices.has(index)}
-                        onToggleSelect={() => toggleOptionIndex(index)}
-                        onSkip={
-                          isSelectMode ? undefined : () => handleSkip(index)
-                        }
-                      />
-                    </motion.div>
-                  )
-              )}
-            </motion.div>
-          ) : (
-            <div className="text-center py-12 text-muted-foreground text-[11px] uppercase tracking-[0.2em]">
+          <MoodSelectModal
+            open={moodModalOpen}
+            onOpenChange={setMoodModalOpen}
+            currentMood={mood}
+            onSelect={setMood}
+          />
+
+          {/* Editorial divider */}
+          <div className="flex items-center gap-6 mb-12 md:mb-16">
+            <div className="h-px bg-border flex-1" />
+            <span className="text-[9px] uppercase tracking-[0.35em] text-muted-foreground">
               {loading
-                ? "Generating recommendations..."
-                : "No recommendations available"}
-            </div>
-          )}
-        </section>
+                ? "Generating..."
+                : `${recommendedOutfit.length} Options`}
+            </span>
+            <div className="h-px bg-border flex-1" />
+          </div>
 
-        {/* Style insights — wardrobe gaps, complete-the-look, style tips (only after outfit results) */}
-        <StyleInsightsSection
-          userId={userId}
-          garments={stableGarments}
-          outfitGarmentIds={memoizedOutfitGarmentIds}
-          mood={mood}
-          weather={weather ?? undefined}
-          temperature={temperatureCelsius ?? undefined}
-          showWhenHasOutfits={
-            !!(recommendedOutfit && recommendedOutfit.length > 0)
-          }
-        />
+          {/* Selection toolbar - same as closet */}
+          {isSelectMode &&
+            recommendedOutfit &&
+            recommendedOutfit.length > 0 && (
+              <section className="mb-6 flex flex-wrap items-center justify-between gap-3 border border-border px-4 py-3">
+                <div className="flex items-center gap-4">
+                  <span className="text-[11px] uppercase tracking-[0.2em] text-foreground">
+                    {selectedOptionIndices.size === 0
+                      ? "None selected"
+                      : `${selectedOptionIndices.size} selected`}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={
+                      allOptionsSelected ? deselectAllOptions : selectAllOptions
+                    }
+                    className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground hover:text-foreground transition-colors duration-100 underline underline-offset-2"
+                  >
+                    {allOptionsSelected ? "Deselect all" : "Select all"}
+                  </button>
+                </div>
+                {selectedOptionIndices.size > 0 && (
+                  <button
+                    type="button"
+                    onClick={handleSaveSelectedLooks}
+                    disabled={isSaving}
+                    className="flex items-center gap-2 px-4 py-2 text-[10px] uppercase tracking-[0.2em] bg-signal-orange text-background border border-signal-orange hover:opacity-90 transition-colors duration-100 disabled:opacity-50"
+                  >
+                    {isSaving ? (
+                      <>
+                        <svg
+                          className="animate-spin"
+                          width="12"
+                          height="12"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                        >
+                          <path
+                            d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                            opacity="0.25"
+                          />
+                          <path d="M21 12a9 9 0 01-9-9" />
+                        </svg>
+                        Saving…
+                      </>
+                    ) : (
+                      <>
+                        <svg
+                          width="12"
+                          height="12"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="1.5"
+                        >
+                          <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+                        </svg>
+                        Save {selectedOptionIndices.size} look
+                        {selectedOptionIndices.size !== 1 ? "s" : ""}
+                      </>
+                    )}
+                  </button>
+                )}
+              </section>
+            )}
 
-        {/* Actions - Save Look (pick options to save) + Shuffle */}
-        <section className="flex items-center justify-center gap-8 md:gap-12 mb-20 md:mb-28">
-          {recommendedOutfit && recommendedOutfit.length > 0 && (
-            <>
-              <button
-                type="button"
-                onClick={toggleSelectMode}
-                className={`text-[11px] uppercase tracking-[0.25em] transition-colors duration-100 group flex items-center gap-2 ${
-                  isSelectMode
-                    ? "text-foreground border-border"
-                    : savedOutfitId
-                      ? "text-muted-foreground"
-                      : "text-foreground hover:text-signal-orange"
+          {/* Recommendation Grid */}
+          <section className="mb-16 md:mb-24">
+            {loading ? (
+              <ContentGrid variant="cards">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <Skeleton
+                    key={i}
+                    className="aspect-square w-full rounded-none border border-border"
+                  />
+                ))}
+              </ContentGrid>
+            ) : recommendedOutfit && recommendedOutfit.length > 0 ? (
+              <motion.div
+                ref={recommendationGridRef}
+                variants={staggerVariants.container}
+                initial="hidden"
+                animate="visible"
+                className={`transition-opacity duration-100 ${
+                  isShuffling ? "opacity-30" : "opacity-100"
                 }`}
               >
-                <svg
-                  width="12"
-                  height="12"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  className="transition-transform duration-100 group-hover:scale-110"
+                <ContentGrid variant="cards">
+                  {recommendedOutfit.map(
+                    (outfit, index) =>
+                      outfit.garments.length > 0 &&
+                      !skippedIndices.has(index) && (
+                        <motion.div key={index} variants={staggerVariants.item}>
+                          <OutfitRecommendationCard
+                            label={outfit.label}
+                            garments={outfit.garments}
+                            explanation={outfit.explanation}
+                            contextMood={outfit.contextMood}
+                            contextWeather={outfit.contextWeather}
+                            contextTemperature={outfit.contextTemperature}
+                            scoreBreakdown={outfit.scoreBreakdown}
+                            isSelectMode={isSelectMode}
+                            isSelected={selectedOptionIndices.has(index)}
+                            onToggleSelect={() => toggleOptionIndex(index)}
+                            onSkip={
+                              isSelectMode ? undefined : () => handleSkip(index)
+                            }
+                          />
+                        </motion.div>
+                      )
+                  )}
+                </ContentGrid>
+              </motion.div>
+            ) : (
+              <div className="text-center py-12 text-muted-foreground text-[11px] uppercase tracking-[0.2em]">
+                {loading
+                  ? "Generating recommendations..."
+                  : "No recommendations available"}
+              </div>
+            )}
+          </section>
+
+          {/* Style insights — wardrobe gaps, complete-the-look, style tips (only after outfit results) */}
+          <StyleInsightsSection
+            userId={userId}
+            garments={stableGarments}
+            outfitGarmentIds={memoizedOutfitGarmentIds}
+            mood={mood}
+            weather={weather ?? undefined}
+            temperature={temperatureCelsius ?? undefined}
+            showWhenHasOutfits={
+              !!(recommendedOutfit && recommendedOutfit.length > 0)
+            }
+          />
+
+          {/* Actions - Save Look (pick options to save) + Shuffle */}
+          <section className="flex items-center justify-center gap-8 md:gap-12 mb-20 md:mb-28">
+            {recommendedOutfit && recommendedOutfit.length > 0 && (
+              <>
+                <button
+                  type="button"
+                  onClick={toggleSelectMode}
+                  className={`text-[11px] uppercase tracking-[0.25em] transition-colors duration-100 group flex items-center gap-2 ${
+                    isSelectMode
+                      ? "text-foreground border-border"
+                      : savedOutfitId
+                        ? "text-muted-foreground"
+                        : "text-foreground hover:text-signal-orange"
+                  }`}
                 >
-                  <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
-                </svg>
-                {isSelectMode
-                  ? "Cancel"
-                  : savedOutfitId
-                    ? "Saved!"
-                    : "Save Look"}
-              </button>
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    className="transition-transform duration-100 group-hover:scale-110"
+                  >
+                    <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+                  </svg>
+                  {isSelectMode
+                    ? "Cancel"
+                    : savedOutfitId
+                      ? "Saved!"
+                      : "Save Look"}
+                </button>
 
-              <div className="w-px h-4 bg-border" />
-            </>
-          )}
+                <div className="w-px h-4 bg-border" />
+              </>
+            )}
 
-          <button
-            type="button"
-            onClick={handleShuffle}
-            disabled={loading}
-            className="text-[11px] uppercase tracking-[0.25em] text-muted-foreground hover:text-foreground transition-colors duration-100 group flex items-center gap-2 disabled:opacity-50"
-          >
-            <svg
-              width="12"
-              height="12"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              className="transition-transform duration-100 group-hover:rotate-180"
+            <button
+              type="button"
+              onClick={handleShuffle}
+              disabled={loading}
+              className="text-[11px] uppercase tracking-[0.25em] text-muted-foreground hover:text-foreground transition-colors duration-100 group flex items-center gap-2 disabled:opacity-50"
             >
-              <polyline points="16 3 21 3 21 8" />
-              <line x1="4" y1="20" x2="21" y2="3" />
-              <polyline points="21 16 21 21 16 21" />
-              <line x1="15" y1="15" x2="21" y2="21" />
-              <line x1="4" y1="4" x2="9" y2="9" />
-            </svg>
-            Shuffle
-          </button>
-        </section>
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                className="transition-transform duration-100 group-hover:rotate-180"
+              >
+                <polyline points="16 3 21 3 21 8" />
+                <line x1="4" y1="20" x2="21" y2="3" />
+                <polyline points="21 16 21 21 16 21" />
+                <line x1="15" y1="15" x2="21" y2="21" />
+                <line x1="4" y1="4" x2="9" y2="9" />
+              </svg>
+              Shuffle
+            </button>
+          </section>
 
-        {/* Explanation Entry Point */}
-        <section className="border-t border-border pt-10 md:pt-14">
-          <Link
-            href="/explain"
-            className="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.2em] text-muted-foreground hover:text-foreground transition-colors duration-100 group"
-          >
-            Why this works
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              className="transition-transform duration-100 group-hover:translate-x-1"
+          {/* Explanation Entry Point */}
+          <section className="border-t border-border pt-10 md:pt-14">
+            <Link
+              href="/explain"
+              className="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.2em] text-muted-foreground hover:text-foreground transition-colors duration-100 group"
             >
-              <line x1="5" y1="12" x2="19" y2="12" />
-              <polyline points="12 5 19 12 12 19" />
-            </svg>
-          </Link>
-        </section>
+              Why this works
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                className="transition-transform duration-100 group-hover:translate-x-1"
+              >
+                <line x1="5" y1="12" x2="19" y2="12" />
+                <polyline points="12 5 19 12 12 19" />
+              </svg>
+            </Link>
+          </section>
+        </PageContainer>
       </div>
     </main>
   );

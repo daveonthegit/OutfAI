@@ -389,6 +389,41 @@ Recommendation quality depends on garment metadata quality — sparse tags mean 
 
 ---
 
+**Why is the recommendation API a Next.js route instead of a Convex action?**  
+The recommendation service is CPU-bound: it filters garments, generates many candidate combinations, and scores each one. Running that in a Convex action would tie up Convex compute and block other operations. The Next.js API route runs on Vercel serverless, so we keep Convex for real-time data (garments, outfits, logs) and use the route only when the user explicitly requests new recommendations (e.g., Shuffle). The frontend fetches garments from Convex, then POSTs them plus mood and weather to the recommendation route and displays the result.
+
+**What does the recommendation API accept and return?**  
+The POST body includes: `userId`, `mood`, `weather`, `temperature`, optional `occasion`, `limitCount` (default 5), `garments` (full list with metadata), optional `preferences` (user style prefs), and optional `recentGarmentIds` for diversity. The response is an object with the top scored outfits, each including garment IDs, score, and a human-readable explanation. Garments are passed in so the route stays stateless and doesn’t need to query Convex from the serverless function.
+
+**How do you avoid combinatorial explosion when generating outfit candidates?**  
+We require one item per required category (top, bottom, shoes) and optionally add outerwear and accessories. We don’t enumerate every possible combination — we use sampling or capped candidate generation so the number of candidates stays bounded. Each candidate is then scored and we return the top N (e.g., 5). The exact strategy is in the OutfitRecommendationService (candidate generation step).
+
+**How is authentication implemented?**  
+We use Better Auth with the Convex adapter. User identity (email, password hash, session) is stored via Better Auth’s Convex-backed adapter. Convex tables like garments and outfits are keyed by `userId` from the auth session. We have email-and-password sign-in, email verification (with Resend for sending verification and password-reset emails), and optional username plugin. The frontend uses the Better Auth client; protected Convex queries/mutations rely on the authenticated user ID from the session.
+
+**How is color harmony scored?**  
+Color harmony is one of the eight scoring dimensions (up to 20 points). The logic uses the garment’s `primaryColor` and optional color-related tags to check compatibility between pieces in the outfit (e.g., complementary or neutral pairings). The exact rules are in the recommendation service; it’s heuristic-based (e.g., neutrals go with many colors, certain pairings get bonuses) rather than a learned model.
+
+**Where is weather fetched and how often?**  
+Weather is fetched in the frontend (authenticated home / Today flow). We call the Open-Meteo forecast API with latitude and longitude from the browser’s geolocation, or with coordinates from Open-Meteo’s geocoding API when the user enters a city. We fetch once when the user lands on the Today page (or when they submit a city). We don’t cache weather long-term on the client; the next recommendation request uses the current mood and the most recently fetched weather.
+
+**How are saved outfits stored vs recommendation logs?**  
+Saved outfits go into the `outfits` table: `userId`, `garmentIds` (array of garment document IDs), optional context (mood, weather, temperature), explanation, and `savedAt` timestamp. Recommendation logs go into `recommendationLogs`: `userId`, optional `outfitId` (if it was a saved outfit), `garmentIds`, `action` (e.g. shown, saved, skipped, worn), optional mood/weather, and `loggedAt`. Outfits are the user’s lookbook; logs are the event stream we’ll use for preference learning.
+
+**Do you have tests for the recommendation logic?**  
+Yes. We have unit tests for the OutfitRecommendationService (e.g., empty closet returns no outfits, weather filtering excludes inappropriate materials, scoring produces expected structure). Tests live in the repo and run in CI. We don’t yet have full E2E tests for the entire recommendation flow in the browser.
+
+**How is the app deployed?**  
+The web app is deployed on Vercel (Next.js). Convex has its own deployment (backend and serverless functions). Environment variables (e.g. `SITE_URL`, Resend, any API keys) are set in Vercel and Convex dashboards. We use GitHub for source control and run format, lint, typecheck, test, and build in CI.
+
+**When is Google Vision used?**  
+Google Vision is optional and used for garment image analysis when we want to suggest or auto-fill tags (e.g., colors, categories) from a photo. It’s not required for the core flow — users can add garments with only manual metadata. If we call Vision, it’s typically at add-garment time; the result is used to prefill or suggest fields, not to drive recommendation scoring in real time.
+
+**How would you add preference learning later?**  
+We’d query `recommendationLogs` by `userId` to get history of saved, skipped, and worn events with full context (garment IDs, mood, weather). We could derive weights or features (e.g., preferred colors, avoided styles, mood-specific preferences) and feed them into the scoring step — e.g. a `preferences` dimension that already exists but is not yet populated from logs. Alternatively we could train a small ranking model and use it to re-rank the top heuristic-scored candidates.
+
+---
+
 ## Integrated Demo Runbook
 
 ### Pre-Demo Setup (T-10 minutes)

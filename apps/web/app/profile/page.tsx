@@ -7,6 +7,8 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "@convex/_generated/api";
 import type { Doc, Id } from "@convex/_generated/dataModel";
 import { useRequireAuth } from "@/hooks/use-require-auth";
+import { PageContainer } from "@/components/layout/page-container";
+import { UserAvatar } from "@/components/user-avatar";
 import { authClient } from "@/lib/auth-client";
 import { BrutalistAvatar } from "@/components/brutalist-avatar";
 import { BrutalistButton } from "@/components/brutalist-button";
@@ -267,365 +269,382 @@ export default function ProfilePage() {
   return (
     <main className="min-h-screen bg-background text-foreground selection:bg-signal-orange selection:text-background">
       <header className="fixed top-0 left-0 right-0 z-50 bg-background border-b border-border">
-        <div className="flex items-center justify-between px-4 py-5 md:px-8 lg:px-12">
+        <div className="flex items-center justify-between px-4 py-5 md:px-8 lg:px-10 xl:px-12">
           <Link
             href="/"
             className="text-[10px] md:text-xs uppercase tracking-[0.3em] font-medium hover:text-signal-orange transition-colors duration-100"
           >
             OutfAI
           </Link>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-6">
             <Link
               href="/profile/settings"
-              className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground hover:text-foreground transition-colors duration-100"
+              className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground hover:text-foreground transition-colors duration-100"
             >
               Settings
             </Link>
-            <span className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
+            <span className="text-[10px] uppercase tracking-[0.2em] text-foreground">
               Profile
             </span>
+            <UserAvatar />
           </div>
         </div>
       </header>
 
-      <div className="pt-24 md:pt-32 px-4 md:px-8 lg:px-12 pb-28 max-w-xl">
-        {/* Avatar + identity */}
-        <section className="mb-12">
-          <div className="flex items-center gap-5 mb-8">
-            <div className="relative shrink-0">
-              <BrutalistAvatar
-                src={avatarPreview ?? avatarDisplayUrl ?? undefined}
-                alt="Profile"
-                initials={abbr}
-                size="lg"
-              />
-              {editing && (
-                <div className="mt-2 flex flex-wrap gap-2">
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept={AVATAR_ACCEPT}
-                    className="hidden"
-                    onChange={handleAvatarChange}
-                  />
-                  <BrutalistButton
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => fileInputRef.current?.click()}
-                  >
-                    Upload
-                  </BrutalistButton>
-                  {(avatarDisplayUrl || avatarPreview) && (
-                    <BrutalistButton
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      disabled={avatarLoading}
-                      onClick={handleRemoveAvatar}
-                    >
-                      {avatarLoading ? "Removing…" : "Remove"}
-                    </BrutalistButton>
-                  )}
-                </div>
-              )}
-            </div>
-            <div className="min-w-0 flex-1">
-              {currentUser ? (
-                !editing ? (
-                  <>
-                    <p className="text-lg font-medium truncate">
-                      {currentUser.name || "No name"}
-                    </p>
-                    {currentUser.username && (
-                      <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground mt-0.5">
-                        @{currentUser.username}
-                      </p>
-                    )}
-                    <p className="text-sm text-muted-foreground mt-1 truncate">
-                      {currentUser.email}
-                    </p>
-                    {profileData?.bio && (
-                      <p className="text-sm text-muted-foreground mt-2 whitespace-pre-wrap">
-                        {profileData.bio}
-                      </p>
-                    )}
+      <div className="pt-20 sm:pt-24 md:pt-28 lg:pt-32 pb-24 md:pb-28">
+        <PageContainer narrow className="max-w-xl">
+          {/* Avatar + identity */}
+          <section className="mb-12">
+            <div className="flex items-center gap-5 mb-8">
+              <div className="relative shrink-0">
+                <BrutalistAvatar
+                  src={avatarPreview ?? avatarDisplayUrl ?? undefined}
+                  alt="Profile"
+                  initials={abbr}
+                  size="lg"
+                />
+                {editing && (
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept={AVATAR_ACCEPT}
+                      className="hidden"
+                      onChange={handleAvatarChange}
+                    />
                     <BrutalistButton
                       type="button"
                       variant="outline"
                       size="sm"
-                      className="mt-4"
-                      onClick={handleStartEdit}
+                      onClick={() => fileInputRef.current?.click()}
                     >
-                      Edit profile
+                      Upload
                     </BrutalistButton>
-                  </>
-                ) : (
-                  <form onSubmit={handleSaveProfile} className="space-y-4">
-                    <div>
-                      <label className="block text-[10px] uppercase tracking-widest text-muted-foreground font-medium mb-1">
-                        Display name
-                      </label>
-                      <input
-                        type="text"
-                        value={editName}
-                        onChange={(e) => setEditName(e.target.value)}
-                        maxLength={DISPLAY_NAME_MAX_LENGTH}
-                        className="w-full bg-secondary border border-border px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-foreground"
-                        placeholder="Your name"
-                      />
-                      <p className="text-[10px] text-muted-foreground mt-1">
-                        {editName.length}/{DISPLAY_NAME_MAX_LENGTH}
-                      </p>
-                    </div>
-                    <div>
-                      <label className="block text-[10px] uppercase tracking-widest text-muted-foreground font-medium mb-1">
-                        Username
-                      </label>
-                      <input
-                        type="text"
-                        value={editUsername}
-                        onChange={(e) => setEditUsername(e.target.value)}
-                        maxLength={USERNAME_MAX_LENGTH}
-                        className="w-full bg-secondary border border-border px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-foreground"
-                        placeholder="username"
-                      />
-                      <p className="text-[10px] text-muted-foreground mt-1">
-                        {USERNAME_MIN_LENGTH}–{USERNAME_MAX_LENGTH} characters,
-                        letters, numbers, underscores, periods.
-                      </p>
-                    </div>
-                    <div>
-                      <label className="block text-[10px] uppercase tracking-widest text-muted-foreground font-medium mb-1">
-                        Bio
-                      </label>
-                      <textarea
-                        value={editBio}
-                        onChange={(e) => setEditBio(e.target.value)}
-                        maxLength={BIO_MAX_LENGTH}
-                        rows={3}
-                        className="w-full bg-secondary border border-border px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-foreground resize-none"
-                        placeholder="A short bio..."
-                      />
-                      <p className="text-[10px] text-muted-foreground mt-1">
-                        {editBio.length}/{BIO_MAX_LENGTH}
-                      </p>
-                    </div>
-                    {profileError && (
-                      <p className="text-xs uppercase tracking-wider text-signal-orange">
-                        {profileError}
-                      </p>
-                    )}
-                    {profileSuccess && (
-                      <p className="text-xs uppercase tracking-wider text-foreground">
-                        {profileSuccess}
-                      </p>
-                    )}
-                    <div className="flex gap-2">
-                      <BrutalistButton type="submit" disabled={profileLoading}>
-                        {profileLoading ? "Saving…" : "Save"}
+                    {(avatarDisplayUrl || avatarPreview) && (
+                      <BrutalistButton
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        disabled={avatarLoading}
+                        onClick={handleRemoveAvatar}
+                      >
+                        {avatarLoading ? "Removing…" : "Remove"}
                       </BrutalistButton>
+                    )}
+                  </div>
+                )}
+              </div>
+              <div className="min-w-0 flex-1">
+                {currentUser ? (
+                  !editing ? (
+                    <>
+                      <p className="text-lg font-medium truncate">
+                        {currentUser.name || "No name"}
+                      </p>
+                      {currentUser.username && (
+                        <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground mt-0.5">
+                          @{currentUser.username}
+                        </p>
+                      )}
+                      <p className="text-sm text-muted-foreground mt-1 truncate">
+                        {currentUser.email}
+                      </p>
+                      {profileData?.bio && (
+                        <p className="text-sm text-muted-foreground mt-2 whitespace-pre-wrap">
+                          {profileData.bio}
+                        </p>
+                      )}
                       <BrutalistButton
                         type="button"
                         variant="outline"
-                        onClick={handleCancelEdit}
-                        disabled={profileLoading}
+                        size="sm"
+                        className="mt-4"
+                        onClick={handleStartEdit}
                       >
-                        Cancel
+                        Edit profile
                       </BrutalistButton>
-                    </div>
-                  </form>
-                )
-              ) : (
-                <div className="space-y-2">
-                  <div className="h-4 w-32 bg-muted-foreground/10 animate-pulse rounded" />
-                  <div className="h-3 w-48 bg-muted-foreground/10 animate-pulse rounded" />
-                </div>
-              )}
+                    </>
+                  ) : (
+                    <form onSubmit={handleSaveProfile} className="space-y-4">
+                      <div>
+                        <label className="block text-[10px] uppercase tracking-widest text-muted-foreground font-medium mb-1">
+                          Display name
+                        </label>
+                        <input
+                          type="text"
+                          value={editName}
+                          onChange={(e) => setEditName(e.target.value)}
+                          maxLength={DISPLAY_NAME_MAX_LENGTH}
+                          className="w-full bg-secondary border border-border px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-foreground"
+                          placeholder="Your name"
+                        />
+                        <p className="text-[10px] text-muted-foreground mt-1">
+                          {editName.length}/{DISPLAY_NAME_MAX_LENGTH}
+                        </p>
+                      </div>
+                      <div>
+                        <label className="block text-[10px] uppercase tracking-widest text-muted-foreground font-medium mb-1">
+                          Username
+                        </label>
+                        <input
+                          type="text"
+                          value={editUsername}
+                          onChange={(e) => setEditUsername(e.target.value)}
+                          maxLength={USERNAME_MAX_LENGTH}
+                          className="w-full bg-secondary border border-border px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-foreground"
+                          placeholder="username"
+                        />
+                        <p className="text-[10px] text-muted-foreground mt-1">
+                          {USERNAME_MIN_LENGTH}–{USERNAME_MAX_LENGTH}{" "}
+                          characters, letters, numbers, underscores, periods.
+                        </p>
+                      </div>
+                      <div>
+                        <label className="block text-[10px] uppercase tracking-widest text-muted-foreground font-medium mb-1">
+                          Bio
+                        </label>
+                        <textarea
+                          value={editBio}
+                          onChange={(e) => setEditBio(e.target.value)}
+                          maxLength={BIO_MAX_LENGTH}
+                          rows={3}
+                          className="w-full bg-secondary border border-border px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-foreground resize-none"
+                          placeholder="A short bio..."
+                        />
+                        <p className="text-[10px] text-muted-foreground mt-1">
+                          {editBio.length}/{BIO_MAX_LENGTH}
+                        </p>
+                      </div>
+                      {profileError && (
+                        <p className="text-xs uppercase tracking-wider text-signal-orange">
+                          {profileError}
+                        </p>
+                      )}
+                      {profileSuccess && (
+                        <p className="text-xs uppercase tracking-wider text-foreground">
+                          {profileSuccess}
+                        </p>
+                      )}
+                      <div className="flex gap-2">
+                        <BrutalistButton
+                          type="submit"
+                          disabled={profileLoading}
+                        >
+                          {profileLoading ? "Saving…" : "Save"}
+                        </BrutalistButton>
+                        <BrutalistButton
+                          type="button"
+                          variant="outline"
+                          onClick={handleCancelEdit}
+                          disabled={profileLoading}
+                        >
+                          Cancel
+                        </BrutalistButton>
+                      </div>
+                    </form>
+                  )
+                ) : (
+                  <div className="space-y-2">
+                    <div className="h-4 w-32 bg-muted-foreground/10 animate-pulse rounded" />
+                    <div className="h-3 w-48 bg-muted-foreground/10 animate-pulse rounded" />
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-          <div className="border-t border-border" />
-        </section>
+            <div className="border-t border-border" />
+          </section>
 
-        {/* Stats */}
-        <section className="mb-12">
-          <p className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground mb-4">
-            Wardrobe
-          </p>
-          <div className="grid grid-cols-2 gap-px border border-border bg-border">
-            <div className="bg-background px-5 py-4">
-              <p className="text-3xl font-light tabular-nums">
-                {garments.length}
-              </p>
-              <p className="text-[9px] uppercase tracking-[0.2em] text-muted-foreground mt-1">
-                Items
-              </p>
-            </div>
-            <div className="bg-background px-5 py-4">
-              <p className="text-3xl font-light tabular-nums">
-                {new Set(garments.map((g: Doc<"garments">) => g.category)).size}
-              </p>
-              <p className="text-[9px] uppercase tracking-[0.2em] text-muted-foreground mt-1">
-                Categories
-              </p>
-            </div>
-          </div>
-        </section>
-
-        {/* Style Preferences */}
-        <section className="mb-12">
-          <p className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground mb-4">
-            Style Preferences
-          </p>
-
-          <div className="mb-6">
-            <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-2">
-              Preferred styles
+          {/* Stats */}
+          <section className="mb-12">
+            <p className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground mb-4">
+              Wardrobe
             </p>
-            <div className="flex flex-wrap gap-2">
-              {["minimalist", "bold", "classic", "trendy", "cozy"].map(
-                (style) => {
-                  const active = preferredStyles.includes(style);
-                  return (
-                    <button
-                      key={style}
-                      type="button"
-                      onClick={() =>
-                        toggleInList(style, preferredStyles, setPreferredStyles)
-                      }
-                      className={`px-3 py-1 text-[11px] uppercase tracking-[0.16em] border transition-colors duration-100 ${
-                        active
-                          ? "border-foreground bg-foreground text-background"
-                          : "border-border text-muted-foreground hover:border-foreground"
-                      }`}
-                    >
-                      {style}
-                    </button>
-                  );
-                }
-              )}
+            <div className="grid grid-cols-2 gap-px border border-border bg-border">
+              <div className="bg-background px-5 py-4">
+                <p className="text-3xl font-light tabular-nums">
+                  {garments.length}
+                </p>
+                <p className="text-[9px] uppercase tracking-[0.2em] text-muted-foreground mt-1">
+                  Items
+                </p>
+              </div>
+              <div className="bg-background px-5 py-4">
+                <p className="text-3xl font-light tabular-nums">
+                  {
+                    new Set(garments.map((g: Doc<"garments">) => g.category))
+                      .size
+                  }
+                </p>
+                <p className="text-[9px] uppercase tracking-[0.2em] text-muted-foreground mt-1">
+                  Categories
+                </p>
+              </div>
             </div>
-          </div>
+          </section>
 
-          <div className="mb-6">
-            <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-2">
-              Preferred colors
+          {/* Style Preferences */}
+          <section className="mb-12">
+            <p className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground mb-4">
+              Style Preferences
             </p>
-            <div className="flex flex-wrap gap-2">
-              {["black", "white", "gray", "navy", "beige", "red", "blue"].map(
-                (color) => {
-                  const active = preferredColors.includes(color);
-                  return (
-                    <button
-                      key={color}
-                      type="button"
-                      onClick={() =>
-                        toggleInList(color, preferredColors, setPreferredColors)
-                      }
-                      className={`px-3 py-1 text-[11px] uppercase tracking-[0.16em] border transition-colors duration-100 ${
-                        active
-                          ? "border-foreground bg-foreground text-background"
-                          : "border-border text-muted-foreground hover:border-foreground"
-                      }`}
-                    >
-                      {color}
-                    </button>
-                  );
-                }
-              )}
-            </div>
-          </div>
 
-          <div className="mb-6">
-            <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-2">
-              Colors to avoid
+            <div className="mb-6">
+              <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-2">
+                Preferred styles
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {["minimalist", "bold", "classic", "trendy", "cozy"].map(
+                  (style) => {
+                    const active = preferredStyles.includes(style);
+                    return (
+                      <button
+                        key={style}
+                        type="button"
+                        onClick={() =>
+                          toggleInList(
+                            style,
+                            preferredStyles,
+                            setPreferredStyles
+                          )
+                        }
+                        className={`px-3 py-1 text-[11px] uppercase tracking-[0.16em] border transition-colors duration-100 ${
+                          active
+                            ? "border-foreground bg-foreground text-background"
+                            : "border-border text-muted-foreground hover:border-foreground"
+                        }`}
+                      >
+                        {style}
+                      </button>
+                    );
+                  }
+                )}
+              </div>
+            </div>
+
+            <div className="mb-6">
+              <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-2">
+                Preferred colors
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {["black", "white", "gray", "navy", "beige", "red", "blue"].map(
+                  (color) => {
+                    const active = preferredColors.includes(color);
+                    return (
+                      <button
+                        key={color}
+                        type="button"
+                        onClick={() =>
+                          toggleInList(
+                            color,
+                            preferredColors,
+                            setPreferredColors
+                          )
+                        }
+                        className={`px-3 py-1 text-[11px] uppercase tracking-[0.16em] border transition-colors duration-100 ${
+                          active
+                            ? "border-foreground bg-foreground text-background"
+                            : "border-border text-muted-foreground hover:border-foreground"
+                        }`}
+                      >
+                        {color}
+                      </button>
+                    );
+                  }
+                )}
+              </div>
+            </div>
+
+            <div className="mb-6">
+              <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-2">
+                Colors to avoid
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {["black", "white", "gray", "navy", "beige", "red", "blue"].map(
+                  (color) => {
+                    const active = avoidedColors.includes(color);
+                    return (
+                      <button
+                        key={color}
+                        type="button"
+                        onClick={() =>
+                          toggleInList(color, avoidedColors, setAvoidedColors)
+                        }
+                        className={`px-3 py-1 text-[11px] uppercase tracking-[0.16em] border transition-colors duration-100 ${
+                          active
+                            ? "border-destructive bg-destructive text-background"
+                            : "border-border text-muted-foreground hover:border-destructive"
+                        }`}
+                      >
+                        {color}
+                      </button>
+                    );
+                  }
+                )}
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleSavePreferences}
+              className="mt-2 flex items-center justify-between w-full border border-border px-5 py-4 text-[11px] uppercase tracking-[0.2em] text-foreground hover:border-foreground transition-colors duration-100"
+            >
+              <span>Save Preferences</span>
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+              >
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
+            </button>
+          </section>
+
+          {/* Actions */}
+          <section className="space-y-3">
+            <p className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground mb-4">
+              Account
             </p>
-            <div className="flex flex-wrap gap-2">
-              {["black", "white", "gray", "navy", "beige", "red", "blue"].map(
-                (color) => {
-                  const active = avoidedColors.includes(color);
-                  return (
-                    <button
-                      key={color}
-                      type="button"
-                      onClick={() =>
-                        toggleInList(color, avoidedColors, setAvoidedColors)
-                      }
-                      className={`px-3 py-1 text-[11px] uppercase tracking-[0.16em] border transition-colors duration-100 ${
-                        active
-                          ? "border-destructive bg-destructive text-background"
-                          : "border-border text-muted-foreground hover:border-destructive"
-                      }`}
-                    >
-                      {color}
-                    </button>
-                  );
-                }
-              )}
-            </div>
-          </div>
 
-          <button
-            type="button"
-            onClick={handleSavePreferences}
-            className="mt-2 flex items-center justify-between w-full border border-border px-5 py-4 text-[11px] uppercase tracking-[0.2em] text-foreground hover:border-foreground transition-colors duration-100"
-          >
-            <span>Save Preferences</span>
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.5"
+            <Link
+              href="/closet"
+              className="flex items-center justify-between w-full border border-border px-5 py-4 text-[11px] uppercase tracking-[0.2em] text-foreground hover:border-foreground transition-colors duration-100"
             >
-              <polyline points="9 18 15 12 9 6" />
-            </svg>
-          </button>
-        </section>
+              <span>My Closet</span>
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+              >
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
+            </Link>
 
-        {/* Actions */}
-        <section className="space-y-3">
-          <p className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground mb-4">
-            Account
-          </p>
-
-          <Link
-            href="/closet"
-            className="flex items-center justify-between w-full border border-border px-5 py-4 text-[11px] uppercase tracking-[0.2em] text-foreground hover:border-foreground transition-colors duration-100"
-          >
-            <span>My Closet</span>
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.5"
+            <button
+              onClick={handleSignOut}
+              className="flex items-center justify-between w-full border border-border px-5 py-4 text-[11px] uppercase tracking-[0.2em] text-muted-foreground hover:border-destructive hover:text-destructive transition-colors duration-100"
             >
-              <polyline points="9 18 15 12 9 6" />
-            </svg>
-          </Link>
-
-          <button
-            onClick={handleSignOut}
-            className="flex items-center justify-between w-full border border-border px-5 py-4 text-[11px] uppercase tracking-[0.2em] text-muted-foreground hover:border-destructive hover:text-destructive transition-colors duration-100"
-          >
-            <span>Sign Out</span>
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.5"
-            >
-              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-              <polyline points="16 17 21 12 16 7" />
-              <line x1="21" y1="12" x2="9" y2="12" />
-            </svg>
-          </button>
-        </section>
+              <span>Sign Out</span>
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+              >
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                <polyline points="16 17 21 12 16 7" />
+                <line x1="21" y1="12" x2="9" y2="12" />
+              </svg>
+            </button>
+          </section>
+        </PageContainer>
       </div>
     </main>
   );

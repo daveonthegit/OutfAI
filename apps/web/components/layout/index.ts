@@ -1,3 +1,4 @@
+export { AppHeader } from "./app-header";
 export { AppSidebar } from "./app-sidebar";
 export { ConditionalAppShell } from "./conditional-app-shell";
 export { ConditionalBottomNav } from "./conditional-bottom-nav";

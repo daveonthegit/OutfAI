@@ -118,6 +118,16 @@
   }
 }
 
+/* When sidebar is visible (lg+), offset fixed top bar so it doesn’t overlap the sidebar */
+@media (min-width: 1024px) {
+  [data-sidebar-visible] header.fixed {
+    left: var(--sidebar-width);
+  }
+  [data-sidebar-visible][data-sidebar-collapsed] header.fixed {
+    left: 3.5rem;
+  }
+}
+
 @theme inline {
   --font-sans:
     "Inter", "Inter Fallback", system-ui, sans-serif; /* Preserved from existing */
