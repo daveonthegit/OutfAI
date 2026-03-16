@@ -1,78 +1,80 @@
 /**
  * Staggered entry animations: fade in + translateY with per-element delay.
+ * Use Framer Motion variants on a container and its motion children.
  */
 
-import { createTimeline } from "animejs";
-import type { AnimationParams } from "animejs";
+import type { Variants } from "framer-motion";
 import { prefersReducedMotion } from "./prefers-reduced-motion";
 
-const DURATION_MS = 280;
-const STAGGER_DELAY_MS = 60;
+export const STAGGER_DURATION_MS = 280;
+export const STAGGER_DELAY_PER_ITEM_MS = 60;
 const TRANSLATE_Y_PX = 12;
-const EASE = "outCubic";
+const EASE = [0.33, 1, 0.68, 1] as const; // outCubic-like
 
 /**
- * Staggered fade-in with slight translateY for a list of elements.
- * delay = index * 60ms by default.
- * Skips null/disconnected elements to avoid "reading 'duration' of null" in anime.js.
+ * Container variants: stagger children with a small delay per item.
+ * Use with motion.div: initial="hidden" animate="visible".
  */
-export function staggerFadeIn(
-  elements: HTMLElement[],
-  options?: { delayPerItem?: number; duration?: number }
-): void {
-  const valid = elements.filter(
-    (el): el is HTMLElement =>
-      el != null && typeof el.isConnected === "boolean" && el.isConnected
-  );
-  if (valid.length === 0) return;
+export const staggerContainerVariants: Variants = {
+  hidden: {},
+  visible: {
+    transition: {
+      staggerChildren: STAGGER_DELAY_PER_ITEM_MS / 1000,
+      delayChildren: 0,
+    },
+  },
+};
+
+/**
+ * Item variants: fade in + slide up. Use on each direct motion child of the container.
+ */
+export const staggerItemVariants: Variants = {
+  hidden: {
+    opacity: 0,
+    y: TRANSLATE_Y_PX,
+  },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: STAGGER_DURATION_MS / 1000,
+      ease: EASE,
+    },
+  },
+};
+
+/**
+ * When user prefers reduced motion, use these so items appear immediately without stagger.
+ */
+export const staggerContainerVariantsReduced: Variants = {
+  hidden: {},
+  visible: {},
+};
+
+export const staggerItemVariantsReduced: Variants = {
+  hidden: { opacity: 0, y: TRANSLATE_Y_PX },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0 },
+  },
+};
+
+/**
+ * Returns container and item variants based on reduced-motion preference.
+ */
+export function getStaggerVariants(): {
+  container: Variants;
+  item: Variants;
+} {
   if (prefersReducedMotion()) {
-    valid.forEach((el) => {
-      el.style.opacity = "1";
-      el.style.transform = "";
-    });
-    return;
+    return {
+      container: staggerContainerVariantsReduced,
+      item: staggerItemVariantsReduced,
+    };
   }
-
-  const delayPerItem = options?.delayPerItem ?? STAGGER_DELAY_MS;
-  const durationMs = options?.duration ?? DURATION_MS;
-  const durationSec = Number(durationMs) / 1000;
-  if (!Number.isFinite(durationSec) || durationSec <= 0) return;
-
-  try {
-    const tl = createTimeline();
-
-    valid.forEach((el, i) => {
-      if (!el?.isConnected) return;
-      const delay = (i * delayPerItem) / 1000;
-      const params: AnimationParams = {
-        opacity: [0, 1],
-        y: [TRANSLATE_Y_PX, 0],
-        duration: durationSec,
-        delay,
-        ease: EASE,
-      };
-      tl.add(el, params, "<");
-    });
-
-    tl.play();
-  } catch (err) {
-    if (typeof console !== "undefined" && console.warn) {
-      console.warn("[staggerFadeIn] animation skipped:", err);
-    }
-  }
-}
-
-/**
- * Run stagger fade-in on a container's direct children.
- * No-op if container is null or disconnected (avoids anime.js errors on slow/hydration).
- */
-export function staggerFadeInContainer(
-  container: HTMLElement | null,
-  options?: { delayPerItem?: number; duration?: number }
-): void {
-  if (container == null || !container.isConnected) return;
-  const children = Array.from(container.children).filter(
-    (c): c is HTMLElement => c instanceof HTMLElement && c.isConnected
-  );
-  staggerFadeIn(children, options);
+  return {
+    container: staggerContainerVariants,
+    item: staggerItemVariants,
+  };
 }

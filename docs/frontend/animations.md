@@ -1,6 +1,6 @@
 # Frontend animations
 
-OutfAI uses [Anime.js](https://animejs.com/) for UI animations. All animation logic lives in a single utility layer under `apps/web/lib/animations/` so that components stay simple and behavior is consistent.
+OutfAI uses [Framer Motion](https://www.framer.com/motion/) for UI animations. All animation logic lives in a single utility layer under `apps/web/lib/animations/` so that components stay simple and behavior is consistent.
 
 ## Design principles
 
@@ -11,20 +11,19 @@ OutfAI uses [Anime.js](https://animejs.com/) for UI animations. All animation lo
 
 ## Utility modules
 
-| File                        | Purpose                                                                            |
-| --------------------------- | ---------------------------------------------------------------------------------- |
-| `prefers-reduced-motion.ts` | Detects `prefers-reduced-motion` and caches the result.                            |
-| `shuffle.ts`                | Shuffle feedback: scale + opacity stagger on a list after order/content change.    |
-| `stagger.ts`                | Staggered entry: fade-in + small `translateY` with per-item delay.                 |
-| `hover.ts`                  | Card hover: scale 1 → 1.03, soft shadow, optional glow (design tokens).            |
-| `reorder.ts`                | FLIP-style list reorder: record positions → update DOM → animate to new positions. |
-| `pageTransitions.ts`        | Page enter: short fade + slide (< 350ms).                                          |
+| File                        | Purpose                                                                         |
+| --------------------------- | ------------------------------------------------------------------------------- |
+| `prefers-reduced-motion.ts` | Detects `prefers-reduced-motion` and caches the result.                         |
+| `shuffle.ts`                | Shuffle feedback: scale + opacity stagger on a list after order/content change. |
+| `stagger.ts`                | Staggered entry: fade-in + small `translateY` with per-item delay (variants).   |
+| `hover.ts`                  | Card hover: motion props for scale 1 → 1.03, soft shadow, optional glow.        |
+| `pageTransitions.ts`        | Page enter: short fade + slide (< 350ms).                                       |
 
 ## Usage
 
 ### Shuffle (e.g. recommendation grid)
 
-After updating the list (e.g. user clicked “Shuffle”):
+After updating the list (e.g. user clicked "Shuffle"):
 
 ```ts
 import { animateShuffleGrid } from "@/lib/animations";
@@ -35,60 +34,51 @@ if (gridRef.current) animateShuffleGrid(gridRef.current);
 
 ### Staggered entry
 
-When a list first appears (e.g. recommendations, archive, closet):
+When a list first appears (e.g. recommendations, archive, closet), use Framer Motion variants on a container and its children:
 
 ```ts
-import { staggerFadeInContainer } from "@/lib/animations";
+import { getStaggerVariants } from "@/lib/animations";
+import { motion } from "framer-motion";
 
-if (containerRef.current) staggerFadeInContainer(containerRef.current);
+const staggerVariants = getStaggerVariants();
+
+<motion.div
+  variants={staggerVariants.container}
+  initial="hidden"
+  animate="visible"
+  className="grid ..."
+>
+  {items.map((item) => (
+    <motion.div key={item.id} variants={staggerVariants.item}>
+      <YourCard {...item} />
+    </motion.div>
+  ))}
+</motion.div>
 ```
-
-Optional: `staggerFadeIn(elements, { delayPerItem: 80, duration: 320 })`.
 
 ### Card hover
 
-On the card element (e.g. recommendation card, archive card):
+Use motion props from `getCardHoverMotionProps()` on a `motion.div`:
 
 ```ts
-import { animateCardHoverIn, animateCardHoverOut } from "@/lib/animations";
+import { motion } from "framer-motion";
+import { getCardHoverMotionProps } from "@/lib/animations";
 
-onMouseEnter={() => el && animateCardHoverIn(el)}
-onMouseLeave={() => el && animateCardHoverOut(el)}
-```
-
-### List reorder (FLIP)
-
-When the list order changes in the DOM (e.g. sort, filter):
-
-1. **Before** updating state: `controller.record(containerRef.current)`
-2. Update state so React re-renders the new order.
-3. **After** paint (e.g. in `useEffect`): `controller.animate()`
-
-```ts
-import { createReorderController } from "@/lib/animations";
-
-const reorderController = createReorderController();
-
-// Before reorder
-reorderController.record(gridRef.current);
-setItems(newOrder);
-
-// In useEffect after items/grid updated
-useEffect(() => {
-  reorderController.animate();
-}, [items]);
+<motion.div {...getCardHoverMotionProps()} className="...">
+  ...
+</motion.div>
 ```
 
 ### Page transitions
 
-The root layout wraps content in `<PageTransition>`, which runs `animatePageIn` on the wrapper when the route (pathname) changes. No extra wiring in pages.
+The root layout wraps content in `<PageTransition>`, which runs a subtle enter animation (fade + slide) when the route (pathname) changes. No extra wiring in pages.
 
 ## Reduced motion
 
 All helpers call `prefersReducedMotion()` from `prefers-reduced-motion.ts`. When it returns `true`:
 
-- Shuffle, stagger, hover, and reorder animations are no-ops or minimal.
-- Page transition still applies a quick opacity change so navigation isn’t jarring.
+- Shuffle, stagger, hover, and page transition animations are no-ops or minimal (e.g. instant opacity).
+- Page transition still shows content immediately so navigation isn't jarring.
 
 The check is done once per session and cached. To reset the cache (e.g. in tests), use `resetReducedMotionCache()`.
 
@@ -96,10 +86,10 @@ The check is done once per session and cached. To reset the cache (e.g. in tests
 
 - Only **transform** and **opacity** are animated (and optional **box-shadow** for hover).
 - No animating layout properties; no forced reflow.
-- Anime.js uses requestAnimationFrame-friendly updates.
+- Framer Motion uses requestAnimationFrame-friendly updates.
 - Stagger delays are small (e.g. 60ms per item) to keep total duration short.
 
-## Where it’s used
+## Where it's used
 
 | Area                   | Shuffle        | Stagger        | Hover                        | Page transition    |
 | ---------------------- | -------------- | -------------- | ---------------------------- | ------------------ |

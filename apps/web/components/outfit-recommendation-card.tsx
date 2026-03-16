@@ -1,10 +1,11 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { motion } from "framer-motion";
 import type { Id } from "@convex/_generated/dataModel";
-import { animateCardHoverIn, animateCardHoverOut } from "@/lib/animations";
+import { getCardHoverMotionProps } from "@/lib/animations";
 import type { ScoreBreakdown } from "@shared/types";
 
 interface Garment {
@@ -67,8 +68,8 @@ export function OutfitRecommendationCard({
   onSkip,
 }: OutfitRecommendationCardProps) {
   const router = useRouter();
-  const cardRef = useRef<HTMLDivElement>(null);
   const [breakdownOpen, setBreakdownOpen] = useState(false);
+  const cardMotionProps = getCardHoverMotionProps();
 
   if (garments.length === 0) return null;
 
@@ -105,16 +106,13 @@ export function OutfitRecommendationCard({
   };
 
   return (
-    <div
-      ref={cardRef}
+    <motion.div
+      {...cardMotionProps}
       className="relative w-full aspect-square border border-border bg-card hover:bg-secondary/50 transition-colors duration-200 group overflow-hidden text-left origin-center"
-      style={{ transformOrigin: "center center" }}
-      onMouseEnter={() =>
-        cardRef.current && animateCardHoverIn(cardRef.current)
-      }
-      onMouseLeave={() =>
-        cardRef.current && animateCardHoverOut(cardRef.current)
-      }
+      style={{
+        transformOrigin: "center center",
+        ...(cardMotionProps.style as React.CSSProperties),
+      }}
     >
       <button
         type="button"
@@ -261,6 +259,6 @@ export function OutfitRecommendationCard({
       {!isSelectMode && (
         <div className="absolute top-0 left-0 w-0.5 h-full bg-signal-orange opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none" />
       )}
-    </div>
+    </motion.div>
   );
 }

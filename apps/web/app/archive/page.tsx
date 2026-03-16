@@ -1,12 +1,9 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef } from "react";
 import Image from "next/image";
-import {
-  staggerFadeInContainer,
-  animateCardHoverIn,
-  animateCardHoverOut,
-} from "@/lib/animations";
+import { motion } from "framer-motion";
+import { getStaggerVariants, getCardHoverMotionProps } from "@/lib/animations";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useQuery, useMutation } from "convex/react";
@@ -61,7 +58,8 @@ export default function ArchivePage() {
   const router = useRouter();
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const gridRef = useRef<HTMLDivElement>(null);
-  const hasStaggeredRef = useRef(false);
+  const staggerVariants = getStaggerVariants();
+  const cardHoverProps = getCardHoverMotionProps();
   const outfits = useQuery(api.outfits.list) as
     | OutfitWithGarments[]
     | undefined;
@@ -88,13 +86,6 @@ export default function ArchivePage() {
       weather: outfit.contextWeather,
     }).catch(console.error);
   };
-
-  useEffect(() => {
-    if (!outfits?.length || hasStaggeredRef.current || !gridRef.current) return;
-    hasStaggeredRef.current = true;
-    const el = gridRef.current;
-    requestAnimationFrame(() => staggerFadeInContainer(el));
-  }, [outfits]);
 
   const handleViewOutfit = (outfit: OutfitWithGarments) => {
     const sorted = sortGarmentsByCategory(
@@ -183,12 +174,12 @@ export default function ArchivePage() {
             </Link>
           </section>
         ) : (
-          <div
+          <motion.div
             ref={gridRef}
+            variants={staggerVariants.container}
+            initial="hidden"
+            animate="visible"
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 lg:gap-8"
-            style={{
-              opacity: hoveredId ? 1 : 1,
-            }}
           >
             {outfits.map((outfit) => {
               const sortedGarments = sortGarmentsByCategory(
@@ -196,22 +187,17 @@ export default function ArchivePage() {
               );
               const isHovered = hoveredId === outfit._id;
               return (
-                <div
+                <motion.div
                   key={outfit._id}
+                  variants={staggerVariants.item}
+                  {...cardHoverProps}
                   className="group relative w-full aspect-square border border-border bg-card hover:bg-secondary/50 transition-all duration-200 overflow-hidden text-left origin-center"
-                  onMouseEnter={(e) => {
-                    setHoveredId(outfit._id);
-                    const el = e.currentTarget;
-                    if (el) animateCardHoverIn(el);
-                  }}
-                  onMouseLeave={(e) => {
-                    setHoveredId(null);
-                    const el = e.currentTarget;
-                    if (el) animateCardHoverOut(el);
-                  }}
+                  onMouseEnter={() => setHoveredId(outfit._id)}
+                  onMouseLeave={() => setHoveredId(null)}
                   style={{
                     opacity: hoveredId !== null && !isHovered ? 0.5 : 1,
                     transition: "opacity 100ms",
+                    ...(cardHoverProps.style as React.CSSProperties),
                   }}
                 >
                   {/* I wore this + Remove - same z as overlay */}
@@ -302,10 +288,10 @@ export default function ArchivePage() {
 
                   {/* Accent line on hover - same as options */}
                   <div className="absolute top-0 left-0 w-0.5 h-full bg-signal-orange opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none" />
-                </div>
+                </motion.div>
               );
             })}
-          </div>
+          </motion.div>
         )}
       </div>
     </main>

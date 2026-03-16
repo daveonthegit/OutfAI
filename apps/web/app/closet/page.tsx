@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useRef } from "react";
 import Image from "next/image";
-import { staggerFadeInContainer } from "@/lib/animations";
+import { motion } from "framer-motion";
+import { getStaggerVariants } from "@/lib/animations";
 import Link from "next/link";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@convex/_generated/api";
@@ -58,7 +59,7 @@ export default function ClosetPage() {
   const [isDeleting, setIsDeleting] = useState(false);
 
   const gridRef = useRef<HTMLDivElement>(null);
-  const hasStaggeredRef = useRef(false);
+  const staggerVariants = getStaggerVariants();
 
   const garmentsRaw = useQuery(api.garments.list);
   const garments = garmentsRaw ?? [];
@@ -143,14 +144,6 @@ export default function ClosetPage() {
   const allFilteredSelected =
     filteredItems.length > 0 &&
     filteredItems.every((item: ConvexGarment) => selectedIds.has(item._id));
-
-  useEffect(() => {
-    if (!filteredItems.length || hasStaggeredRef.current || !gridRef.current)
-      return;
-    hasStaggeredRef.current = true;
-    const el = gridRef.current;
-    requestAnimationFrame(() => staggerFadeInContainer(el));
-  }, [filteredItems.length]);
 
   return (
     <main className="min-h-screen bg-background text-foreground selection:bg-signal-orange selection:text-background">
@@ -308,8 +301,11 @@ export default function ClosetPage() {
               </Link>
             </div>
           ) : (
-            <div
+            <motion.div
               ref={gridRef}
+              variants={staggerVariants.container}
+              initial="hidden"
+              animate="visible"
               className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-0.5"
             >
               {filteredItems.map((item: ConvexGarment) => {
@@ -319,8 +315,9 @@ export default function ClosetPage() {
                   !isSelectMode && hoveredId !== null && !isHovered;
 
                 return (
-                  <div
+                  <motion.div
                     key={item._id}
+                    variants={staggerVariants.item}
                     className="relative border border-border bg-card transition-all duration-100 cursor-pointer"
                     style={{ opacity: dimmed ? 0.5 : 1 }}
                     onMouseEnter={() => !isSelectMode && setHoveredId(item._id)}
@@ -426,10 +423,10 @@ export default function ClosetPage() {
                         }}
                       />
                     )}
-                  </div>
+                  </motion.div>
                 );
               })}
-            </div>
+            </motion.div>
           )}
         </section>
 

@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { motion } from "framer-motion";
 import { OutfitRecommendationCard } from "@/components/outfit-recommendation-card";
 import { StyleInsightsSection } from "@/components/style-insights-section";
 import { useOutfitRecommendations } from "@/hooks/use-outfit-recommendations";
@@ -14,7 +15,7 @@ import type { Mood, WeatherCondition, ScoreBreakdown } from "@shared/types";
 import { MOCK_CLOSET_ITEMS } from "@shared/data/mock-closet";
 import { UserAvatar } from "@/components/user-avatar";
 import { MoodSelectModal } from "@/components/mood-select-modal";
-import { animateShuffleGrid, staggerFadeInContainer } from "@/lib/animations";
+import { animateShuffleGrid, getStaggerVariants } from "@/lib/animations";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 
@@ -152,8 +153,8 @@ export default function Home() {
 
   const recommendationGridRef = useRef<HTMLDivElement>(null);
   const justShuffledRef = useRef(false);
-  const hasStaggeredInitialRef = useRef(false);
   const lastLoggedShownBatchRef = useRef<string | null>(null);
+  const staggerVariants = getStaggerVariants();
   const convexGarmentsRef = useRef(convexGarments);
   convexGarmentsRef.current = convexGarments;
 
@@ -446,19 +447,6 @@ export default function Home() {
       const el = recommendationGridRef.current;
       requestAnimationFrame(() => animateShuffleGrid(el));
     }
-  }, [recommendedOutfit]);
-
-  // Staggered entry when recommendations first appear (defer so DOM is committed; avoids duration-of-null on slow/hydration)
-  useEffect(() => {
-    if (
-      !recommendedOutfit?.length ||
-      hasStaggeredInitialRef.current ||
-      !recommendationGridRef.current
-    )
-      return;
-    hasStaggeredInitialRef.current = true;
-    const el = recommendationGridRef.current;
-    requestAnimationFrame(() => staggerFadeInContainer(el));
   }, [recommendedOutfit]);
 
   const toggleSelectMode = () => {
@@ -794,8 +782,11 @@ export default function Home() {
               ))}
             </div>
           ) : recommendedOutfit && recommendedOutfit.length > 0 ? (
-            <div
+            <motion.div
               ref={recommendationGridRef}
+              variants={staggerVariants.container}
+              initial="hidden"
+              animate="visible"
               className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 lg:gap-8 transition-opacity duration-100 ${
                 isShuffling ? "opacity-30" : "opacity-100"
               }`}
@@ -804,25 +795,26 @@ export default function Home() {
                 (outfit, index) =>
                   outfit.garments.length > 0 &&
                   !skippedIndices.has(index) && (
-                    <OutfitRecommendationCard
-                      key={index}
-                      label={outfit.label}
-                      garments={outfit.garments}
-                      explanation={outfit.explanation}
-                      contextMood={outfit.contextMood}
-                      contextWeather={outfit.contextWeather}
-                      contextTemperature={outfit.contextTemperature}
-                      scoreBreakdown={outfit.scoreBreakdown}
-                      isSelectMode={isSelectMode}
-                      isSelected={selectedOptionIndices.has(index)}
-                      onToggleSelect={() => toggleOptionIndex(index)}
-                      onSkip={
-                        isSelectMode ? undefined : () => handleSkip(index)
-                      }
-                    />
+                    <motion.div key={index} variants={staggerVariants.item}>
+                      <OutfitRecommendationCard
+                        label={outfit.label}
+                        garments={outfit.garments}
+                        explanation={outfit.explanation}
+                        contextMood={outfit.contextMood}
+                        contextWeather={outfit.contextWeather}
+                        contextTemperature={outfit.contextTemperature}
+                        scoreBreakdown={outfit.scoreBreakdown}
+                        isSelectMode={isSelectMode}
+                        isSelected={selectedOptionIndices.has(index)}
+                        onToggleSelect={() => toggleOptionIndex(index)}
+                        onSkip={
+                          isSelectMode ? undefined : () => handleSkip(index)
+                        }
+                      />
+                    </motion.div>
                   )
               )}
-            </div>
+            </motion.div>
           ) : (
             <div className="text-center py-12 text-muted-foreground text-[11px] uppercase tracking-[0.2em]">
               {loading

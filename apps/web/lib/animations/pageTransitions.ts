@@ -1,57 +1,50 @@
 /**
- * Subtle page/view transitions: fade + slight slide, duration < 350ms.
+ * Page/view transition config for Framer Motion.
+ * Used by PageTransition component: fade + slight slide, duration < 350ms.
  */
 
-import { animate } from "animejs";
-import type { AnimationParams } from "animejs";
+import { type Variants } from "framer-motion";
 import { prefersReducedMotion } from "./prefers-reduced-motion";
 
-const DURATION_MS = 280;
+export const PAGE_TRANSITION_DURATION_MS = 280;
 const SLIDE_PX = 8;
-const EASE = "outCubic";
 
 /**
- * Animate a page/view container in (on enter).
+ * Variants for page enter: fade in + slide up.
+ * Use with motion.div: initial="hidden" animate="visible".
  */
-export function animatePageIn(container: HTMLElement | null): void {
-  if (container == null || !container.isConnected) return;
-  if (prefersReducedMotion()) {
-    container.style.opacity = "1";
-    container.style.transform = "";
-    return;
-  }
-  try {
-    animate(container, {
-      opacity: [0, 1],
-      translateY: [SLIDE_PX, 0],
-      duration: DURATION_MS / 1000,
-      ease: EASE,
-    } as AnimationParams);
-  } catch {
-    container.style.opacity = "1";
-    container.style.transform = "";
-  }
-}
+export const pageEnterVariants: Variants = {
+  hidden: {
+    opacity: 0,
+    y: SLIDE_PX,
+  },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: PAGE_TRANSITION_DURATION_MS / 1000,
+      ease: [0.33, 1, 0.68, 1], // outCubic-like
+    },
+  },
+};
 
 /**
- * Animate a page/view container out (before unmount or route change).
- * Returns a Promise that resolves when the animation completes.
+ * Variants for page exit: fade out + slide up (e.g. before route change).
  */
-export function animatePageOut(container: HTMLElement | null): Promise<void> {
-  if (container == null || !container.isConnected || prefersReducedMotion())
-    return Promise.resolve();
-  try {
-    const anim = animate(container, {
-      opacity: [1, 0],
-      translateY: [0, -SLIDE_PX],
-      duration: DURATION_MS / 1000,
-      ease: EASE,
-    } as AnimationParams);
-    if (anim && "then" in anim && typeof anim.then === "function") {
-      return anim.then(() => undefined) as Promise<void>;
-    }
-  } catch {
-    // no-op
-  }
-  return new Promise((resolve) => setTimeout(resolve, DURATION_MS));
+export const pageExitVariants: Variants = {
+  hidden: {
+    opacity: 0,
+    y: -SLIDE_PX,
+    transition: {
+      duration: PAGE_TRANSITION_DURATION_MS / 1000,
+      ease: [0.33, 1, 0.68, 1],
+    },
+  },
+};
+
+/**
+ * Whether to run full transition (false when user prefers reduced motion).
+ */
+export function shouldAnimatePage(): boolean {
+  return !prefersReducedMotion();
 }

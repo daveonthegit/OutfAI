@@ -1,20 +1,18 @@
 /**
- * Shuffle animations: items smoothly reposition with translate/scale.
- * Used for outfit cards, inventory items, recommendation lists.
+ * Shuffle animations: items smoothly reposition with scale + opacity.
+ * Used for outfit cards, recommendation grid after "Shuffle" click.
  */
 
-import { createTimeline } from "animejs";
-import type { AnimationParams } from "animejs";
+import { animate } from "framer-motion";
 import { prefersReducedMotion } from "./prefers-reduced-motion";
 
-const DURATION = 320;
+const DURATION_MS = 320;
 const STAGGER_MS = 45;
-const EASE = "outQuad";
+const EASE = [0.25, 0.46, 0.45, 0.94] as const; // outQuad-like
 
 /**
  * Animate a list of elements as if they shuffled into new positions.
- * Uses translate + scale only (no layout thrashing).
- * Skips null/disconnected elements to avoid "reading 'duration' of null" in anime.js.
+ * Uses scale + opacity only. Skips null/disconnected elements.
  */
 export function animateShuffle(elements: HTMLElement[]): void {
   const valid = elements.filter(
@@ -24,35 +22,26 @@ export function animateShuffle(elements: HTMLElement[]): void {
   if (valid.length === 0) return;
   if (prefersReducedMotion()) return;
 
-  try {
-    const tl = createTimeline();
-    const durationSec = DURATION / 1000;
-
-    valid.forEach((el, i) => {
-      if (!el?.isConnected) return;
-      const delay = (i * STAGGER_MS) / 1000;
-      const params: AnimationParams = {
-        scale: [0.98, 1],
-        opacity: [0.85, 1],
+  const durationSec = DURATION_MS / 1000;
+  valid.forEach((el, i) => {
+    if (!el?.isConnected) return;
+    const delay = (i * STAGGER_MS) / 1000;
+    // Start from slightly scaled down and faded, then animate to full
+    animate(
+      el,
+      { scale: [0.98, 1], opacity: [0.85, 1] },
+      {
         duration: durationSec,
         delay,
         ease: EASE,
-      };
-      tl.add(el, params, "<");
-    });
-
-    tl.play();
-  } catch (err) {
-    if (typeof console !== "undefined" && console.warn) {
-      console.warn("[animateShuffle] animation skipped:", err);
-    }
-  }
+      }
+    );
+  });
 }
 
 /**
- * Run a quick "shuffle feedback" on a container's children (e.g. grid items).
- * Call after updating the list order in React; pass the container and it animates direct children.
- * No-op if container is null or disconnected (avoids anime.js errors on slow/hydration).
+ * Run shuffle feedback on a container's direct children.
+ * Call after updating the list order in React (e.g. after Shuffle click).
  */
 export function animateShuffleGrid(container: HTMLElement | null): void {
   if (container == null || !container.isConnected) return;
