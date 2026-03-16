@@ -6,6 +6,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { ConditionalBottomNav } from "@/components/layout/conditional-bottom-nav";
 import { Providers } from "@/components/providers";
 import { PageTransition } from "@/components/page-transition";
+import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
 const inter = Inter({
@@ -49,6 +50,7 @@ export default function RootLayout({
           >
             <PageTransition>{children}</PageTransition>
             <ConditionalBottomNav />
+            <Toaster richColors position="bottom-center" />
           </ThemeProvider>
         </Providers>
         <Analytics />

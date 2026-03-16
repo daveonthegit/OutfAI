@@ -26,6 +26,15 @@ export const createAuth = (ctx: GenericCtx<DataModel>) =>
       requireEmailVerification: true,
       // Keep minimum length of 1 so the dev test/test account still works
       minPasswordLength: 1,
+      sendResetPassword: async ({ user, url }) => {
+        const runCtx = requireRunMutationCtx(ctx);
+        await resend.sendEmail(runCtx, {
+          from: FROM_EMAIL,
+          to: user.email,
+          subject: "Reset your password — OutfAI",
+          html: `<!DOCTYPE html><html><body style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px;"><h1 style="font-size:1.25rem;">Reset your password</h1><p>You requested a password reset for OutfAI. Click the link below to set a new password.</p><p><a href="${url}" style="display:inline-block;background:#000;color:#fff;padding:12px 20px;text-decoration:none;border-radius:8px;">Reset password</a></p><p>Or copy this link: <br/><a href="${url}">${url}</a></p><p style="color:#666;font-size:0.875rem;">If you didn't request this, you can ignore this email. The link expires after a short time.</p></body></html>`,
+        });
+      },
     },
     emailVerification: {
       sendOnSignUp: true,

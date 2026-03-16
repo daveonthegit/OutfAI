@@ -9,6 +9,8 @@ import { api } from "@convex/_generated/api";
 import type { Id } from "@convex/_generated/dataModel";
 import { useRequireAuth } from "@/hooks/use-require-auth";
 import { UserAvatar } from "@/components/user-avatar";
+import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "sonner";
 
 type Category = "all" | "top" | "bottom" | "shoes" | "outerwear" | "accessory";
 
@@ -58,7 +60,8 @@ export default function ClosetPage() {
   const gridRef = useRef<HTMLDivElement>(null);
   const hasStaggeredRef = useRef(false);
 
-  const garments = useQuery(api.garments.list) ?? [];
+  const garmentsRaw = useQuery(api.garments.list);
+  const garments = garmentsRaw ?? [];
   const removeMany = useMutation(api.garments.removeMany);
   const removeSingle = useMutation(api.garments.remove);
 
@@ -115,12 +118,16 @@ export default function ClosetPage() {
     try {
       if (deletingIds.length === 1) {
         await removeSingle({ id: deletingIds[0] });
+        toast.success("Item removed");
       } else {
         await removeMany({ ids: deletingIds });
+        toast.success(`${deletingIds.length} items removed`);
       }
       setSelectedIds(new Set());
       setIsSelectMode(false);
       setSelectedGarment(null);
+    } catch {
+      toast.error("Could not remove. Try again.");
     } finally {
       setIsDeleting(false);
       setShowDeleteConfirm(false);
@@ -268,10 +275,15 @@ export default function ClosetPage() {
 
         {/* Garment Grid */}
         <section className="mb-16">
-          {garments === undefined ? (
-            <p className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
-              Loading…
-            </p>
+          {garmentsRaw === undefined ? (
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-0.5">
+              {Array.from({ length: 8 }).map((_, i) => (
+                <Skeleton
+                  key={i}
+                  className="aspect-square w-full rounded-none border border-border"
+                />
+              ))}
+            </div>
           ) : filteredItems.length === 0 ? (
             <div className="py-16 text-center">
               <p className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground mb-4">

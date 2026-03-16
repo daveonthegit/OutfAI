@@ -10,6 +10,7 @@ import type { Id } from "@convex/_generated/dataModel";
 import { useRequireAuth } from "@/hooks/use-require-auth";
 import { UserAvatar } from "@/components/user-avatar";
 import { getDefaultTagsForGarment } from "@shared/garment-default-tags";
+import { toast } from "sonner";
 
 type Category = "top" | "bottom" | "shoes" | "outerwear" | "accessory";
 
@@ -279,11 +280,13 @@ export default function AddGarmentPage() {
         vibrancy: selectedVibrancy ?? undefined,
         storageId,
       });
+      toast.success("Garment added");
       router.push("/closet");
     } catch (err) {
-      setSaveError(
-        err instanceof Error ? err.message : "Failed to save garment"
-      );
+      const message =
+        err instanceof Error ? err.message : "Failed to save garment";
+      setSaveError(message);
+      toast.error(message);
     } finally {
       setSaving(false);
     }
