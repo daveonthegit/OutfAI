@@ -24,12 +24,19 @@
 
 ---
 
+## Shipped (Phase 1 complete)
+
+| Feature                             | Notes                                                                                                                                                 |
+| ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Password reset**                  | Forgot-password link on login; /forgot-password and /reset-password pages; BetterAuth sendResetPassword (Resend).                                     |
+| **Loading / toasts / empty states** | Sonner in layout; skeleton for closet grid and outfit cards; toasts for garment CRUD, outfit save, API errors; closet/archive empty states with CTAs. |
+| **Score breakdown UI**              | Recommendation API returns scoreBreakdown per outfit; outfit card "See why" expandable with category bars.                                            |
+| **Manual weather fallback**         | When location is off: "Enter city" input; Open-Meteo geocoding + forecast; last city in localStorage.                                                 |
+
+---
+
 ## Not shipped (backlog)
 
-- **Password reset** — Forgot-password flow. Phase 1.
-- **Loading / toasts / empty states** — Consistent skeletons, Sonner, empty-state CTAs. Phase 1.
-- **Score breakdown UI** — Expand outfit for category scores. Phase 1.
-- **Manual weather fallback** — City input when geolocation denied. Phase 1.
 - **User preferences UI** — Set favorite moods, styles, colors. Phase 2.
 - **Editable profile** — Name, username, avatar. Phase 2.
 - **Onboarding** — Complete profile + checklist. Phase 2.
