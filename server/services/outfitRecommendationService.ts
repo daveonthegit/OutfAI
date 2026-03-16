@@ -28,8 +28,8 @@ import {
  * - Total Range: 50-100 points
  * - Minimum Threshold: 60 points (must pass to be recommended)
  *
- * Outfits are ranked by score and up to 6 passing suggestions are returned.
- * If fewer than 6 outfits meet the 60-point threshold, only those are returned.
+ * Outfits are ranked by score and up to 8 passing suggestions are returned (or input.limitCount).
+ * If fewer than 8 outfits meet the 60-point threshold, only those are returned.
  */
 
 interface OutfitCandidate {
@@ -92,13 +92,13 @@ export class OutfitRecommendationService {
     );
     const rankedCandidates = sortedCandidates
       .filter((candidate) => candidate.score >= MIN_SCORE_THRESHOLD)
-      .slice(0, input.limitCount || 6);
+      .slice(0, input.limitCount ?? 8);
 
     const usedCandidates =
       rankedCandidates.length > 0
         ? rankedCandidates
         : // Adaptive threshold: if nothing passes, return best few anyway
-          sortedCandidates.slice(0, Math.min(3, input.limitCount || 3));
+          sortedCandidates.slice(0, Math.min(3, input.limitCount ?? 8));
 
     // If still none, return empty with explanation
     if (usedCandidates.length === 0) {

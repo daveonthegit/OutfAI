@@ -48,6 +48,7 @@ export default function ProfilePage() {
   const currentUser = useRequireAuth("/profile");
   const profileData = useQuery(api.profile.getWithAvatarUrl);
   const garments = useQuery(api.garments.list) ?? [];
+  const activityStats = useQuery(api.profile.getActivityStats);
   const userPreferences = useQuery(api.userPreferences.get);
   const savePreferences = useMutation(api.userPreferences.save);
   const getOrCreateProfile = useMutation(api.profile.getOrCreate);
@@ -506,6 +507,42 @@ export default function ProfilePage() {
                 </p>
                 <p className="text-[9px] uppercase tracking-[0.2em] text-muted-foreground mt-1">
                   Categories
+                </p>
+              </div>
+            </div>
+          </section>
+
+          {/* Your activity */}
+          <section className="mb-12" aria-labelledby="activity-heading">
+            <p
+              id="activity-heading"
+              className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground mb-4"
+            >
+              Your activity
+            </p>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-px border border-border bg-border">
+              <div className="bg-background px-4 py-4">
+                <p className="text-2xl font-light tabular-nums">
+                  {activityStats?.outfitCount ?? "—"}
+                </p>
+                <p className="text-[9px] uppercase tracking-[0.2em] text-muted-foreground mt-1">
+                  Outfits saved
+                </p>
+              </div>
+              <div className="bg-background px-4 py-4">
+                <p className="text-2xl font-light tabular-nums">
+                  {activityStats?.outfitsSavedThisWeek ?? "—"}
+                </p>
+                <p className="text-[9px] uppercase tracking-[0.2em] text-muted-foreground mt-1">
+                  Saved this week
+                </p>
+              </div>
+              <div className="bg-background px-4 py-4">
+                <p className="text-2xl font-light tabular-nums">
+                  {activityStats?.wornCount ?? "—"}
+                </p>
+                <p className="text-[9px] uppercase tracking-[0.2em] text-muted-foreground mt-1">
+                  Marked worn
                 </p>
               </div>
             </div>

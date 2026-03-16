@@ -25,10 +25,47 @@ import { BrutalistButton } from "@/components/brutalist-button";
 
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
+type OutfitItem = {
+  _id: Id<"outfits">;
+  contextMood?: string;
+  savedAt: number;
+  garments: Array<{
+    _id: Id<"garments">;
+    name?: string;
+    category?: string;
+    imageUrl?: string;
+  }>;
+};
+
+function matchOutfit(
+  outfit: OutfitItem,
+  query: string,
+  moodFilter: string | null
+): boolean {
+  const q = query.trim().toLowerCase();
+  if (q) {
+    const moodMatch = outfit.contextMood?.toLowerCase().includes(q);
+    const nameMatch = outfit.garments.some((g) =>
+      (g.name ?? "").toLowerCase().includes(q)
+    );
+    const categoryMatch = outfit.garments.some((g) =>
+      (g.category ?? "").toLowerCase().includes(q)
+    );
+    if (!moodMatch && !nameMatch && !categoryMatch) return false;
+  }
+  if (moodFilter && moodFilter !== "all") {
+    if ((outfit.contextMood ?? "").toLowerCase() !== moodFilter.toLowerCase())
+      return false;
+  }
+  return true;
+}
+
 export default function CalendarPage() {
   useRequireAuth("/calendar");
   const [viewMonth, setViewMonth] = useState(() => new Date());
   const [assignDate, setAssignDate] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [moodFilter, setMoodFilter] = useState<string | null>(null);
 
   const start = startOfMonth(viewMonth);
   const end = endOfMonth(viewMonth);
@@ -48,6 +85,20 @@ export default function CalendarPage() {
     if (plans) for (const p of plans) map.set(p.date, p);
     return map;
   }, [plans]);
+
+  const outfitList = (outfits ?? []) as OutfitItem[];
+  const moods = useMemo(() => {
+    const set = new Set<string>();
+    outfitList.forEach((o) => {
+      if (o.contextMood) set.add(o.contextMood.toLowerCase());
+    });
+    return Array.from(set).sort();
+  }, [outfitList]);
+
+  const filteredOutfits = useMemo(
+    () => outfitList.filter((o) => matchOutfit(o, searchQuery, moodFilter)),
+    [outfitList, searchQuery, moodFilter]
+  );
 
   // Calendar grid: pad start so first day aligns with weekday
   const days = useMemo(() => {
@@ -140,7 +191,9 @@ export default function CalendarPage() {
             ))}
             {days.map((d, i) => {
               if (!d) {
-                return <div key={`pad-${i}`} className="bg-muted/30 min-h-[80px]" />;
+                return (
+                  <div key={`pad-${i}`} className="bg-muted/30 min-h-[80px]" />
+                );
               }
               const dateStr = format(d, "yyyy-MM-dd");
               const plan = plansByDate.get(dateStr);
@@ -186,7 +239,10 @@ export default function CalendarPage() {
                         {(plan.outfit?.garments ?? [])
                           .slice(0, 2)
                           .map((g, j) => {
-                            const row = g as { imageUrl?: string; name: string };
+                            const row = g as {
+                              imageUrl?: string;
+                              name: string;
+                            };
                             return row.imageUrl ? (
                               <div
                                 key={j}
@@ -218,78 +274,154 @@ export default function CalendarPage() {
           </div>
 
           <p className="mt-6 text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
-            Tap a day to assign or change an outfit. Save outfits from Today or Archive first.
+            Tap a day to assign or change an outfit. Save outfits from Today or
+            Archive first.
           </p>
         </PageContainer>
       </div>
 
       {assignDate && (
         <div
-          className="fixed inset-0 z-50 bg-background/95 flex flex-col items-center justify-center p-4"
+          className="fixed inset-0 z-50 bg-background/95 flex flex-col p-4 sm:p-6"
           role="dialog"
           aria-modal="true"
           aria-labelledby="assign-outfit-title"
         >
-          <h2 id="assign-outfit-title" className="text-sm uppercase tracking-widest mb-4">
-            Outfit for {assignDate}
-          </h2>
-          <div className="w-full max-w-md max-h-[70vh] overflow-y-auto space-y-2">
-            {outfits.length === 0 ? (
+          <div className="flex flex-col gap-4 max-w-4xl mx-auto w-full flex-1 min-h-0">
+            <h2
+              id="assign-outfit-title"
+              className="text-sm uppercase tracking-widest shrink-0"
+            >
+              Assign outfit for {format(new Date(assignDate), "EEEE, MMM d")}
+            </h2>
+
+            {outfitList.length === 0 ? (
               <p className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
                 No saved outfits. Save one from Today or Archive first.
               </p>
             ) : (
-              outfits.map((outfit) => {
-                const garments = (outfit.garments ?? []).filter(Boolean) as Array<{
-                  _id: Id<"garments">;
-                  name: string;
-                  category: string;
-                  imageUrl?: string;
-                }>;
-                return (
-                  <button
-                    key={outfit._id}
-                    type="button"
-                    onClick={() => handleAssign(assignDate, outfit._id)}
-                    className="w-full flex items-center gap-3 p-3 border border-border hover:border-signal-orange hover:bg-secondary/50 text-left"
-                  >
-                    <div className="flex gap-1 shrink-0">
-                      {garments.slice(0, 3).map((g) =>
-                        g.imageUrl ? (
-                          <div
-                            key={g._id}
-                            className="relative w-10 h-10 rounded border border-border overflow-hidden"
-                          >
-                            <Image src={g.imageUrl} alt="" fill className="object-cover" />
-                          </div>
-                        ) : (
-                          <div
-                            key={g._id}
-                            className="w-10 h-10 rounded border border-border bg-secondary flex items-center justify-center text-[9px]"
-                          >
-                            {g.category.slice(0, 1)}
-                          </div>
-                        )
-                      )}
+              <>
+                <div className="flex flex-col gap-3 shrink-0">
+                  <input
+                    type="search"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search by mood, garment name, or category…"
+                    className="w-full border border-border bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-signal-orange"
+                    aria-label="Search outfits"
+                  />
+                  {moods.length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setMoodFilter(null)}
+                        className={`px-2.5 py-1 text-[10px] uppercase tracking-widest border transition-colors ${
+                          moodFilter === null
+                            ? "border-signal-orange bg-signal-orange/20 text-foreground"
+                            : "border-border text-muted-foreground hover:border-foreground"
+                        }`}
+                      >
+                        All
+                      </button>
+                      {moods.map((m) => (
+                        <button
+                          key={m}
+                          type="button"
+                          onClick={() =>
+                            setMoodFilter(moodFilter === m ? null : m)
+                          }
+                          className={`px-2.5 py-1 text-[10px] uppercase tracking-widest border transition-colors ${
+                            moodFilter === m
+                              ? "border-signal-orange bg-signal-orange/20 text-foreground"
+                              : "border-border text-muted-foreground hover:border-foreground"
+                          }`}
+                        >
+                          {m}
+                        </button>
+                      ))}
                     </div>
-                    <span className="text-[11px] uppercase tracking-widest">
-                      {garments.length} pieces
-                    </span>
-                  </button>
-                );
-              })
+                  )}
+                </div>
+
+                <div className="flex-1 min-h-0 overflow-y-auto">
+                  {filteredOutfits.length === 0 ? (
+                    <p className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
+                      No outfits match. Try a different search or mood.
+                    </p>
+                  ) : (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 pb-4">
+                      {filteredOutfits.map((outfit) => {
+                        const garments = outfit.garments ?? [];
+                        return (
+                          <button
+                            key={outfit._id}
+                            type="button"
+                            onClick={() => handleAssign(assignDate, outfit._id)}
+                            className="flex flex-col border border-border bg-card hover:border-signal-orange hover:bg-secondary/50 text-left transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-signal-orange rounded-sm overflow-hidden"
+                          >
+                            <div className="aspect-square grid grid-cols-2 grid-rows-2 gap-px bg-border">
+                              {garments.slice(0, 4).map((g) =>
+                                g.imageUrl ? (
+                                  <div
+                                    key={g._id}
+                                    className="relative w-full h-full min-h-0 bg-background"
+                                  >
+                                    <Image
+                                      src={g.imageUrl}
+                                      alt=""
+                                      fill
+                                      className="object-cover"
+                                      sizes="120px"
+                                    />
+                                  </div>
+                                ) : (
+                                  <div
+                                    key={g._id}
+                                    className="bg-secondary flex items-center justify-center text-[10px] uppercase text-muted-foreground min-h-0"
+                                  >
+                                    {(g.category ?? "").slice(0, 1)}
+                                  </div>
+                                )
+                              )}
+                            </div>
+                            <div className="p-2 flex flex-col gap-0.5">
+                              {outfit.contextMood && (
+                                <span className="text-[9px] uppercase tracking-widest text-muted-foreground">
+                                  {outfit.contextMood}
+                                </span>
+                              )}
+                              <span className="text-[10px] uppercase tracking-widest">
+                                {garments.length} piece
+                                {garments.length !== 1 ? "s" : ""}
+                              </span>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              </>
             )}
-          </div>
-          <div className="flex gap-3 mt-4">
-            <BrutalistButton
-              variant="outline"
-              onClick={() => assignDate && handleRemove(assignDate)}
-            >
-              Clear day
-            </BrutalistButton>
-            <BrutalistButton variant="ghost" onClick={() => setAssignDate(null)}>
-              Cancel
-            </BrutalistButton>
+
+            <div className="flex gap-3 shrink-0 pt-2 border-t border-border">
+              <BrutalistButton
+                variant="outline"
+                onClick={() => assignDate && handleRemove(assignDate)}
+              >
+                Clear day
+              </BrutalistButton>
+              <BrutalistButton
+                variant="ghost"
+                onClick={() => {
+                  setAssignDate(null);
+                  setSearchQuery("");
+                  setMoodFilter(null);
+                }}
+              >
+                Cancel
+              </BrutalistButton>
+            </div>
           </div>
         </div>
       )}

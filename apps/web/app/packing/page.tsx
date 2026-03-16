@@ -5,11 +5,13 @@ import Link from "next/link";
 import { format } from "date-fns";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@convex/_generated/api";
+import type { DateRange } from "react-day-picker";
 import { useRequireAuth } from "@/hooks/use-require-auth";
 import { PageContainer } from "@/components/layout/page-container";
 import { SectionHeader } from "@/components/layout/section-header";
 import { UserAvatar } from "@/components/user-avatar";
 import { BrutalistButton } from "@/components/brutalist-button";
+import { TripDateRangePicker } from "@/components/ui/trip-date-range-picker";
 import { toast } from "sonner";
 
 export default function PackingPage() {
@@ -19,14 +21,15 @@ export default function PackingPage() {
 
   const [showForm, setShowForm] = useState(false);
   const [name, setName] = useState("");
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [creating, setCreating] = useState(false);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
-    const start = startDate ? new Date(startDate).getTime() : Date.now();
-    const end = endDate ? new Date(endDate).getTime() : start;
+    const from = dateRange?.from;
+    const to = dateRange?.to ?? from;
+    const start = from ? from.getTime() : Date.now();
+    const end = to ? to.getTime() : start;
     if (end < start) {
       toast.error("End date must be on or after start date.");
       return;
@@ -40,8 +43,7 @@ export default function PackingPage() {
       });
       setShowForm(false);
       setName("");
-      setStartDate("");
-      setEndDate("");
+      setDateRange(undefined);
       window.location.href = `/packing/${id}`;
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to create trip");
@@ -101,25 +103,14 @@ export default function PackingPage() {
                 className="w-full border border-border bg-background px-3 py-2 text-sm mb-4 focus:outline-none focus-visible:ring-2 focus-visible:ring-signal-orange"
                 aria-label="Trip name"
               />
-              <label className="block mb-2 text-[11px] uppercase tracking-widest">
-                Start date
-              </label>
-              <input
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                className="w-full border border-border bg-background px-3 py-2 text-sm mb-4 focus:outline-none focus-visible:ring-2 focus-visible:ring-signal-orange"
-                aria-label="Start date"
-              />
-              <label className="block mb-2 text-[11px] uppercase tracking-widest">
-                End date
-              </label>
-              <input
-                type="date"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                className="w-full border border-border bg-background px-3 py-2 text-sm mb-4 focus:outline-none focus-visible:ring-2 focus-visible:ring-signal-orange"
-                aria-label="End date"
+              <TripDateRangePicker
+                label="Trip dates"
+                placeholder="Select start and end date"
+                value={dateRange}
+                onChange={setDateRange}
+                minDate={new Date()}
+                id="trip-dates"
+                className="mb-4"
               />
               <div className="flex gap-3">
                 <BrutalistButton type="submit" disabled={creating}>
@@ -131,8 +122,7 @@ export default function PackingPage() {
                   onClick={() => {
                     setShowForm(false);
                     setName("");
-                    setStartDate("");
-                    setEndDate("");
+                    setDateRange(undefined);
                   }}
                 >
                   Cancel

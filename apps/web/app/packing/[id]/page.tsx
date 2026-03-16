@@ -7,22 +7,28 @@ import { useParams } from "next/navigation";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@convex/_generated/api";
 import type { Doc, Id } from "@convex/_generated/dataModel";
-import { format } from "date-fns";
+import { format, eachDayOfInterval } from "date-fns";
 import { useRequireAuth } from "@/hooks/use-require-auth";
 import { PageContainer } from "@/components/layout/page-container";
 import { UserAvatar } from "@/components/user-avatar";
 import { BrutalistButton } from "@/components/brutalist-button";
 import { useOutfitRecommendations } from "@/hooks/use-outfit-recommendations";
 import { OutfitRecommendationCard } from "@/components/outfit-recommendation-card";
-import type { Mood, WeatherCondition, GarmentCategory, Garment } from "@shared/types";
-import type { DisplayOutfit, DisplayGarment } from "@/components/home/authenticated-home";
+import type {
+  Mood,
+  WeatherCondition,
+  GarmentCategory,
+  Garment,
+} from "@shared/types";
+import type {
+  DisplayOutfit,
+  DisplayGarment,
+} from "@/components/home/authenticated-home";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 
 /** Map Convex garment doc to API Garment shape for recommendations */
-function convexGarmentToApi(
-  g: Doc<"garments"> & { _creationTime?: number }
-): {
+function convexGarmentToApi(g: Doc<"garments"> & { _creationTime?: number }): {
   id: string;
   userId: string;
   name: string;
@@ -50,7 +56,9 @@ function convexGarmentToApi(
     versatility: g.versatility,
     vibrancy: g.vibrancy,
     imageUrl: g.imageUrl,
-    createdAt: new Date((g as { _creationTime?: number })._creationTime ?? Date.now()),
+    createdAt: new Date(
+      (g as { _creationTime?: number })._creationTime ?? Date.now()
+    ),
   };
 }
 
@@ -62,13 +70,67 @@ export default function PackingTripPage() {
   const trip = useQuery(api.packingLists.get, { id });
   const allGarments = useQuery(api.garments.list) ?? [];
   const updateList = useMutation(api.packingLists.update);
+  const saveOutfit = useMutation(api.outfits.save);
+  const assignPlan = useMutation(api.outfitPlans.assign);
   const currentUser = useQuery(api.auth.getCurrentUser);
 
   const [closetModalOpen, setClosetModalOpen] = useState(false);
-  const [selectedIds, setSelectedIds] = useState<Set<Id<"garments">>>(new Set());
+  const [selectedIds, setSelectedIds] = useState<Set<Id<"garments">>>(
+    new Set()
+  );
   const [mood, setMood] = useState<Mood>("casual");
+  const [closetSearch, setClosetSearch] = useState("");
+  const [closetCategory, setClosetCategory] = useState<string>("all");
+  const [closetSort, setClosetSort] = useState<"category" | "name">("category");
+  const [assignDayForIndex, setAssignDayForIndex] = useState<number | null>(
+    null
+  );
 
   const packedGarments = useMemo(() => trip?.garments ?? [], [trip]);
+  const packedIdSet = useMemo(
+    () => new Set(trip?.garmentIds ?? []),
+    [trip?.garmentIds]
+  );
+  const unpackedGarments = useMemo(
+    () =>
+      allGarments.filter((g) => !packedIdSet.has(g._id)) as Doc<"garments">[],
+    [allGarments, packedIdSet]
+  );
+  const closetCategories = useMemo(() => {
+    const set = new Set(unpackedGarments.map((g) => g.category));
+    return Array.from(set).sort((a, b) => a.localeCompare(b));
+  }, [unpackedGarments]);
+  const filteredCloset = useMemo(() => {
+    let list = unpackedGarments;
+    if (closetSearch.trim()) {
+      const q = closetSearch.trim().toLowerCase();
+      list = list.filter(
+        (g) =>
+          g.name.toLowerCase().includes(q) ||
+          g.category.toLowerCase().includes(q) ||
+          (g.tags ?? []).some((t) => t.toLowerCase().includes(q))
+      );
+    }
+    if (closetCategory !== "all") {
+      list = list.filter((g) => g.category === closetCategory);
+    }
+    list = [...list].sort((a, b) =>
+      closetSort === "category"
+        ? a.category.localeCompare(b.category) || a.name.localeCompare(b.name)
+        : a.name.localeCompare(b.name)
+    );
+    return list;
+  }, [unpackedGarments, closetSearch, closetCategory, closetSort]);
+  const tripDates = useMemo(() => {
+    if (!trip) return [];
+    const start = new Date(trip.startDate);
+    const end = new Date(trip.endDate);
+    const days = eachDayOfInterval({ start, end });
+    return days.map((d) => ({
+      dateStr: format(d, "yyyy-MM-dd"),
+      label: format(d, "EEE, MMM d"),
+    }));
+  }, [trip]);
   const packedForApi = useMemo(
     (): Garment[] =>
       packedGarments.map((g) =>
@@ -77,12 +139,7 @@ export default function PackingTripPage() {
     [packedGarments]
   );
 
-  const {
-    outfits,
-    loading,
-    error,
-    generate,
-  } = useOutfitRecommendations({
+  const { outfits, loading, error, generate } = useOutfitRecommendations({
     userId: currentUser?._id ?? "",
     mood,
     weather: "cloudy" as WeatherCondition,
@@ -133,6 +190,44 @@ export default function PackingTripPage() {
       temperature: 15,
       limitCount: 6,
     });
+  };
+
+  const handleSaveLook = async (index: number) => {
+    const outfit = displayOutfits[index];
+    if (!outfit?.garments?.length) return;
+    const garmentIds = outfit.garments.map((g) => g.id) as Id<"garments">[];
+    try {
+      await saveOutfit({
+        garmentIds,
+        contextMood: outfit.contextMood ?? mood,
+        contextWeather: outfit.contextWeather ?? "cloudy",
+        contextTemperature: 15,
+        explanation: outfit.explanation,
+      });
+      toast.success("Look saved to Archive");
+    } catch {
+      toast.error("Failed to save look");
+    }
+  };
+
+  const handleAssignToDay = async (outfitIndex: number, dateStr: string) => {
+    const outfit = displayOutfits[outfitIndex];
+    if (!outfit?.garments?.length) return;
+    setAssignDayForIndex(null);
+    const garmentIds = outfit.garments.map((g) => g.id) as Id<"garments">[];
+    try {
+      const outfitId = await saveOutfit({
+        garmentIds,
+        contextMood: outfit.contextMood ?? mood,
+        contextWeather: outfit.contextWeather ?? "cloudy",
+        contextTemperature: 15,
+        explanation: outfit.explanation,
+      });
+      await assignPlan({ date: dateStr, outfitId });
+      toast.success(`Assigned to ${format(new Date(dateStr), "MMM d")}`);
+    } catch {
+      toast.error("Failed to assign to day");
+    }
   };
 
   const displayOutfits: DisplayOutfit[] = useMemo(() => {
@@ -195,7 +290,10 @@ export default function PackingTripPage() {
             <p className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
               Trip not found.
             </p>
-            <Link href="/packing" className="mt-4 inline-block text-signal-orange text-sm uppercase tracking-widest">
+            <Link
+              href="/packing"
+              className="mt-4 inline-block text-signal-orange text-sm uppercase tracking-widest"
+            >
               Back to packing
             </Link>
           </PageContainer>
@@ -264,7 +362,9 @@ export default function PackingTripPage() {
                         </div>
                       )}
                     </div>
-                    <p className="p-2 text-[11px] uppercase truncate">{g.name}</p>
+                    <p className="p-2 text-[11px] uppercase truncate">
+                      {g.name}
+                    </p>
                     <button
                       type="button"
                       onClick={() => removeFromTrip(g._id)}
@@ -289,13 +389,19 @@ export default function PackingTripPage() {
               className="border border-border bg-background px-3 py-2 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-signal-orange"
               aria-label="Mood"
             >
-              {["casual", "formal", "adventurous", "cozy", "energetic", "minimalist", "bold"].map(
-                (m) => (
-                  <option key={m} value={m}>
-                    {m.charAt(0).toUpperCase() + m.slice(1)}
-                  </option>
-                )
-              )}
+              {[
+                "casual",
+                "formal",
+                "adventurous",
+                "cozy",
+                "energetic",
+                "minimalist",
+                "bold",
+              ].map((m) => (
+                <option key={m} value={m}>
+                  {m.charAt(0).toUpperCase() + m.slice(1)}
+                </option>
+              ))}
             </select>
             <BrutalistButton
               className="mt-4"
@@ -323,15 +429,67 @@ export default function PackingTripPage() {
               ) : (
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                   {displayOutfits.map((outfit, i) => (
-                    <OutfitRecommendationCard
-                      key={i}
-                      label={outfit.label}
-                      garments={outfit.garments}
-                      explanation={outfit.explanation}
-                      contextMood={outfit.contextMood}
-                      contextWeather={outfit.contextWeather}
-                      scoreBreakdown={outfit.scoreBreakdown}
-                    />
+                    <div key={i} className="flex flex-col gap-2">
+                      <OutfitRecommendationCard
+                        label={outfit.label}
+                        garments={outfit.garments}
+                        explanation={outfit.explanation}
+                        contextMood={outfit.contextMood}
+                        contextWeather={outfit.contextWeather}
+                        scoreBreakdown={outfit.scoreBreakdown}
+                      />
+                      <div className="flex flex-wrap items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => handleSaveLook(i)}
+                          className="px-3 py-1.5 text-[10px] uppercase tracking-widest border border-border hover:border-signal-orange hover:text-signal-orange transition-colors"
+                        >
+                          Save look
+                        </button>
+                        <div className="relative">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setAssignDayForIndex(
+                                assignDayForIndex === i ? null : i
+                              )
+                            }
+                            className="px-3 py-1.5 text-[10px] uppercase tracking-widest border border-border hover:border-signal-orange hover:text-signal-orange transition-colors"
+                            aria-expanded={assignDayForIndex === i}
+                            aria-haspopup="listbox"
+                          >
+                            Assign to day…
+                          </button>
+                          {assignDayForIndex === i && (
+                            <>
+                              <div
+                                className="fixed inset-0 z-40"
+                                aria-hidden="true"
+                                onClick={() => setAssignDayForIndex(null)}
+                              />
+                              <ul
+                                role="listbox"
+                                className="absolute left-0 top-full mt-1 z-50 min-w-[200px] max-h-48 overflow-y-auto border border-border bg-background py-1 shadow-lg"
+                              >
+                                {tripDates.map(({ dateStr, label }) => (
+                                  <li key={dateStr} role="option">
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        handleAssignToDay(i, dateStr)
+                                      }
+                                      className="w-full text-left px-3 py-2 text-[11px] uppercase tracking-wider hover:bg-secondary focus:bg-secondary outline-none"
+                                    >
+                                      {label}
+                                    </button>
+                                  </li>
+                                ))}
+                              </ul>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    </div>
                   ))}
                 </div>
               )}
@@ -347,49 +505,141 @@ export default function PackingTripPage() {
           aria-modal="true"
           aria-labelledby="add-from-closet-title"
         >
-          <h2 id="add-from-closet-title" className="text-sm uppercase tracking-widest mb-4">
+          <h2
+            id="add-from-closet-title"
+            className="text-sm uppercase tracking-widest mb-4"
+          >
             Add from closet
           </h2>
-          <div className="flex-1 overflow-y-auto grid grid-cols-2 sm:grid-cols-3 gap-2">
-            {allGarments.map((g) => {
-              const isPacked = trip.garmentIds.includes(g._id);
+          <div className="flex flex-col gap-3 mb-4">
+            <input
+              type="search"
+              placeholder="Search by name or category…"
+              value={closetSearch}
+              onChange={(e) => setClosetSearch(e.target.value)}
+              className="w-full rounded border border-border bg-background px-3 py-2 text-[11px] uppercase tracking-[0.12em] placeholder:text-muted-foreground outline-none focus:border-signal-orange/60"
+              aria-label="Search closet"
+            />
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setClosetCategory("all")}
+                className={`px-3 py-1.5 text-[10px] uppercase tracking-[0.2em] border transition-colors ${
+                  closetCategory === "all"
+                    ? "border-signal-orange text-signal-orange bg-signal-orange/10"
+                    : "border-border text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                All
+              </button>
+              {closetCategories.map((cat) => (
+                <button
+                  key={cat}
+                  type="button"
+                  onClick={() => setClosetCategory(cat)}
+                  className={`px-3 py-1.5 text-[10px] uppercase tracking-[0.2em] border transition-colors ${
+                    closetCategory === cat
+                      ? "border-signal-orange text-signal-orange bg-signal-orange/10"
+                      : "border-border text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+                Sort:
+              </span>
+              <select
+                value={closetSort}
+                onChange={(e) =>
+                  setClosetSort(e.target.value as "category" | "name")
+                }
+                className="rounded border border-border bg-background px-2 py-1 text-[10px] uppercase tracking-wider outline-none focus:border-signal-orange/60"
+                aria-label="Sort by"
+              >
+                <option value="category">Category</option>
+                <option value="name">Name</option>
+              </select>
+              {filteredCloset.length < unpackedGarments.length && (
+                <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+                  {filteredCloset.length} of {unpackedGarments.length}
+                </span>
+              )}
+            </div>
+          </div>
+          <div className="flex-1 overflow-y-auto grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+            {filteredCloset.map((g) => {
               const isSelected = selectedIds.has(g._id);
               return (
                 <button
                   key={g._id}
                   type="button"
-                  onClick={() => !isPacked && toggleGarment(g._id)}
-                  disabled={isPacked}
+                  onClick={() => toggleGarment(g._id)}
                   className={`border p-2 text-left transition-colors ${
-                    isPacked
-                      ? "opacity-50 cursor-not-allowed border-border"
-                      : isSelected
-                        ? "border-signal-orange bg-signal-orange/10"
-                        : "border-border hover:border-signal-orange"
+                    isSelected
+                      ? "border-signal-orange bg-signal-orange/10"
+                      : "border-border hover:border-signal-orange"
                   }`}
                 >
                   <div className="aspect-square relative mb-1">
                     {g.imageUrl ? (
-                      <Image src={g.imageUrl} alt="" fill className="object-cover" />
+                      <Image
+                        src={g.imageUrl}
+                        alt=""
+                        fill
+                        className="object-cover"
+                      />
                     ) : (
                       <div className="absolute inset-0 bg-secondary flex items-center justify-center text-[9px]">
                         {g.category}
                       </div>
                     )}
                   </div>
-                  <span className="text-[10px] uppercase truncate block">{g.name}</span>
-                  {isPacked && (
-                    <span className="text-[9px] text-muted-foreground">Already packed</span>
-                  )}
+                  <span className="text-[10px] uppercase truncate block">
+                    {g.name}
+                  </span>
+                  <span className="text-[9px] text-muted-foreground uppercase">
+                    {g.category}
+                  </span>
                 </button>
               );
             })}
           </div>
-          <div className="flex gap-3 mt-4 pt-4 border-t border-border">
-            <BrutalistButton onClick={addSelectedToTrip}>
+          {unpackedGarments.length === 0 && (
+            <p className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground py-4">
+              All closet items are already in this trip.
+            </p>
+          )}
+          <div className="flex flex-wrap gap-3 mt-4 pt-4 border-t border-border">
+            <BrutalistButton
+              onClick={addSelectedToTrip}
+              disabled={selectedIds.size === 0}
+            >
               Add {selectedIds.size} to trip
             </BrutalistButton>
-            <BrutalistButton variant="ghost" onClick={() => setClosetModalOpen(false)}>
+            <button
+              type="button"
+              onClick={() => {
+                const toSelect = new Set(filteredCloset.map((g) => g._id));
+                setSelectedIds(toSelect);
+              }}
+              className="px-3 py-1.5 text-[10px] uppercase tracking-widest border border-border hover:border-signal-orange text-foreground"
+            >
+              Select all shown
+            </button>
+            <button
+              type="button"
+              onClick={() => setSelectedIds(new Set())}
+              className="px-3 py-1.5 text-[10px] uppercase tracking-widest border border-border text-muted-foreground hover:text-foreground"
+            >
+              Clear selection
+            </button>
+            <BrutalistButton
+              variant="ghost"
+              onClick={() => setClosetModalOpen(false)}
+            >
               Cancel
             </BrutalistButton>
           </div>

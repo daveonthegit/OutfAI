@@ -70,6 +70,8 @@ function codeToWeatherLabel(
   return "cloudy";
 }
 
+const DISPLAY_OUTFIT_COUNT = 8;
+
 const VALID_MOODS: Mood[] = [
   "casual",
   "formal",
@@ -200,7 +202,8 @@ export default function Home() {
           if (!res.ok) {
             const errBody = await res.json().catch(() => ({}));
             throw new Error(
-              (errBody as { error?: string })?.error ?? `Weather request failed (${res.status})`
+              (errBody as { error?: string })?.error ??
+                `Weather request failed (${res.status})`
             );
           }
           const data = await res.json();
@@ -234,7 +237,8 @@ export default function Home() {
       const res = await fetch(`/api/weather?city=${encodeURIComponent(city)}`);
       if (!res.ok) {
         const errBody = await res.json().catch(() => ({}));
-        const msg = (errBody as { error?: string })?.error ?? "Could not get weather";
+        const msg =
+          (errBody as { error?: string })?.error ?? "Could not get weather";
         if (res.status === 400 && msg.includes("not found")) {
           toast.error("City not found. Try another name.");
           return;
@@ -410,18 +414,18 @@ export default function Home() {
       };
     });
     setAllRecommendedOutfits(convertedOutfits);
-    setRecommendedOutfit(convertedOutfits.slice(0, 6));
+    setRecommendedOutfit(convertedOutfits.slice(0, DISPLAY_OUTFIT_COUNT));
     setSkippedIndices(new Set());
 
     // Log "shown" once per batch (dedupe by batch key so we don't log on mood/weather re-run)
     const batchKey = outfits
-      .slice(0, 6)
+      .slice(0, DISPLAY_OUTFIT_COUNT)
       .map((o) => o.garmentIds.join(","))
       .join("|");
     if (batchKey !== lastLoggedShownBatchRef.current) {
       lastLoggedShownBatchRef.current = batchKey;
       const weatherStr = weather ?? undefined;
-      outfits.slice(0, 6).forEach((outfit) => {
+      outfits.slice(0, DISPLAY_OUTFIT_COUNT).forEach((outfit) => {
         logRecommendation({
           action: "shown",
           garmentIds: outfit.garmentIds,
@@ -536,14 +540,14 @@ export default function Home() {
     justShuffledRef.current = true;
     setTimeout(() => setIsShuffling(false), 150);
 
-    // Pick a random 6 from the full pool that already passed the threshold
+    // Pick a random DISPLAY_OUTFIT_COUNT from the full pool that already passed the threshold
     setRecommendedOutfit(() => {
       if (!allRecommendedOutfits || allRecommendedOutfits.length === 0) {
         return allRecommendedOutfits;
       }
 
-      // If 6 or fewer, just shuffle them
-      if (allRecommendedOutfits.length <= 6) {
+      // If DISPLAY_OUTFIT_COUNT or fewer, just shuffle them
+      if (allRecommendedOutfits.length <= DISPLAY_OUTFIT_COUNT) {
         const shuffled = [...allRecommendedOutfits];
         for (let i = shuffled.length - 1; i > 0; i--) {
           const j = Math.floor(Math.random() * (i + 1));
@@ -552,7 +556,7 @@ export default function Home() {
         return shuffled;
       }
 
-      // Otherwise sample 6 unique random outfits from the pool
+      // Otherwise sample DISPLAY_OUTFIT_COUNT unique random outfits from the pool
       const indices = Array.from(
         { length: allRecommendedOutfits.length },
         (_, i) => i
@@ -562,7 +566,7 @@ export default function Home() {
         [indices[i], indices[j]] = [indices[j], indices[i]];
       }
       const selected = indices
-        .slice(0, 6)
+        .slice(0, DISPLAY_OUTFIT_COUNT)
         .map((idx) => allRecommendedOutfits[idx]);
       return selected;
     });
@@ -776,7 +780,7 @@ export default function Home() {
           <section className="mb-16 md:mb-24">
             {loading ? (
               <ContentGrid variant="cards">
-                {Array.from({ length: 6 }).map((_, i) => (
+                {Array.from({ length: DISPLAY_OUTFIT_COUNT }).map((_, i) => (
                   <Skeleton
                     key={i}
                     className="aspect-square w-full rounded-none border border-border"

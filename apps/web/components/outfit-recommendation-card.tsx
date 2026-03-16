@@ -209,14 +209,21 @@ export function OutfitRecommendationCard({
           <p className="text-[9px] uppercase tracking-widest text-muted-foreground mb-3">
             {garments.length} pieces
           </p>
-          <span className="text-[10px] uppercase tracking-[0.2em] text-signal-orange">
-            {isSelectMode
-              ? isSelected
-                ? "Selected"
-                : "Select"
-              : "Click to view"}
-          </span>
         </div>
+        {isSelectMode ? (
+          <span className="text-[10px] uppercase tracking-[0.2em] text-signal-orange pointer-events-none">
+            {isSelected ? "Selected" : "Select"}
+          </span>
+        ) : (
+          <button
+            type="button"
+            onClick={handleClick}
+            className="text-[10px] uppercase tracking-[0.2em] text-signal-orange hover:underline cursor-pointer text-left mt-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-signal-orange focus-visible:ring-offset-2 focus-visible:ring-offset-background/95 rounded-sm"
+            aria-label="View this outfit"
+          >
+            Click to view
+          </button>
+        )}
         {scoreBreakdown && (
           <div className="mt-3 flex flex-col items-stretch">
             <button
