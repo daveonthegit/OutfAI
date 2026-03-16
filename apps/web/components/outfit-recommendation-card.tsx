@@ -22,8 +22,11 @@ const BREAKDOWN_MAX: Record<keyof ScoreBreakdown, number> = {
   styleCoherence: 15,
   occasionMatching: 12,
   versatility: 8,
+  fit: 8,
+  vibrancy: 8,
   diversity: 10,
   preferences: 15,
+  repetitionPenalty: 10,
 };
 
 const BREAKDOWN_LABELS: Record<keyof ScoreBreakdown, string> = {
@@ -33,8 +36,11 @@ const BREAKDOWN_LABELS: Record<keyof ScoreBreakdown, string> = {
   styleCoherence: "Style",
   occasionMatching: "Occasion",
   versatility: "Versatility",
+  fit: "Fit",
+  vibrancy: "Vibrancy",
   diversity: "Diversity",
   preferences: "Preferences",
+  repetitionPenalty: "Repeat penalty",
 };
 
 interface OutfitRecommendationCardProps {

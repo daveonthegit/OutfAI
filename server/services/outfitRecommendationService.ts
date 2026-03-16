@@ -7,6 +7,7 @@ import {
   GarmentCategory,
   UserStylePreferences,
   ScoreBreakdown,
+  ClosetGap,
 } from "../../shared/types";
 
 /**
@@ -48,10 +49,12 @@ export class OutfitRecommendationService {
   ): Promise<RecommendationOutput> {
     // Validate input
     if (!garments || garments.length === 0) {
+      const gaps = this.getClosetGaps(garments ?? [], input);
       return {
         outfits: [],
         explanation: "No garments found in wardrobe. Please add items first.",
         totalGenerated: 0,
+        gaps,
       };
     }
 
@@ -59,11 +62,13 @@ export class OutfitRecommendationService {
     const filteredGarments = this.filterByContext(garments, input);
 
     if (filteredGarments.length === 0) {
+      const gaps = this.getClosetGaps(garments, input);
       return {
         outfits: [],
         explanation:
           "No suitable outfits found for the current weather and mood combination.",
         totalGenerated: 0,
+        gaps,
       };
     }
 
@@ -71,30 +76,44 @@ export class OutfitRecommendationService {
     const candidates = this.generateCandidates(
       filteredGarments,
       input.mood || "casual",
-      input.preferences
+      input.preferences,
+      input.recentGarmentIds
     );
 
     // Minimum score threshold - outfits must meet this quality bar
     const MIN_SCORE_THRESHOLD = 60;
 
+    // De-dupe candidates (same garment set can be produced via different paths)
+    const dedupedCandidates = this.dedupeCandidates(candidates);
+
     // Score and rank candidates, filter by minimum score
-    const rankedCandidates = candidates
-      .sort((a, b) => b.score - a.score)
+    const sortedCandidates = dedupedCandidates.sort(
+      (a, b) => b.score - a.score
+    );
+    const rankedCandidates = sortedCandidates
       .filter((candidate) => candidate.score >= MIN_SCORE_THRESHOLD)
       .slice(0, input.limitCount || 6);
 
-    // If no outfits meet the threshold, return empty with explanation
-    if (rankedCandidates.length === 0) {
+    const usedCandidates =
+      rankedCandidates.length > 0
+        ? rankedCandidates
+        : // Adaptive threshold: if nothing passes, return best few anyway
+          sortedCandidates.slice(0, Math.min(3, input.limitCount || 3));
+
+    // If still none, return empty with explanation
+    if (usedCandidates.length === 0) {
+      const gaps = this.getClosetGaps(filteredGarments, input);
       return {
         outfits: [],
         explanation:
-          "No high-quality outfit combinations found. Try adjusting your mood, weather, or add more items to your closet.",
+          "No outfit combinations found. Try adding more items (at least one top and one bottom) or adjusting filters.",
         totalGenerated: 0,
+        gaps,
       };
     }
 
     // Convert to outfit objects
-    const outfits = rankedCandidates.map((candidate, index) => ({
+    const outfits = usedCandidates.map((candidate, index) => ({
       id: `outfit-${Date.now()}-${index}`,
       userId: input.userId,
       garmentIds: candidate.garmentIds,
@@ -108,9 +127,82 @@ export class OutfitRecommendationService {
 
     return {
       outfits,
-      explanation: this.generateExplanation(input),
+      explanation:
+        rankedCandidates.length > 0
+          ? this.generateExplanation(input)
+          : "Limited wardrobe variety — showing best available matches. " +
+            this.generateExplanation(input),
       totalGenerated: outfits.length,
+      gaps:
+        rankedCandidates.length > 0
+          ? undefined
+          : this.getClosetGaps(filteredGarments, input),
     };
+  }
+
+  /**
+   * Closet gap fallback: when we can't generate strong outfits, return a simple
+   * "what you're missing" hint using existing ClosetGap types.
+   */
+  private static getClosetGaps(
+    garments: Garment[],
+    input: RecommendationInput
+  ): ClosetGap[] {
+    const byCategory = this.groupByCategory(garments);
+    const tops = byCategory.get("top")?.length ?? 0;
+    const bottoms = byCategory.get("bottom")?.length ?? 0;
+    const shoes = byCategory.get("shoes")?.length ?? 0;
+    const outerwear = byCategory.get("outerwear")?.length ?? 0;
+
+    const gaps: ClosetGap[] = [];
+
+    if (tops === 0 || bottoms === 0) {
+      gaps.push({
+        gapType: "weak_category_coverage",
+        severity: "high",
+        targetCategories: [
+          ...(tops === 0 ? (["top"] as GarmentCategory[]) : []),
+          ...(bottoms === 0 ? (["bottom"] as GarmentCategory[]) : []),
+        ],
+        supportingGarmentIds: garments.map((g) => g.id),
+        explanation:
+          "To generate outfits, you need at least one top and one bottom.",
+      });
+    }
+
+    if (tops > 0 && bottoms > 0 && shoes === 0) {
+      gaps.push({
+        gapType: "missing_versatile_shoes",
+        severity: "medium",
+        targetCategories: ["shoes"],
+        supportingGarmentIds: garments.map((g) => g.id),
+        explanation:
+          "Add shoes to complete outfits (even one versatile pair helps a lot).",
+      });
+    }
+
+    const coldish =
+      input.weather === "cold" ||
+      input.weather === "snowy" ||
+      (typeof input.temperature === "number" && input.temperature < 10);
+    const wet =
+      input.weather === "rainy" ||
+      input.weather === "snowy" ||
+      input.weather === "windy";
+
+    if ((coldish || wet) && outerwear === 0) {
+      gaps.push({
+        gapType: "missing_weather_outerwear",
+        severity: "medium",
+        targetCategories: ["outerwear"],
+        supportingGarmentIds: garments.map((g) => g.id),
+        explanation:
+          "For this weather, add an outerwear piece (jacket/coat) to improve matches.",
+      });
+    }
+
+    // Keep it simple: return at most 2 clear gaps
+    return gaps.slice(0, 2);
   }
 
   /**
@@ -152,7 +244,7 @@ export class OutfitRecommendationService {
   private static isSeasonAppropriate(
     garmentSeason: string | undefined | null,
     weather: WeatherCondition,
-    temperature?: number
+    _temperature?: number
   ): boolean {
     // No season info → assume all-season (includes newly-added Convex garments)
     if (!garmentSeason || garmentSeason === "all-season") return true;
@@ -224,7 +316,8 @@ export class OutfitRecommendationService {
   private static generateCandidates(
     garments: Garment[],
     mood: Mood,
-    preferences?: UserStylePreferences
+    preferences?: UserStylePreferences,
+    recentGarmentIds?: string[]
   ): OutfitCandidate[] {
     const candidates: OutfitCandidate[] = [];
 
@@ -235,6 +328,7 @@ export class OutfitRecommendationService {
     const tops = categories.get("top") || [];
     const bottoms = categories.get("bottom") || [];
     const shoes = categories.get("shoes") || [];
+    const accessories = categories.get("accessory") || [];
 
     if (tops.length === 0 || bottoms.length === 0) {
       return candidates; // Cannot create valid outfit
@@ -243,9 +337,13 @@ export class OutfitRecommendationService {
     // Generate combinations
     for (const top of tops) {
       for (const bottom of bottoms) {
-        // Try pairing with shoes
-        const shoesToTry =
-          shoes.length > 0 ? shoes : [{ id: "barefoot", category: "shoes" }];
+        // Try pairing with shoes (cap for combinatorial explosion)
+        const shoesToTry: Array<
+          Garment | { id: "barefoot"; category: "shoes" }
+        > =
+          shoes.length > 0
+            ? shoes.slice(0, 4)
+            : [{ id: "barefoot", category: "shoes" }];
 
         for (const shoe of shoesToTry) {
           const garmentIds = [top.id, bottom.id];
@@ -260,7 +358,8 @@ export class OutfitRecommendationService {
           const { score, breakdown } = this.scoreOutfitWithBreakdown(
             outfitPieces,
             mood,
-            preferences
+            preferences,
+            recentGarmentIds
           );
           const reasons = this.generateReasons(outfitPieces, mood);
 
@@ -272,31 +371,38 @@ export class OutfitRecommendationService {
           });
         }
 
-        // Add optional accessories (singular "accessory" to match Convex schema)
-        const accessories = categories.get("accessory") || [];
+        // Add optional accessories; try multiple shoe pairings and keep best
         for (const accessory of accessories.slice(0, 2)) {
-          const garmentIds = [top.id, bottom.id];
-          if (shoes.length > 0) {
-            garmentIds.push(shoes[0].id);
+          let best: OutfitCandidate | null = null;
+
+          for (const shoe of shoesToTry) {
+            const isBarefoot = shoe.id === "barefoot";
+            const outfitPieces = isBarefoot
+              ? [top, bottom, accessory]
+              : [top, bottom, shoe as Garment, accessory];
+            const garmentIds = isBarefoot
+              ? [top.id, bottom.id, accessory.id]
+              : [top.id, bottom.id, (shoe as Garment).id, accessory.id];
+
+            const { score, breakdown } = this.scoreOutfitWithBreakdown(
+              outfitPieces,
+              mood,
+              preferences,
+              recentGarmentIds
+            );
+            const reasons = this.generateReasons(outfitPieces, mood);
+
+            const candidate: OutfitCandidate = {
+              garmentIds,
+              score,
+              reasons,
+              scoreBreakdown: breakdown,
+            };
+
+            if (!best || candidate.score > best.score) best = candidate;
           }
-          garmentIds.push(accessory.id);
 
-          const { score, breakdown } = this.scoreOutfitWithBreakdown(
-            [top, bottom, ...shoes.slice(0, 1), accessory],
-            mood,
-            preferences
-          );
-          const reasons = this.generateReasons(
-            [top, bottom, ...shoes.slice(0, 1), accessory],
-            mood
-          );
-
-          candidates.push({
-            garmentIds,
-            score,
-            reasons,
-            scoreBreakdown: breakdown,
-          });
+          if (best) candidates.push(best);
         }
       }
     }
@@ -328,7 +434,8 @@ export class OutfitRecommendationService {
   private static scoreOutfitWithBreakdown(
     garments: Garment[],
     mood: Mood,
-    preferences?: UserStylePreferences
+    preferences?: UserStylePreferences,
+    recentGarmentIds?: string[]
   ): { score: number; breakdown: ScoreBreakdown } {
     const base = 50;
     const colorHarmony = this.scoreColorHarmony(garments);
@@ -336,6 +443,8 @@ export class OutfitRecommendationService {
     const styleCoherence = this.scoreStyleCoherence(garments);
     const occasionMatching = this.scoreOccasionMatching(garments, mood);
     const versatility = this.scoreVersatility(garments);
+    const fit = this.scoreFitConsistency(garments);
+    const vibrancy = this.scoreVibrancyHarmony(garments);
     const diversity = this.scoreDiversity(garments);
     const explicitScore = this.scoreExplicitPreferences(
       garments,
@@ -347,6 +456,11 @@ export class OutfitRecommendationService {
     );
     const preferencesTotal = explicitScore + learnedScore;
 
+    const repetitionPenalty = this.scoreRepetitionPenalty(
+      garments,
+      recentGarmentIds
+    );
+
     const score = Math.min(
       base +
         colorHarmony +
@@ -354,8 +468,11 @@ export class OutfitRecommendationService {
         styleCoherence +
         occasionMatching +
         versatility +
+        fit +
+        vibrancy +
         diversity +
-        preferencesTotal,
+        preferencesTotal -
+        repetitionPenalty,
       100
     );
 
@@ -368,8 +485,11 @@ export class OutfitRecommendationService {
         styleCoherence,
         occasionMatching,
         versatility,
+        fit,
+        vibrancy,
         diversity,
         preferences: preferencesTotal,
+        repetitionPenalty,
       },
     };
   }
@@ -383,6 +503,67 @@ export class OutfitRecommendationService {
     preferences?: UserStylePreferences
   ): number {
     return this.scoreOutfitWithBreakdown(garments, mood, preferences).score;
+  }
+
+  /**
+   * Penalize repeating recently-used pieces to increase variety across generations.
+   * Returns a positive number representing how many points to subtract.
+   */
+  private static scoreRepetitionPenalty(
+    garments: Garment[],
+    recentGarmentIds?: string[]
+  ): number {
+    if (!recentGarmentIds || recentGarmentIds.length === 0) return 0;
+    const recent = new Set(recentGarmentIds);
+    const repeats = garments.filter((g) => recent.has(g.id)).length;
+    // 0 repeats -> 0, 1 repeat -> 2, 2 repeats -> 4, cap at 10
+    return Math.min(repeats * 2, 10);
+  }
+
+  /**
+   * Score fit consistency - outfits feel better when fits don't clash.
+   */
+  private static scoreFitConsistency(garments: Garment[]): number {
+    const fits = garments
+      .map((g) => g.fit?.toLowerCase())
+      .filter((f): f is string => Boolean(f));
+    if (fits.length === 0) return 0;
+    const unique = new Set(fits);
+    if (unique.size === 1) return 8;
+    // A little mix is fine; too many different fits feels random
+    if (unique.size === 2) return 4;
+    return 0;
+  }
+
+  /**
+   * Score vibrancy harmony - keep outfit energy consistent (muted/balanced/vibrant).
+   */
+  private static scoreVibrancyHarmony(garments: Garment[]): number {
+    const vib = garments
+      .map((g) => g.vibrancy)
+      .filter((v): v is NonNullable<Garment["vibrancy"]> => Boolean(v));
+    if (vib.length === 0) return 0;
+    const unique = new Set(vib);
+    if (unique.size === 1) return 8;
+    if (unique.size === 2) return 4;
+    return 0;
+  }
+
+  /**
+   * De-dupe candidates by garment set; keep the highest-score version.
+   */
+  private static dedupeCandidates(
+    candidates: OutfitCandidate[]
+  ): OutfitCandidate[] {
+    const bestByKey = new Map<string, OutfitCandidate>();
+    for (const c of candidates) {
+      const key = [...c.garmentIds].sort().join("|");
+      const existing = bestByKey.get(key);
+      if (!existing || c.score > existing.score) {
+        bestByKey.set(key, c);
+      }
+    }
+    return Array.from(bestByKey.values());
   }
 
   /**

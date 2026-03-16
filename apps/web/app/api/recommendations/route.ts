@@ -18,6 +18,7 @@ export async function POST(request: NextRequest) {
       limitCount = 5,
       garments = [],
       preferences,
+      recentGarmentIds,
     } = body;
 
     // Ensure garments have Date objects for createdAt
@@ -35,6 +36,9 @@ export async function POST(request: NextRequest) {
       occasion,
       limitCount,
       preferences: preferences as UserStylePreferences | undefined,
+      recentGarmentIds: Array.isArray(recentGarmentIds)
+        ? (recentGarmentIds as string[])
+        : undefined,
     };
 
     const result = await OutfitRecommendationService.generateOutfits(

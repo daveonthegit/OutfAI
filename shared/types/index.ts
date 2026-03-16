@@ -56,8 +56,12 @@ export interface ScoreBreakdown {
   styleCoherence: number;
   occasionMatching: number;
   versatility: number;
+  fit: number;
+  vibrancy: number;
   diversity: number;
   preferences: number;
+  /** Positive number representing a penalty that was subtracted from total score. */
+  repetitionPenalty: number;
 }
 
 export interface Outfit {
@@ -99,12 +103,19 @@ export interface RecommendationInput {
   occasion?: string;
   limitCount?: number;
   preferences?: UserStylePreferences;
+  /**
+   * Optional list of recently-used garment IDs (client-provided).
+   * Used to reduce repetitive recommendations across successive generations.
+   */
+  recentGarmentIds?: string[];
 }
 
 export interface RecommendationOutput {
   outfits: Outfit[];
   explanation: string;
   totalGenerated: number;
+  /** Optional closet gaps to explain why few/no outfits were produced. */
+  gaps?: ClosetGap[];
 }
 
 export interface WeatherData {
