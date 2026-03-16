@@ -88,6 +88,37 @@ export const getOrCreate = mutation({
 });
 
 /**
+ * Mark onboarding as complete for the current user. Used after onboarding wizard or "Skip".
+ */
+export const completeOnboarding = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const user = await getAuthUser(ctx);
+    if (!user) throw new Error("Unauthorized");
+
+    const existing = await ctx.db
+      .query("profiles")
+      .withIndex("by_userId", (q) => q.eq("userId", user._id))
+      .unique();
+
+    const now = Date.now();
+    if (existing) {
+      await ctx.db.patch(existing._id, {
+        onboardingComplete: true,
+        updatedAt: now,
+      });
+      return existing._id;
+    }
+
+    return ctx.db.insert("profiles", {
+      userId: user._id,
+      onboardingComplete: true,
+      updatedAt: now,
+    });
+  },
+});
+
+/**
  * Update the current user's profile (bio only). Identity fields (name, username) are updated via Better Auth client.
  */
 export const update = mutation({

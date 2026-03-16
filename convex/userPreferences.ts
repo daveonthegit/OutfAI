@@ -78,6 +78,8 @@ export const save = mutation({
     preferredStyles: v.optional(v.array(v.string())),
     preferredColors: v.optional(v.array(v.string())),
     avoidedColors: v.optional(v.array(v.string())),
+    styleGoal: v.optional(v.string()),
+    styleGoalTags: v.optional(v.array(v.string())),
   },
   handler: async (ctx, args) => {
     const user = await getAuthUser(ctx);

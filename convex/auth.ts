@@ -50,6 +50,11 @@ export const createAuth = (ctx: GenericCtx<DataModel>) =>
         });
       },
     },
+    user: {
+      changeEmail: {
+        enabled: true,
+      },
+    },
     plugins: [convex({ authConfig }), username()],
   });
 
