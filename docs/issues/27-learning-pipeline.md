@@ -20,6 +20,6 @@ Use recommendation logs (shown/saved/skipped/worn) to adjust scoring weights or 
 
 ## References
 
-- docs/implementation-plan.md Phase 5.2
+- docs/implementation/EXPANSION_ROADMAP.md Phase 4
 - convex/recommendationLogs.ts
 - server/services/outfitRecommendationService.ts

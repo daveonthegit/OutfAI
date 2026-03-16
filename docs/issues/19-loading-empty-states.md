@@ -20,5 +20,5 @@ Phase 4.2: Ensure every async operation has a loading state, use toasts for succ
 
 ## References
 
-- docs/implementation-plan.md Phase 4.2
+- docs/implementation/EXPANSION_ROADMAP.md Phase 1
 - apps/web (closet, page.tsx, archive)

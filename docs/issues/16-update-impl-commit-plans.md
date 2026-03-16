@@ -4,7 +4,7 @@
 
 ## Description
 
-[implementation-plan.md](../implementation-plan.md) and [commit-plan.md](../commit-plan.md) describe Supabase, Prisma, and tRPC. The project uses **Convex** and **BetterAuth**. Update both docs so they reflect the current stack and remaining work, or archive them and point to [MASTER_PLAN.md](../MASTER_PLAN.md).
+implementation-plan and commit-plan (Supabase/Prisma/tRPC) were **removed**. Current stack and backlog: [MASTER_PLAN.md](../MASTER_PLAN.md), [implementation/FEATURE_STATUS.md](../implementation/FEATURE_STATUS.md), [implementation/EXPANSION_ROADMAP.md](../implementation/EXPANSION_ROADMAP.md).
 
 ## Tasks
 

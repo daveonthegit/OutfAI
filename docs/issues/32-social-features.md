@@ -20,5 +20,5 @@ Phase 5.7: Share outfits with others; optional community inspiration feed. Requi
 
 ## References
 
-- docs/implementation-plan.md Phase 5.7
+- docs/implementation/EXPANSION_ROADMAP.md Phase 4
 - docs/issues/13-display-name-visibility.md (profile visibility)

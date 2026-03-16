@@ -21,4 +21,4 @@ On mobile, allow swipe-right to save and swipe-left to skip (or similar) on outf
 ## References
 
 - apps/web/app/page.tsx (outfit cards)
-- docs/implementation-plan.md Phase 4.3
+- docs/implementation/EXPANSION_ROADMAP.md (backlog)

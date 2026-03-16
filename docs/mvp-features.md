@@ -1,7 +1,7 @@
 # OutfAI — MVP Features
 
 > Feature priority matrix, acceptance criteria, and demo script for the capstone MVP.
-> Aligned with the [PRD](./OutfAI_PRD.md) and [Implementation Plan](./implementation-plan.md).
+> Aligned with the [PRD](./OutfAI_PRD.md) and [implementation/EXPANSION_ROADMAP.md](./implementation/EXPANSION_ROADMAP.md).
 
 ---
 

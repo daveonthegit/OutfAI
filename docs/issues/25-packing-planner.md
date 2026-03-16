@@ -20,4 +20,4 @@ User selects trip dates and destination (or manual weather); app suggests a mini
 ## References
 
 - docs/OutfAI_PRD.md roadmap
-- docs/implementation-plan.md Phase 5.4
+- docs/implementation/EXPANSION_ROADMAP.md Phase 3

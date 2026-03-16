@@ -21,4 +21,4 @@ PRD: "Secondary (future): Mobile (React Native / Expo)". Build a native or Expo 
 ## References
 
 - docs/OutfAI_PRD.md
-- docs/implementation-plan.md Phase 5.6
+- docs/implementation/EXPANSION_ROADMAP.md Phase 4 (backlog)

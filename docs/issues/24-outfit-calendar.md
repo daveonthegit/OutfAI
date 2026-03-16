@@ -20,5 +20,5 @@ Let users assign saved outfits (or generate and assign) to specific dates so the
 ## References
 
 - docs/OutfAI_PRD.md roadmap
-- docs/implementation-plan.md Phase 5.3
+- docs/implementation/EXPANSION_ROADMAP.md Phase 3
 - convex/outfits.ts

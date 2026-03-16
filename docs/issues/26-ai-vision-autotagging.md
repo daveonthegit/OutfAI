@@ -21,5 +21,5 @@ Use a vision model to suggest category, color, material (and optionally tags) wh
 ## References
 
 - docs/OutfAI_PRD.md technical scope
-- docs/implementation-plan.md Phase 5.5
+- docs/implementation/EXPANSION_ROADMAP.md Phase 4
 - apps/web/app/api/analyze-garment-image (existing stub or similar)

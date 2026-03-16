@@ -25,5 +25,5 @@ The home page suggestion slot now shows **Style insights** (text-only): wardrobe
 ## References
 
 - docs/OutfAI_PRD.md §7
-- docs/implementation-plan.md Phase 5.1
+- docs/implementation/EXPANSION_ROADMAP.md Phase 3/4
 - **Detailed design**: [33-storefront-scraping-product-recommendation.md](33-storefront-scraping-product-recommendation.md) (product recommendation logic, data sourcing, and scraping caveats)
