@@ -93,6 +93,31 @@
   --chrome-silver: #c9ccd6;
 }
 
+/* Responsive layout tokens */
+:root {
+  --content-max-width: 90rem;
+  --content-narrow: 65rem;
+  --page-padding-x: 1rem;
+  --page-padding-y: 1rem;
+  --sidebar-width: 14rem;
+}
+@media (min-width: 768px) {
+  :root {
+    --page-padding-x: 2rem;
+    --page-padding-y: 1.5rem;
+  }
+}
+@media (min-width: 1024px) {
+  :root {
+    --page-padding-x: 3rem;
+  }
+}
+@media (min-width: 1280px) {
+  :root {
+    --page-padding-x: 3.5rem;
+  }
+}
+
 @theme inline {
   --font-sans:
     "Inter", "Inter Fallback", system-ui, sans-serif; /* Preserved from existing */
