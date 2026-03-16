@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useMutation } from "convex/react";
 import { api } from "@convex/_generated/api";
 import type { Doc } from "@convex/_generated/dataModel";
@@ -49,14 +49,21 @@ export function SuggestedProductsSection({
   temperature,
   showWhenHasOutfits,
 }: SuggestedProductsSectionProps) {
-  const garmentList = garments.map(mapConvexGarmentToGarment);
+  const garmentList = useMemo(
+    () => garments.map(mapConvexGarmentToGarment),
+    [garments]
+  );
+  const outfitGarmentIdsStable = useMemo(
+    () => outfitGarmentIds?.map(String) ?? [],
+    [outfitGarmentIds]
+  );
   const seedDevProducts = useMutation(api.externalProducts.seedDevProducts);
 
   const { recommendations, loading, error, refetch } =
     useProductRecommendations({
       userId,
       garments: garmentList,
-      outfitGarmentIds: outfitGarmentIds?.map(String),
+      outfitGarmentIds: outfitGarmentIdsStable,
       mood,
       weather,
       temperature,

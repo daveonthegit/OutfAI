@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import Link from "next/link";
 import { OutfitRecommendationCard } from "@/components/outfit-recommendation-card";
 import { SuggestedProductsSection } from "@/components/suggested-products-section";
@@ -112,6 +112,16 @@ export default function Home() {
   const hasStaggeredInitialRef = useRef(false);
   const convexGarmentsRef = useRef(convexGarments);
   convexGarmentsRef.current = convexGarments;
+
+  // Stable props for SuggestedProductsSection to avoid infinite product-recommendation fetches (ERR_INSUFFICIENT_RESOURCES)
+  const garmentsKey = convexGarments.map((g) => g._id).join(",");
+  const stableGarments = useMemo(() => convexGarments, [garmentsKey]);
+  const outfitIdsKey =
+    recommendedOutfit?.[0]?.garments?.map((g) => g.id).join(",") ?? "";
+  const memoizedOutfitGarmentIds = useMemo(
+    () => recommendedOutfit?.[0]?.garments?.map((g) => g.id as string) ?? [],
+    [outfitIdsKey]
+  );
 
   const { outfits, loading, generate } = useOutfitRecommendations({
     userId,
@@ -657,10 +667,8 @@ export default function Home() {
         {/* Suggested for your wardrobe — external products, only after outfit results */}
         <SuggestedProductsSection
           userId={userId}
-          garments={convexGarments}
-          outfitGarmentIds={recommendedOutfit?.[0]?.garments?.map(
-            (g) => g.id as string
-          )}
+          garments={stableGarments}
+          outfitGarmentIds={memoizedOutfitGarmentIds}
           mood={mood}
           weather={weather ?? undefined}
           temperature={temperatureCelsius ?? undefined}
