@@ -18,10 +18,22 @@ import {
   USERNAME_MAX_LENGTH,
 } from "@shared/validation/username";
 import { BIO_MAX_LENGTH } from "@shared/validation/profile";
+import type { Mood } from "@shared/types";
 
 const DISPLAY_NAME_MAX_LENGTH = 100;
 const AVATAR_MAX_BYTES = 2 * 1024 * 1024; // 2MB
 const AVATAR_ACCEPT = "image/jpeg,image/png,image/webp";
+const STYLE_GOAL_MAX_LENGTH = 200;
+
+const MOODS: Mood[] = [
+  "casual",
+  "formal",
+  "adventurous",
+  "cozy",
+  "energetic",
+  "minimalist",
+  "bold",
+];
 
 function initials(name: string): string {
   return name
@@ -46,9 +58,12 @@ export default function ProfilePage() {
   const setAvatar = useMutation(api.profile.setAvatar);
   const removeAvatar = useMutation(api.profile.removeAvatar);
 
+  const [favoriteMoods, setFavoriteMoods] = useState<string[]>([]);
   const [preferredStyles, setPreferredStyles] = useState<string[]>([]);
   const [preferredColors, setPreferredColors] = useState<string[]>([]);
   const [avoidedColors, setAvoidedColors] = useState<string[]>([]);
+  const [styleGoal, setStyleGoal] = useState("");
+  const [preferencesSuccess, setPreferencesSuccess] = useState("");
 
   const [editing, setEditing] = useState(false);
   const [editName, setEditName] = useState("");
@@ -64,9 +79,11 @@ export default function ProfilePage() {
 
   React.useEffect(() => {
     if (userPreferences?.explicit) {
+      setFavoriteMoods(userPreferences.explicit.favoriteMoods ?? []);
       setPreferredStyles(userPreferences.explicit.preferredStyles ?? []);
       setPreferredColors(userPreferences.explicit.preferredColors ?? []);
       setAvoidedColors(userPreferences.explicit.avoidedColors ?? []);
+      setStyleGoal(userPreferences.explicit.styleGoal ?? "");
     }
   }, [userPreferences]);
 
@@ -97,11 +114,15 @@ export default function ProfilePage() {
   };
 
   const handleSavePreferences = async () => {
+    setPreferencesSuccess("");
     await savePreferences({
+      favoriteMoods: favoriteMoods.length ? favoriteMoods : undefined,
       preferredStyles,
       preferredColors,
       avoidedColors,
+      styleGoal: styleGoal.trim() || undefined,
     });
+    setPreferencesSuccess("Preferences saved.");
   };
 
   const handleSignOut = async () => {
@@ -354,6 +375,14 @@ export default function ProfilePage() {
                           {profileData.bio}
                         </p>
                       )}
+                      {userPreferences?.explicit?.styleGoal && (
+                        <p className="text-sm text-muted-foreground mt-2">
+                          <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+                            Style goal:{" "}
+                          </span>
+                          {userPreferences.explicit.styleGoal}
+                        </p>
+                      )}
                       <BrutalistButton
                         type="button"
                         variant="outline"
@@ -490,6 +519,50 @@ export default function ProfilePage() {
 
             <div className="mb-6">
               <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-2">
+                Favorite moods
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {MOODS.map((mood) => {
+                  const active = favoriteMoods.includes(mood);
+                  return (
+                    <button
+                      key={mood}
+                      type="button"
+                      onClick={() =>
+                        toggleInList(mood, favoriteMoods, setFavoriteMoods)
+                      }
+                      className={`px-3 py-1 text-[11px] uppercase tracking-[0.16em] border transition-colors duration-100 ${
+                        active
+                          ? "border-foreground bg-foreground text-background"
+                          : "border-border text-muted-foreground hover:border-foreground"
+                      }`}
+                    >
+                      {mood}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="mb-6">
+              <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-2">
+                Style goal
+              </p>
+              <input
+                type="text"
+                value={styleGoal}
+                onChange={(e) => setStyleGoal(e.target.value)}
+                maxLength={STYLE_GOAL_MAX_LENGTH}
+                placeholder="e.g. Minimalist with a pop of color"
+                className="w-full bg-secondary border border-border px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-foreground"
+              />
+              <p className="text-[10px] text-muted-foreground mt-1">
+                {styleGoal.length}/{STYLE_GOAL_MAX_LENGTH}
+              </p>
+            </div>
+
+            <div className="mb-6">
+              <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-2">
                 Preferred styles
               </p>
               <div className="flex flex-wrap gap-2">
@@ -583,6 +656,11 @@ export default function ProfilePage() {
               </div>
             </div>
 
+            {preferencesSuccess && (
+              <p className="text-xs uppercase tracking-wider text-foreground mb-2">
+                {preferencesSuccess}
+              </p>
+            )}
             <button
               type="button"
               onClick={handleSavePreferences}

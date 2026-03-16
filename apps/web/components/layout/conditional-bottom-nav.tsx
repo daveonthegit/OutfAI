@@ -10,6 +10,7 @@ const AUTH_ONLY_NO_NAV = [
   "/signup",
   "/check-email",
   "/verify-email",
+  "/onboarding",
 ] as const;
 
 /**

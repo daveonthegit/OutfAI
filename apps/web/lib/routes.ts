@@ -15,6 +15,7 @@ export const NO_NAV_ROUTES = [
   "/verify-email",
   "/forgot-password",
   "/reset-password",
+  "/onboarding",
 ] as const;
 
 export type NoNavRoute = (typeof NO_NAV_ROUTES)[number];

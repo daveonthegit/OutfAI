@@ -7,6 +7,7 @@ import { ConditionalAppShell } from "@/components/layout/conditional-app-shell";
 import { ConditionalBottomNav } from "@/components/layout/conditional-bottom-nav";
 import { Providers } from "@/components/providers";
 import { PageTransition } from "@/components/page-transition";
+import { OnboardingGuard } from "@/components/onboarding-guard";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
@@ -43,18 +44,20 @@ export default function RootLayout({
         suppressHydrationWarning
       >
         <Providers>
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="dark"
-            enableSystem
-            disableTransitionOnChange
-          >
-            <ConditionalAppShell>
-              <PageTransition>{children}</PageTransition>
-            </ConditionalAppShell>
-            <ConditionalBottomNav />
-            <Toaster richColors position="bottom-center" />
-          </ThemeProvider>
+          <OnboardingGuard>
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="dark"
+              enableSystem
+              disableTransitionOnChange
+            >
+              <ConditionalAppShell>
+                <PageTransition>{children}</PageTransition>
+              </ConditionalAppShell>
+              <ConditionalBottomNav />
+              <Toaster richColors position="bottom-center" />
+            </ThemeProvider>
+          </OnboardingGuard>
         </Providers>
         <Analytics />
       </body>
