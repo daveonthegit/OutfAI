@@ -92,6 +92,8 @@ export default function Home() {
     Set<number>
   >(new Set());
   const [isSaving, setIsSaving] = useState(false);
+  // Indices of outfit cards the user skipped (hidden from grid, logged as "skipped")
+  const [skippedIndices, setSkippedIndices] = useState<Set<number>>(new Set());
 
   // Derive the display value from Celsius; no extra API call needed on unit switch.
   const displayTemp =
@@ -103,6 +105,7 @@ export default function Home() {
 
   const userId = currentUser?._id ?? "default-user";
   const saveOutfit = useMutation(api.outfits.save);
+  const logRecommendation = useMutation(api.recommendationLogs.log);
   const seedDevCloset = useMutation(api.seed.seedDevCloset);
   const [savedOutfitId, setSavedOutfitId] = useState<string | null>(null);
   const [seeded, setSeeded] = useState(false);
@@ -110,6 +113,7 @@ export default function Home() {
   const recommendationGridRef = useRef<HTMLDivElement>(null);
   const justShuffledRef = useRef(false);
   const hasStaggeredInitialRef = useRef(false);
+  const lastLoggedShownBatchRef = useRef<string | null>(null);
   const convexGarmentsRef = useRef(convexGarments);
   convexGarmentsRef.current = convexGarments;
 
@@ -310,7 +314,26 @@ export default function Home() {
     });
     setAllRecommendedOutfits(convertedOutfits);
     setRecommendedOutfit(convertedOutfits.slice(0, 6));
-  }, [outfits, mood, weather, temperatureCelsius]);
+    setSkippedIndices(new Set());
+
+    // Log "shown" once per batch (dedupe by batch key so we don't log on mood/weather re-run)
+    const batchKey = outfits
+      .slice(0, 6)
+      .map((o) => o.garmentIds.join(","))
+      .join("|");
+    if (batchKey !== lastLoggedShownBatchRef.current) {
+      lastLoggedShownBatchRef.current = batchKey;
+      const weatherStr = weather ?? undefined;
+      outfits.slice(0, 6).forEach((outfit) => {
+        logRecommendation({
+          action: "shown",
+          garmentIds: outfit.garmentIds,
+          mood,
+          weather: weatherStr,
+        }).catch(console.error);
+      });
+    }
+  }, [outfits, mood, weather, temperatureCelsius, logRecommendation]);
 
   // Shuffle animation: run after grid updates from handleShuffle (defer so DOM is committed)
   useEffect(() => {
@@ -368,6 +391,7 @@ export default function Home() {
     if (selectedOptionIndices.size === 0 || convexGarments.length === 0) return;
     setIsSaving(true);
     try {
+      const weatherStr = weather ?? undefined;
       for (const index of selectedOptionIndices) {
         const outfit = recommendedOutfit[index];
         if (!outfit?.garments?.length) continue;
@@ -377,7 +401,7 @@ export default function Home() {
           )
           .map((g: Doc<"garments">) => g._id);
         if (garmentIds.length === 0) continue;
-        await saveOutfit({
+        const outfitId = await saveOutfit({
           garmentIds,
           contextMood: outfit.contextMood ?? mood,
           contextWeather: outfit.contextWeather ?? weather ?? undefined,
@@ -385,6 +409,13 @@ export default function Home() {
             outfit.contextTemperature ?? temperatureCelsius ?? undefined,
           explanation: outfit.explanation,
         });
+        await logRecommendation({
+          action: "saved",
+          outfitId,
+          garmentIds: garmentIds.map(String),
+          mood: outfit.contextMood ?? mood,
+          weather: weatherStr,
+        }).catch(console.error);
       }
       setSavedOutfitId("done");
       setSelectedOptionIndices(new Set());
@@ -392,6 +423,21 @@ export default function Home() {
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const handleSkip = (index: number) => {
+    const outfit = recommendedOutfit[index];
+    if (!outfit?.garments?.length) return;
+    const garmentIds = outfit.garments
+      .map((g) => g.id)
+      .filter((id): id is NonNullable<typeof id> => id != null) as string[];
+    logRecommendation({
+      action: "skipped",
+      garmentIds,
+      mood: outfit.contextMood ?? mood,
+      weather: weather ?? undefined,
+    }).catch(console.error);
+    setSkippedIndices((prev) => new Set([...prev, index]));
   };
 
   const handleShuffle = () => {
@@ -641,7 +687,8 @@ export default function Home() {
             >
               {recommendedOutfit.map(
                 (outfit, index) =>
-                  outfit.garments.length > 0 && (
+                  outfit.garments.length > 0 &&
+                  !skippedIndices.has(index) && (
                     <OutfitRecommendationCard
                       key={index}
                       label={outfit.label}
@@ -653,6 +700,9 @@ export default function Home() {
                       isSelectMode={isSelectMode}
                       isSelected={selectedOptionIndices.has(index)}
                       onToggleSelect={() => toggleOptionIndex(index)}
+                      onSkip={
+                        isSelectMode ? undefined : () => handleSkip(index)
+                      }
                     />
                   )
               )}
