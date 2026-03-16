@@ -110,6 +110,8 @@ export default function Home() {
   const recommendationGridRef = useRef<HTMLDivElement>(null);
   const justShuffledRef = useRef(false);
   const hasStaggeredInitialRef = useRef(false);
+  const convexGarmentsRef = useRef(convexGarments);
+  convexGarmentsRef.current = convexGarments;
 
   const { outfits, loading, generate } = useOutfitRecommendations({
     userId,
@@ -258,48 +260,47 @@ export default function Home() {
     // convexGarmentsRaw purely as a loading guard via closure.
   }, [mood, weather, temperatureCelsius, convexGarments.length]);
 
-  // Update displayed outfit when recommendations change
+  // Update displayed outfit when recommendations change.
+  // Only depend on outfits so we don't re-run on every Convex subscription tick
+  // (convexGarments gets a new array reference often, which caused flicker/crash).
   useEffect(() => {
-    if (outfits && outfits.length > 0) {
-      const convertedOutfits: DisplayOutfit[] = outfits.map((outfit, index) => {
-        const rawGarments = outfit.garmentIds
-          .map((id) => {
-            const item = convexGarments.find(
-              (g: Doc<"garments">) => g._id === id
-            );
-            if (!item) return null;
-            const g: DisplayGarment = {
-              id: item._id,
-              src: item.imageUrl ?? "",
-              name: item.name,
-              category: item.category,
-              type: item.category,
-              color: item.primaryColor,
-              traits: {
-                style: item.style,
-                fit: item.fit,
-                occasion: item.occasion,
-                versatility: item.versatility,
-                vibrancy: item.vibrancy,
-              },
-            };
-            return g;
-          })
-          .filter((g): g is DisplayGarment => g != null);
-        return {
-          label: `Option ${index + 1}`,
-          garments: rawGarments,
-          explanation: outfit.explanation,
-          contextMood: mood,
-          contextWeather: weather ?? undefined,
-          contextTemperature: temperatureCelsius ?? undefined,
-        };
-      });
-      // Store full pool and show top 6 by default
-      setAllRecommendedOutfits(convertedOutfits);
-      setRecommendedOutfit(convertedOutfits.slice(0, 6));
-    }
-  }, [outfits, convexGarments]);
+    if (!outfits?.length) return;
+    const garments = convexGarmentsRef.current;
+    const convertedOutfits: DisplayOutfit[] = outfits.map((outfit, index) => {
+      const rawGarments = outfit.garmentIds
+        .map((id) => {
+          const item = garments.find((g: Doc<"garments">) => g._id === id);
+          if (!item) return null;
+          const g: DisplayGarment = {
+            id: item._id,
+            src: item.imageUrl ?? "",
+            name: item.name,
+            category: item.category,
+            type: item.category,
+            color: item.primaryColor,
+            traits: {
+              style: item.style,
+              fit: item.fit,
+              occasion: item.occasion,
+              versatility: item.versatility,
+              vibrancy: item.vibrancy,
+            },
+          };
+          return g;
+        })
+        .filter((g): g is DisplayGarment => g != null);
+      return {
+        label: `Option ${index + 1}`,
+        garments: rawGarments,
+        explanation: outfit.explanation,
+        contextMood: mood,
+        contextWeather: weather ?? undefined,
+        contextTemperature: temperatureCelsius ?? undefined,
+      };
+    });
+    setAllRecommendedOutfits(convertedOutfits);
+    setRecommendedOutfit(convertedOutfits.slice(0, 6));
+  }, [outfits, mood, weather, temperatureCelsius]);
 
   // Shuffle animation: run after grid updates from handleShuffle
   useEffect(() => {
