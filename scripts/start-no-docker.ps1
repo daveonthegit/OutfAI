@@ -51,14 +51,10 @@ if ($envContent -notmatch "NEXT_PUBLIC_CONVEX_URL=https://") {
     exit 1
 }
 
-# ── Install npm dependencies if missing ───────────────────────────────────────
-if (-not (Test-Path "$Root\node_modules")) {
-    Log "node_modules not found — running npm install..."
-    npm install
-    Ok "npm install done."
-} else {
-    Log "node_modules present — skipping install (run 'npm install' manually to update)."
-}
+# ── Install npm dependencies (ensures missing/updated deps are installed) ─────
+Log "Ensuring npm dependencies are installed..."
+npm install
+Ok "npm install done."
 
 # ── Readiness poll ────────────────────────────────────────────────────────────
 function Wait-ForApp {

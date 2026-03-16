@@ -55,14 +55,10 @@ if ! grep -q "NEXT_PUBLIC_CONVEX_URL=https://" "$ROOT_DIR/.env.local"; then
     exit 1
 fi
 
-# ── Install npm dependencies if missing ───────────────────────────────────────
-if [ ! -d "$ROOT_DIR/node_modules" ]; then
-    log "node_modules not found — running npm install..."
-    npm install --prefix "$ROOT_DIR"
-    ok "npm install done."
-else
-    log "node_modules present — skipping install (run 'npm install' manually to update)."
-fi
+# ── Install npm dependencies (ensures missing/updated deps are installed) ─────
+log "Ensuring npm dependencies are installed..."
+npm install --prefix "$ROOT_DIR"
+ok "npm install done."
 
 # ── Readiness poll ────────────────────────────────────────────────────────────
 wait_for_app() {

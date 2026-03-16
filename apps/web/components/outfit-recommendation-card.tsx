@@ -194,38 +194,38 @@ export function OutfitRecommendationCard({
         <div className="absolute inset-0 border-2 border-signal-orange pointer-events-none" />
       )}
 
-      {/* Info Overlay - inside clickable area via sibling so overlay is still visible */}
-      <div className="absolute bottom-0 left-0 right-0 bg-background/95 px-4 py-4 translate-y-full group-hover:translate-y-0 transition-transform duration-200 pointer-events-none">
-        <p className="text-[11px] uppercase tracking-widest text-foreground mb-2">
-          {label}
-        </p>
-        <p className="text-[9px] uppercase tracking-widest text-muted-foreground mb-3">
-          {garments.length} pieces
-        </p>
-        <span className="text-[10px] uppercase tracking-[0.2em] text-signal-orange">
-          {isSelectMode
-            ? isSelected
-              ? "Selected"
-              : "Select"
-            : "Click to view"}
-        </span>
-      </div>
-
-      {/* Score breakdown - expandable "See why" (pointer-events-auto so it's clickable) */}
-      {scoreBreakdown && (
-        <div className="absolute bottom-0 left-0 right-0 flex flex-col items-stretch translate-y-full group-hover:translate-y-0 transition-transform duration-200 pt-1">
-          <button
-            type="button"
-            onClick={handleSeeWhy}
-            className="pointer-events-auto self-start px-2 py-1 text-[9px] uppercase tracking-widest text-muted-foreground hover:text-signal-orange border border-border hover:border-signal-orange/50 bg-background/95 transition-colors"
-            aria-expanded={breakdownOpen}
-          >
-            {breakdownOpen ? "Hide why" : "See why"}
-          </button>
-          {breakdownOpen && (
-            <div className="pointer-events-auto mt-2 bg-background/98 border border-border px-3 py-2 space-y-1.5 max-h-32 overflow-y-auto">
-              {(Object.keys(BREAKDOWN_LABELS) as (keyof ScoreBreakdown)[]).map(
-                (key) => {
+      {/* Info overlay + "See why" in one block so they don't overlap */}
+      <div className="absolute bottom-0 left-0 right-0 flex flex-col translate-y-full group-hover:translate-y-0 transition-transform duration-200 bg-background/95 px-4 py-4">
+        <div className="pointer-events-none">
+          <p className="text-[11px] uppercase tracking-widest text-foreground mb-2">
+            {label}
+          </p>
+          <p className="text-[9px] uppercase tracking-widest text-muted-foreground mb-3">
+            {garments.length} pieces
+          </p>
+          <span className="text-[10px] uppercase tracking-[0.2em] text-signal-orange">
+            {isSelectMode
+              ? isSelected
+                ? "Selected"
+                : "Select"
+              : "Click to view"}
+          </span>
+        </div>
+        {scoreBreakdown && (
+          <div className="mt-3 flex flex-col items-stretch">
+            <button
+              type="button"
+              onClick={handleSeeWhy}
+              className="pointer-events-auto self-start px-2 py-1 text-[9px] uppercase tracking-widest text-muted-foreground hover:text-signal-orange border border-border hover:border-signal-orange/50 bg-background/95 transition-colors"
+              aria-expanded={breakdownOpen}
+            >
+              {breakdownOpen ? "Hide why" : "See why"}
+            </button>
+            {breakdownOpen && (
+              <div className="pointer-events-auto mt-2 bg-background/98 border border-border px-3 py-2 space-y-1.5 max-h-32 overflow-y-auto">
+                {(
+                  Object.keys(BREAKDOWN_LABELS) as (keyof ScoreBreakdown)[]
+                ).map((key) => {
                   const value = scoreBreakdown[key];
                   const max = BREAKDOWN_MAX[key];
                   const pct = max > 0 ? Math.min(100, (value / max) * 100) : 0;
@@ -248,12 +248,12 @@ export function OutfitRecommendationCard({
                       </span>
                     </div>
                   );
-                }
-              )}
-            </div>
-          )}
-        </div>
-      )}
+                })}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
 
       {/* Accent line on hover (only when not in select mode) */}
       {!isSelectMode && (

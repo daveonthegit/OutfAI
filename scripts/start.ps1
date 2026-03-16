@@ -51,12 +51,10 @@ if ($envContent -notmatch "NEXT_PUBLIC_CONVEX_URL=https://") {
     exit 1
 }
 
-# ── Install npm dependencies if missing ───────────────────────────────────────
-if (-not (Test-Path "$Root\node_modules")) {
-    Log "node_modules not found — running npm install..."
-    npm install
-    Ok "npm install done."
-}
+# ── Install npm dependencies (ensures missing/updated deps are installed) ─────
+Log "Ensuring npm dependencies are installed..."
+npm install
+Ok "npm install done."
 
 # ── Check Docker is running ───────────────────────────────────────────────────
 function Test-DockerRunning {
