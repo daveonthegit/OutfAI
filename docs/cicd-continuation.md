@@ -20,7 +20,7 @@
 | `.github/workflows/preview.yml`                      | Done           | Vercel CLI preview deploy + PR comment                                                                 |
 | `.github/workflows/release.yml`                      | Done           | Tag-triggered, CI gate, Vercel prod deploy, GitHub Release                                             |
 | `docs/cicd.md`                                       | Done           | Full CI/CD documentation                                                                               |
-| `rules/cicd-rules.mdc`                               | Done           | Cursor rule for enforcing CI conventions                                                               |
+| `rules/cicd-rules.mdc`                               | Done           | Rule for enforcing CI conventions                                                                      |
 | `tests/services/outfitRecommendationService.test.ts` | Done           | 11 tests, all passing                                                                                  |
 | `package.json`                                       | Done           | All scripts added (format, lint, typecheck, test, build, prisma:\*, db:doc, ci, prepare)               |
 

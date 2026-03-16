@@ -147,4 +147,4 @@ See [docs/OutfAI_Project_Structure.md](docs/OutfAI_Project_Structure.md) for the
 
 ## License
 
-Private / capstone project. All rights reserved.
+MIT — see [LICENSE](LICENSE) for details.
