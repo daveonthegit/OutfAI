@@ -28,7 +28,7 @@ Conventions:
 - `rules/frontend-patterns.mdc`
 - `templates/resource/**`
   **DoD**
-- Rules are present and referenced by Cursor
+- Rules are present and referenced by the editor
 - Template folder is usable for scaffolding
 
 ### PR-02: Add schema doc generator wiring
