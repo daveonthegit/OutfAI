@@ -2,6 +2,8 @@
 
 > How to organize, audit, and create GitHub issues. Use this with [FEATURE_EXPANSION.md](../product/FEATURE_EXPANSION.md) and [EXPANSION_ROADMAP.md](../implementation/EXPANSION_ROADMAP.md).  
 > **Note:** Actual close/update/create actions on GitHub require repo access (e.g. `gh` CLI or GitHub web). This doc is the playbook.
+>
+> **Done (2026-03-16):** Labels and milestones created; issues E1–E20 created (E1 = #2 closed as implemented; doc-16 = #22 closed as obsolete). Open issues: #3–#21.
 
 ---
 
@@ -143,14 +145,40 @@ Create these as GitHub issues and link to roadmap phases. Use the titles below; 
 
 ## 7. Summary
 
-| Action                    | Count                                                             |
-| ------------------------- | ----------------------------------------------------------------- |
-| Close (obsolete)          | 1 (16)                                                            |
-| Update description        | 7 (01, 02, 03, 05, 15, 23, 33)                                    |
-| Optional split            | 2 (08, 32)                                                        |
-| New issues from expansion | 20 (E1–E20); prefer updating existing issue docs where they exist |
-| Labels                    | 11 suggested                                                      |
-| Milestones                | 5 (MVP, Phase 1–4)                                                |
+| Action                    | Count                                                                                         |
+| ------------------------- | --------------------------------------------------------------------------------------------- |
+| Close (obsolete)          | 1 (16) → #22 closed                                                                           |
+| Update description        | 7 (01, 02, 03, 05, 15, 23, 33)                                                                |
+| Optional split            | 2 (08, 32)                                                                                    |
+| New issues from expansion | 20 (E1–E20); E1 = #2 (closed as implemented)                                                  |
+| Labels                    | 11 suggested (8 created: feature, backend, frontend, ai, infrastructure, security, ux, chore) |
+| Milestones                | 5 created: MVP, Phase 1–4                                                                     |
+
+### GitHub issue numbers (created 2026-03-16)
+
+| E#  | Title / doc              | GitHub # | State                |
+| --- | ------------------------ | -------- | -------------------- |
+| E1  | Wire recommendation logs | 2        | Closed (implemented) |
+| E2  | User preferences UI      | 3        | Open                 |
+| E3  | Complete onboarding      | 4        | Open                 |
+| E4  | Editable profile         | 5        | Open                 |
+| E5  | Password reset           | 6        | Open                 |
+| E6  | Data export              | 7        | Open                 |
+| E7  | Closet search            | 8        | Open                 |
+| E8  | Manual weather fallback  | 9        | Open                 |
+| E9  | Score breakdown UI       | 10       | Open                 |
+| E10 | Outfit calendar          | 11       | Open                 |
+| E11 | Packing planner          | 12       | Open                 |
+| E12 | Delete account           | 13       | Open                 |
+| E13 | AI vision auto-tagging   | 14       | Open                 |
+| E14 | Learning pipeline        | 15       | Open                 |
+| E15 | Garment auto-tag stub    | 16       | Open                 |
+| E16 | Recommendation digest    | 17       | Open                 |
+| E17 | Sync product feeds       | 18       | Open                 |
+| E18 | Weather API caching      | 19       | Open                 |
+| E19 | Activity/stats profile   | 20       | Open                 |
+| E20 | Loading/toasts/empty     | 21       | Open                 |
+| —   | Doc 16 (obsolete)        | 22       | Closed               |
 
 Use this structure to keep GitHub in sync with docs/product and docs/implementation.
 
