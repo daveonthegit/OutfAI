@@ -8,6 +8,7 @@
  * @module
  */
 
+import type * as account from "../account.js";
 import type * as auth from "../auth.js";
 import type * as commerceInteractionLogs from "../commerceInteractionLogs.js";
 import type * as externalProducts from "../externalProducts.js";
@@ -26,6 +27,7 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  account: typeof account;
   auth: typeof auth;
   commerceInteractionLogs: typeof commerceInteractionLogs;
   externalProducts: typeof externalProducts;
