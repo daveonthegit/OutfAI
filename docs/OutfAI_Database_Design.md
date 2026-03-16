@@ -79,11 +79,13 @@ User identity and sessions are not defined in the application schema. They are m
 
 ## Commerce (storefront integration)
 
-Implemented as part of wardrobe-first product recommendations. See [commerce/IMPLEMENTATION.md](commerce/IMPLEMENTATION.md) and [commerce/SCRAPING_NON_GOAL.md](commerce/SCRAPING_NON_GOAL.md).
+The main user-facing suggestion feature is **Style insights** (wardrobe gaps, complete-the-look tips, style/occasion pairing) — text-only, no product database required. See [commerce/IMPLEMENTATION.md](commerce/IMPLEMENTATION.md) and [commerce/SCRAPING_NON_GOAL.md](commerce/SCRAPING_NON_GOAL.md).
+
+The tables below support **optional** external product suggestions (e.g. “Suggested for your wardrobe” with product links) when that feature is enabled.
 
 ### external_products
 
-Normalized external products from affiliate/partner feeds. Single source of truth: [convex/schema.ts](../convex/schema.ts).
+Normalized external products from affiliate/partner feeds; used only for optional product-suggestion flows. Single source of truth: [convex/schema.ts](../convex/schema.ts).
 
 | Field           | Type      | Notes                              |
 | --------------- | --------- | ---------------------------------- |

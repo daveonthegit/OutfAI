@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import Link from "next/link";
 import { OutfitRecommendationCard } from "@/components/outfit-recommendation-card";
-import { SuggestedProductsSection } from "@/components/suggested-products-section";
+import { StyleInsightsSection } from "@/components/style-insights-section";
 import { useOutfitRecommendations } from "@/hooks/use-outfit-recommendations";
 import { useRequireAuth } from "@/hooks/use-require-auth";
 import { useQuery, useMutation } from "convex/react";
@@ -113,7 +113,7 @@ export default function Home() {
   const convexGarmentsRef = useRef(convexGarments);
   convexGarmentsRef.current = convexGarments;
 
-  // Stable props for SuggestedProductsSection to avoid infinite product-recommendation fetches (ERR_INSUFFICIENT_RESOURCES)
+  // Stable props for StyleInsightsSection to avoid unnecessary refetches
   const garmentsKey = convexGarments.map((g) => g._id).join(",");
   const stableGarments = useMemo(() => convexGarments, [garmentsKey]);
   const outfitIdsKey =
@@ -666,8 +666,8 @@ export default function Home() {
           )}
         </section>
 
-        {/* Suggested for your wardrobe — external products, only after outfit results */}
-        <SuggestedProductsSection
+        {/* Style insights — wardrobe gaps, complete-the-look, style tips (only after outfit results) */}
+        <StyleInsightsSection
           userId={userId}
           garments={stableGarments}
           outfitGarmentIds={memoizedOutfitGarmentIds}

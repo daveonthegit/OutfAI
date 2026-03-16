@@ -210,3 +210,20 @@ export interface ProductRecommendationOutput {
   /** Set when no live provider could supply products; no fake data returned. */
   providerStatus?: ProviderStatus;
 }
+
+// --- Style insights (wardrobe gaps, complete-the-look, style tips) ---
+
+export type StyleInsightType = "gap" | "complete_the_look" | "style_tip";
+
+export interface StyleInsight {
+  type: StyleInsightType;
+  text: string;
+  category?: GarmentCategory;
+  reason?: string;
+}
+
+export interface StyleInsightsOutput {
+  gaps: StyleInsight[];
+  completeTheLook: StyleInsight[];
+  styleTips: StyleInsight[];
+}

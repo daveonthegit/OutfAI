@@ -1,6 +1,8 @@
 # Commerce product providers (major retailers)
 
-OutfAI pulls **live product data only** from configured sources. No mock or fake catalogs. If a source is not configured or fails, the app surfaces that explicitly.
+**Current recommendation feature:** The home page uses **Style insights** (wardrobe gaps, complete-the-look tips, style/occasion pairing advice) — text-only, no product catalog or APIs required. See [IMPLEMENTATION.md](./IMPLEMENTATION.md).
+
+The providers below are for **optional** external product suggestions (e.g. “Suggested for your wardrobe” with product links). They are not required for Style insights. OutfAI pulls **live product data only** from configured sources. No mock or fake catalogs. If a source is not configured or fails, the app surfaces that explicitly.
 
 ## Provider order
 

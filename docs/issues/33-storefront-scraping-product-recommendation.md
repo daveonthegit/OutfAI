@@ -8,7 +8,21 @@ Two parts: (1) **product recommendation** — suggest external products that com
 
 ---
 
-## Part 1: Product recommendation (wardrobe-first)
+## Current implementation: Style insights (primary)
+
+The **home page suggestion slot** now uses **Style insights** (text-only, no product catalog or APIs):
+
+- **Wardrobe gaps** — e.g. “You have no blazer”, “Consider adding a belt”
+- **Complete the look** — tips for the current outfit (e.g. “Add a watch”, “Try a darker shoe”)
+- **Style / occasion tips** — pairing advice from the user’s wardrobe (e.g. “For work, pair your white shirt with your navy trousers”)
+
+Implemented in: `server/services/styleInsightsService.ts`, `POST /api/style-insights`, `useStyleInsights`, `StyleInsightsSection`. No external product APIs or `external_products` are required. See [commerce/IMPLEMENTATION.md](../commerce/IMPLEMENTATION.md).
+
+**Optional/future:** External product cards (“Suggested for your wardrobe”) and affiliate/partner feeds remain available in code (`SuggestedProductsSection`, `productRecommendationService`, providers) for a future “Shop” or product-link feature; they are not shown on the home page by default.
+
+---
+
+## Part 1: Product recommendation (wardrobe-first) — optional product cards
 
 Suggestions must appear **after** wardrobe-based outfits and only when they **complement** existing pieces. Each suggestion needs a short, explainable reason.
 
@@ -17,7 +31,7 @@ Suggestions must appear **after** wardrobe-based outfits and only when they **co
 - [x] **Schema**: Add tables (or Convex schema) for external products and product–wardrobe matches. Implemented: `external_products` and `commerceInteractionLogs` in Convex; product–wardrobe matches computed on demand by recommendation service.
 - [x] **Recommendation logic**: Given the user’s garments (and optionally current outfit or mood/weather), score external products by: category fit, color compatibility, style/occasion alignment. Implemented in `server/services/productRecommendationService.ts`.
 - [x] **Justification**: For each suggested product, generate a one-line reason. Implemented in same service; reasons derived from scoring factors.
-- [x] **UI**: “Suggested for your wardrobe” section after outfit results; “Suggested purchase” label; link opens in new tab. Implemented: `SuggestedProductsSection`, `ExternalProductCard`.
+- [x] **UI**: “Suggested for your wardrobe” section after outfit results; “Suggested purchase” label; link opens in new tab. Implemented: `SuggestedProductsSection`, `ExternalProductCard`. **Note:** Home page now shows Style insights instead; this UI remains in code for optional/future use.
 - [x] **Tracking**: Optional click-through via `commerceInteractionLogs.log`; consent-aware (not called by default).
 
 ### Acceptance criteria

@@ -99,6 +99,8 @@
 
 ## `external_products`
 
+Used for **optional** external product suggestions (e.g. “Suggested for your wardrobe” with links). The current home-page suggestion feature is Style insights (text-only; no product table required).
+
 | Field | Type | Required |
 |-------|------|----------|
 | `source` | `string` | yes |

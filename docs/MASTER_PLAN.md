@@ -88,25 +88,25 @@
 
 ## Further backlog (UX, product, and post-MVP)
 
-| #   | Issue                                                  | Doc                                                                                                                |
-| --- | ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------ |
-| 17  | Manual weather fallback (city input)                   | [issues/17-weather-manual-fallback.md](issues/17-weather-manual-fallback.md)                                       |
-| 18  | Closet search by name                                  | [issues/18-closet-search.md](issues/18-closet-search.md)                                                           |
-| 19  | Loading states, toasts, and empty state polish         | [issues/19-loading-empty-states.md](issues/19-loading-empty-states.md)                                             |
-| 20  | Swipe gestures on outfit cards                         | [issues/20-swipe-gestures-outfits.md](issues/20-swipe-gestures-outfits.md)                                         |
-| 21  | Score breakdown UI (expand outfit for category scores) | [issues/21-score-breakdown-ui.md](issues/21-score-breakdown-ui.md)                                                 |
-| 22  | Password reset (forgot password) flow                  | [issues/22-password-reset.md](issues/22-password-reset.md)                                                         |
-| 23  | Storefront integration (optional product suggestions)  | [issues/23-storefront-integration.md](issues/23-storefront-integration.md)                                         |
-| 24  | Outfit calendar (plan outfits for upcoming days)       | [issues/24-outfit-calendar.md](issues/24-outfit-calendar.md)                                                       |
-| 25  | Packing planner (trip capsule wardrobe)                | [issues/25-packing-planner.md](issues/25-packing-planner.md)                                                       |
-| 26  | AI vision auto-tagging (extract from photo)            | [issues/26-ai-vision-autotagging.md](issues/26-ai-vision-autotagging.md)                                           |
-| 27  | Learning pipeline (improve scoring from feedback)      | [issues/27-learning-pipeline.md](issues/27-learning-pipeline.md)                                                   |
-| 28  | Accessibility audit and fixes                          | [issues/28-accessibility-audit.md](issues/28-accessibility-audit.md)                                               |
-| 29  | E2E tests for critical flows                           | [issues/29-e2e-tests.md](issues/29-e2e-tests.md)                                                                   |
-| 30  | Garment auto-tagging stub (rules-based defaults)       | [issues/30-garment-autotagging-stub.md](issues/30-garment-autotagging-stub.md)                                     |
-| 31  | Mobile app (React Native / Expo)                       | [issues/31-mobile-app.md](issues/31-mobile-app.md)                                                                 |
-| 32  | Social features (share outfits, community feed)        | [issues/32-social-features.md](issues/32-social-features.md)                                                       |
-| 33  | Storefront scraping and product recommendation         | [issues/33-storefront-scraping-product-recommendation.md](issues/33-storefront-scraping-product-recommendation.md) |
+| #   | Issue                                                       | Doc                                                                                                                |
+| --- | ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| 17  | Manual weather fallback (city input)                        | [issues/17-weather-manual-fallback.md](issues/17-weather-manual-fallback.md)                                       |
+| 18  | Closet search by name                                       | [issues/18-closet-search.md](issues/18-closet-search.md)                                                           |
+| 19  | Loading states, toasts, and empty state polish              | [issues/19-loading-empty-states.md](issues/19-loading-empty-states.md)                                             |
+| 20  | Swipe gestures on outfit cards                              | [issues/20-swipe-gestures-outfits.md](issues/20-swipe-gestures-outfits.md)                                         |
+| 21  | Score breakdown UI (expand outfit for category scores)      | [issues/21-score-breakdown-ui.md](issues/21-score-breakdown-ui.md)                                                 |
+| 22  | Password reset (forgot password) flow                       | [issues/22-password-reset.md](issues/22-password-reset.md)                                                         |
+| 23  | Storefront integration (optional product suggestions)       | [issues/23-storefront-integration.md](issues/23-storefront-integration.md)                                         |
+| 24  | Outfit calendar (plan outfits for upcoming days)            | [issues/24-outfit-calendar.md](issues/24-outfit-calendar.md)                                                       |
+| 25  | Packing planner (trip capsule wardrobe)                     | [issues/25-packing-planner.md](issues/25-packing-planner.md)                                                       |
+| 26  | AI vision auto-tagging (extract from photo)                 | [issues/26-ai-vision-autotagging.md](issues/26-ai-vision-autotagging.md)                                           |
+| 27  | Learning pipeline (improve scoring from feedback)           | [issues/27-learning-pipeline.md](issues/27-learning-pipeline.md)                                                   |
+| 28  | Accessibility audit and fixes                               | [issues/28-accessibility-audit.md](issues/28-accessibility-audit.md)                                               |
+| 29  | E2E tests for critical flows                                | [issues/29-e2e-tests.md](issues/29-e2e-tests.md)                                                                   |
+| 30  | Garment auto-tagging stub (rules-based defaults)            | [issues/30-garment-autotagging-stub.md](issues/30-garment-autotagging-stub.md)                                     |
+| 31  | Mobile app (React Native / Expo)                            | [issues/31-mobile-app.md](issues/31-mobile-app.md)                                                                 |
+| 32  | Social features (share outfits, community feed)             | [issues/32-social-features.md](issues/32-social-features.md)                                                       |
+| 33  | Style insights + optional storefront/product recommendation | [issues/33-storefront-scraping-product-recommendation.md](issues/33-storefront-scraping-product-recommendation.md) |
 
 ---
 

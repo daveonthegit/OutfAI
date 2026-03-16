@@ -30,7 +30,7 @@
 | F9  | Outfit history / saved outfits list        | P1       | 3-4   |
 | F10 | Recommendation analytics (logs)            | P1       | 3     |
 | F11 | Onboarding flow                            | P1       | 4     |
-| F12 | Storefront suggestions                     | P2       | 5     |
+| F12 | Style insights / storefront suggestions    | P2       | 5     |
 | F13 | Outfit calendar                            | P2       | 5     |
 | F14 | Packing planner                            | P2       | 5     |
 | F15 | AI vision auto-tagging                     | P2       | 5     |
@@ -287,7 +287,7 @@
 | 2:20 | **Save the outfit** (tap heart)                            | Heart fills, toast: "Outfit saved!"                                                                                                                |
 | 2:30 | **Skip second outfit** (tap X)                             | Card slides away                                                                                                                                   |
 | 2:35 | **Show Saved tab**                                         | Saved outfit visible with "I wore this" button                                                                                                     |
-| 2:45 | **Wrap up** — mention future features                      | "Next: auto-tagging from photos, storefront suggestions, outfit calendar"                                                                          |
+| 2:45 | **Wrap up** — mention future features                      | "Next: auto-tagging from photos, style insights (already in), outfit calendar"                                                                     |
 | 3:00 | **End**                                                    |                                                                                                                                                    |
 
 ### Contingency
@@ -303,4 +303,4 @@
 - The demo will be on a local or Vercel-deployed environment with Convex backend.
 - The presenter will have a pre-seeded fallback account ready.
 - "Auto-tagging" in P1 is a rules-based stub (category → default tags), not ML.
-- Storefront integration (P2) requires partner/affiliate API access not yet secured.
+- Style insights (F12) are implemented (text-only; no product APIs). Optional external product links would require partner/affiliate API access if re-enabled.
