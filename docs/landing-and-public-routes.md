@@ -29,14 +29,12 @@ This document describes the public landing page, auth routing, and the single so
    Uses `isNoNavRoute(pathname)` to decide whether to render the bottom nav. Pathname is normalized (e.g. trailing slash removed) so `/login/` is treated like `/login`.
 
 2. **Middleware** (`apps/web/middleware.ts`)  
-   The matcher is built from `NO_NAV_ROUTES` plus static/API exclusions so that:
-   - Unauthenticated users can access `/`, `/login`, `/signup`, `/check-email`, `/verify-email`.
-   - All other app routes require a session (redirect to login).
+   The matcher is a **string literal** (Next.js requirement) that excludes the same paths as `NO_NAV_ROUTES` plus static/API exclusions. Unauthenticated users can access `/`, `/login`, `/signup`, `/check-email`, `/verify-email`; all other routes require a session.
 
 **When adding a new public or no-nav route:**
 
 1. Add the path to `NO_NAV_ROUTES` in `apps/web/lib/routes.ts`.
-2. The middleware matcher is derived from `NO_NAV_ROUTES`; no separate change is needed there.
+2. Update the middleware matcher regex in `apps/web/middleware.ts` to exclude the new path (e.g. add `|your-path` in the negative lookahead).
 
 ---
 

@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { NO_NAV_ROUTES } from "./lib/routes";
 
 // Lightweight presence check — BetterAuth (via @convex-dev/better-auth) sets
 // this cookie on sign-in. Full cryptographic validation happens inside Convex
@@ -22,20 +21,9 @@ export function middleware(request: NextRequest) {
   return NextResponse.next();
 }
 
-// Path segments excluded from auth (derived from NO_NAV_ROUTES). Root "/" → "$" for regex.
-const PUBLIC_PATH_SEGMENTS = NO_NAV_ROUTES.map((p) =>
-  p === "/" ? "$" : p.slice(1)
-);
-const OTHER_EXCLUDED =
-  "api/auth|_next/static|_next/image|favicon\\.ico|icon|apple-icon|.*\\.(?:svg|png|jpg|jpeg|webp|gif|ico)$";
-const MATCHER_REGEX = `/((?!${PUBLIC_PATH_SEGMENTS.join("|")}|${OTHER_EXCLUDED}).*)`;
-
+// Keep in sync with NO_NAV_ROUTES in lib/routes.ts. Next.js requires a literal here.
 export const config = {
   matcher: [
-    /*
-     * Protect all routes except: NO_NAV_ROUTES (/, /login, /signup, /check-email, /verify-email),
-     * /api/auth, _next, and common static file extensions. See lib/routes.ts.
-     */
-    MATCHER_REGEX,
+    "/((?!$|login|signup|check-email|verify-email|api/auth|_next/static|_next/image|favicon\\.ico|icon|apple-icon|.*\\.(?:svg|png|jpg|jpeg|webp|gif|ico)$).*)",
   ],
 };
