@@ -141,7 +141,8 @@ export default function ClosetPage() {
     if (!filteredItems.length || hasStaggeredRef.current || !gridRef.current)
       return;
     hasStaggeredRef.current = true;
-    staggerFadeInContainer(gridRef.current);
+    const el = gridRef.current;
+    requestAnimationFrame(() => staggerFadeInContainer(el));
   }, [filteredItems.length]);
 
   return (

@@ -24,22 +24,29 @@ export function animateShuffle(elements: HTMLElement[]): void {
   if (valid.length === 0) return;
   if (prefersReducedMotion()) return;
 
-  const tl = createTimeline();
-  const durationSec = DURATION / 1000;
+  try {
+    const tl = createTimeline();
+    const durationSec = DURATION / 1000;
 
-  valid.forEach((el, i) => {
-    const delay = (i * STAGGER_MS) / 1000;
-    const params: AnimationParams = {
-      scale: [0.98, 1],
-      opacity: [0.85, 1],
-      duration: durationSec,
-      delay,
-      ease: EASE,
-    };
-    tl.add(el, params, "<");
-  });
+    valid.forEach((el, i) => {
+      if (!el?.isConnected) return;
+      const delay = (i * STAGGER_MS) / 1000;
+      const params: AnimationParams = {
+        scale: [0.98, 1],
+        opacity: [0.85, 1],
+        duration: durationSec,
+        delay,
+        ease: EASE,
+      };
+      tl.add(el, params, "<");
+    });
 
-  tl.play();
+    tl.play();
+  } catch (err) {
+    if (typeof console !== "undefined" && console.warn) {
+      console.warn("[animateShuffle] animation skipped:", err);
+    }
+  }
 }
 
 /**

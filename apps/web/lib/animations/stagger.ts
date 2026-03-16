@@ -38,21 +38,28 @@ export function staggerFadeIn(
   const durationSec = Number(durationMs) / 1000;
   if (!Number.isFinite(durationSec) || durationSec <= 0) return;
 
-  const tl = createTimeline();
+  try {
+    const tl = createTimeline();
 
-  valid.forEach((el, i) => {
-    const delay = (i * delayPerItem) / 1000;
-    const params: AnimationParams = {
-      opacity: [0, 1],
-      y: [TRANSLATE_Y_PX, 0],
-      duration: durationSec,
-      delay,
-      ease: EASE,
-    };
-    tl.add(el, params, "<");
-  });
+    valid.forEach((el, i) => {
+      if (!el?.isConnected) return;
+      const delay = (i * delayPerItem) / 1000;
+      const params: AnimationParams = {
+        opacity: [0, 1],
+        y: [TRANSLATE_Y_PX, 0],
+        duration: durationSec,
+        delay,
+        ease: EASE,
+      };
+      tl.add(el, params, "<");
+    });
 
-  tl.play();
+    tl.play();
+  } catch (err) {
+    if (typeof console !== "undefined" && console.warn) {
+      console.warn("[staggerFadeIn] animation skipped:", err);
+    }
+  }
 }
 
 /**

@@ -76,7 +76,8 @@ export default function ArchivePage() {
   useEffect(() => {
     if (!outfits?.length || hasStaggeredRef.current || !gridRef.current) return;
     hasStaggeredRef.current = true;
-    staggerFadeInContainer(gridRef.current);
+    const el = gridRef.current;
+    requestAnimationFrame(() => staggerFadeInContainer(el));
   }, [outfits]);
 
   const handleViewOutfit = (outfit: OutfitWithGarments) => {
