@@ -368,9 +368,7 @@ export default function ProfileSettingsPage() {
             <BrutalistButton
               type="button"
               variant="outline"
-              disabled={
-                deleteConfirm !== DELETE_CONFIRM_TEXT || deleteLoading
-              }
+              disabled={deleteConfirm !== DELETE_CONFIRM_TEXT || deleteLoading}
               onClick={handleDeleteAccount}
               className="border-destructive text-destructive hover:bg-destructive hover:text-background"
             >

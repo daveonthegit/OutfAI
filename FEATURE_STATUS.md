@@ -35,15 +35,22 @@
 
 ---
 
+## Shipped (Phase 2 complete)
+
+| Feature                 | Notes                                                                                                                                                         |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **User preferences UI** | Profile page: favorite moods, preferred styles/colors, avoided colors, style goal. Saved via `userPreferences.save`.                                          |
+| **Editable profile**    | Profile page: name, username, bio, avatar (upload/remove). BetterAuth `updateUser`; Convex `profile.update` / `setAvatar` / `removeAvatar`.                   |
+| **Onboarding**          | Multi-step wizard at `/onboarding`: welcome → add garments → preferences → try outfit → done. Redirect guard when `onboardingComplete` is false; skip option. |
+| **Closet search**       | Debounced search by garment name on closet page; “No results” empty state with clear.                                                                         |
+| **Delete account**      | Settings danger zone: type “DELETE” to confirm; Convex `account.deleteAllUserData`; then sign out.                                                            |
+| **Data export**         | Settings: “Download my data” triggers JSON export (garments, outfits, logs, profile, preferences).                                                            |
+| **Account settings**    | Settings: change password (BetterAuth `changePassword`), change email (BetterAuth `changeEmail` + verification).                                              |
+
+---
+
 ## Not shipped (backlog)
 
-- **User preferences UI** — Set favorite moods, styles, colors. Phase 2.
-- **Editable profile** — Name, username, avatar. Phase 2.
-- **Onboarding** — Complete profile + checklist. Phase 2.
-- **Closet search** — Search by name. Phase 2.
-- **Delete account** — Full data + auth delete. Phase 2.
-- **Data export** — Download my data. Phase 2.
-- **Account settings** — Change password, change email. Phase 2.
 - **Outfit calendar** — Plan outfits by date. Phase 3.
 - **Packing planner** — Trip capsule wardrobe. Phase 3.
 - **Activity/stats on profile** — Phase 3.

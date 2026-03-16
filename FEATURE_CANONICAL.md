@@ -16,14 +16,14 @@
 | Style insights (gaps, complete-the-look, tips)            | Shipped | server/services/styleInsightsService.ts, POST /api/style-insights, StyleInsightsSection                           |
 | Profile (read-only identity, stats)                       | Shipped | convex/profile.ts, apps/web/app/profile, profile/settings                                                         |
 | Recommendation logs in UI                                 | Shipped | Today + Archive wire recommendationLogs.log (shown/saved/skipped/worn); FEATURE_EXPANSION §1                      |
-| User preferences UI                                       | Backlog | docs/issues/07, FEATURE_EXPANSION §2, Phase 2                                                                     |
-| Editable profile (name, username, avatar)                 | Backlog | docs/issues/01, 02, FEATURE_EXPANSION §4, Phase 2                                                                 |
-| Onboarding (complete profile + checklist)                 | Backlog | docs/issues/08, 09, FEATURE_EXPANSION §3, Phase 2                                                                 |
+| User preferences UI                                       | Shipped | Profile: favoriteMoods, styleGoal, preferredStyles/Colors, avoidedColors; convex/userPreferences.save             |
+| Editable profile (name, username, avatar)                 | Shipped | Profile page; BetterAuth updateUser; convex/profile.update, setAvatar, removeAvatar                               |
+| Onboarding (complete profile + checklist)                 | Shipped | apps/web/app/onboarding (wizard); profile.completeOnboarding; OnboardingGuard; docs/issues/08, 09                 |
 | Password reset                                            | Shipped | apps/web/app/forgot-password, reset-password, login link; convex/auth.ts sendResetPassword                        |
-| Delete account                                            | Backlog | docs/issues/04, FEATURE_EXPANSION §12, Phase 2                                                                    |
-| Data export                                               | Backlog | docs/issues/10, FEATURE_EXPANSION §6, Phase 2                                                                     |
-| Account settings (password, email)                        | Backlog | docs/issues/03, Phase 2                                                                                           |
-| Closet search                                             | Backlog | docs/issues/18, FEATURE_EXPANSION §7, Phase 2                                                                     |
+| Delete account                                            | Shipped | convex/account.deleteAllUserData; Settings danger zone; docs/issues/04                                            |
+| Data export                                               | Shipped | convex/account.getExportData; Settings “Download my data”                                                         |
+| Account settings (password, email)                        | Shipped | Settings: change password (BetterAuth changePassword), change email (BetterAuth changeEmail); docs/issues/03      |
+| Closet search                                             | Shipped | Closet page: debounced search by name, empty state; docs/issues/18                                                |
 
 ---
 

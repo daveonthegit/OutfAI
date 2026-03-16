@@ -40,6 +40,8 @@ Focus: Complete profile/settings, onboarding, preferences, and discoverability s
 
 **Exit criteria for Phase 2:** Users can edit profile, set preferences, complete onboarding, search closet, delete account, export data, and change password/email.
 
+**Status (implemented):** All seven Phase 2 items are complete. See [PHASE_2_SUMMARY.md](./PHASE_2_SUMMARY.md).
+
 ---
 
 ## Phase 3 — Platform Features

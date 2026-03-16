@@ -130,7 +130,9 @@ export default function OnboardingPage() {
       primaryColor: g.primaryColor,
       secondaryColor: undefined,
       material: g.material,
-      season: (g.season as "spring" | "summer" | "fall" | "winter" | "all-season") ?? undefined,
+      season:
+        (g.season as "spring" | "summer" | "fall" | "winter" | "all-season") ??
+        undefined,
       tags: g.tags,
       style: g.style,
       fit: g.fit,
@@ -194,20 +196,16 @@ export default function OnboardingPage() {
               Set up your wardrobe
             </h1>
             <p className="text-sm text-muted-foreground">
-              We’ll guide you through adding a few items, your style preferences,
-              and then show you your first outfit.
+              We’ll guide you through adding a few items, your style
+              preferences, and then show you your first outfit.
             </p>
-            <BrutalistButton onClick={handleNext}>
-              Let’s go
-            </BrutalistButton>
+            <BrutalistButton onClick={handleNext}>Let’s go</BrutalistButton>
           </section>
         )}
 
         {step.id === "garments" && (
           <section className="space-y-6">
-            <h1 className="text-2xl font-light tracking-tight">
-              Add garments
-            </h1>
+            <h1 className="text-2xl font-light tracking-tight">Add garments</h1>
             <p className="text-sm text-muted-foreground">
               Add at least {MIN_GARMENTS_SUGGESTED} items to get better
               recommendations. You can add more anytime.
@@ -381,41 +379,40 @@ export default function OnboardingPage() {
                   </p>
                 )}
 
-                {outfits.length > 0 && (() => {
-                  const first = outfits[0];
-                  const displayGarments = (first.garmentIds ?? [])
-                    .map((id: string) =>
-                      garments.find((g: Doc<"garments">) => g._id === id)
-                    )
-                    .filter((g): g is Doc<"garments"> => g != null)
-                    .map((g) => ({
-                      id: g._id,
-                      src: g.imageUrl ?? "",
-                      name: g.name,
-                      type: g.category,
-                    }));
-                  return (
-                    <div className="border border-border p-4">
-                      <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground mb-3">
-                        Suggested outfit
-                      </p>
-                      <OutfitRecommendationCard
-                        label="Suggested"
-                        garments={displayGarments}
-                        explanation={first.explanation}
-                        contextMood={first.contextMood}
-                        contextWeather={first.contextWeather}
-                        scoreBreakdown={first.scoreBreakdown}
-                      />
-                    </div>
-                  );
-                })()}
+                {outfits.length > 0 &&
+                  (() => {
+                    const first = outfits[0];
+                    const displayGarments = (first.garmentIds ?? [])
+                      .map((id: string) =>
+                        garments.find((g: Doc<"garments">) => g._id === id)
+                      )
+                      .filter((g): g is Doc<"garments"> => g != null)
+                      .map((g) => ({
+                        id: g._id,
+                        src: g.imageUrl ?? "",
+                        name: g.name,
+                        type: g.category,
+                      }));
+                    return (
+                      <div className="border border-border p-4">
+                        <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground mb-3">
+                          Suggested outfit
+                        </p>
+                        <OutfitRecommendationCard
+                          label="Suggested"
+                          garments={displayGarments}
+                          explanation={first.explanation}
+                          contextMood={first.contextMood}
+                          contextWeather={first.contextWeather}
+                          scoreBreakdown={first.scoreBreakdown}
+                        />
+                      </div>
+                    );
+                  })()}
               </>
             )}
 
-            <BrutalistButton onClick={handleNext}>
-              Continue
-            </BrutalistButton>
+            <BrutalistButton onClick={handleNext}>Continue</BrutalistButton>
           </section>
         )}
 
@@ -428,9 +425,7 @@ export default function OnboardingPage() {
               Start from the home screen to get daily outfit ideas based on your
               mood and weather.
             </p>
-            <BrutalistButton onClick={handleFinish}>
-              Go to home
-            </BrutalistButton>
+            <BrutalistButton onClick={handleFinish}>Go to home</BrutalistButton>
           </section>
         )}
 

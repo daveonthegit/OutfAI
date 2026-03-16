@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useMemo, useEffect } from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { getStaggerVariants } from "@/lib/animations";
@@ -60,21 +60,43 @@ export default function ClosetPage() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deletingIds, setDeletingIds] = useState<Id<"garments">[]>([]);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [searchInput, setSearchInput] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
 
   const gridRef = useRef<HTMLDivElement>(null);
   const staggerVariants = getStaggerVariants();
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const garmentsRaw = useQuery(api.garments.list);
   const garments = garmentsRaw ?? [];
   const removeMany = useMutation(api.garments.removeMany);
   const removeSingle = useMutation(api.garments.remove);
 
-  const filteredItems =
-    activeCategory === "all"
-      ? garments
-      : garments.filter(
-          (item: ConvexGarment) => item.category === activeCategory
-        );
+  // Debounce search input (300ms)
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      setDebouncedSearch(searchInput.trim().toLowerCase());
+    }, 300);
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, [searchInput]);
+
+  const filteredItems = useMemo(() => {
+    let list =
+      activeCategory === "all"
+        ? garments
+        : garments.filter(
+            (item: ConvexGarment) => item.category === activeCategory
+          );
+    if (debouncedSearch) {
+      list = list.filter((item: ConvexGarment) =>
+        item.name.toLowerCase().includes(debouncedSearch)
+      );
+    }
+    return list;
+  }, [garments, activeCategory, debouncedSearch]);
 
   const toggleSelectMode = useCallback(() => {
     setIsSelectMode((prev) => !prev);
@@ -181,6 +203,53 @@ export default function ClosetPage() {
         <PageContainer>
           <SectionHeader title="closet" subtitle="What you already own" />
 
+          {/* Search */}
+          <section className="mb-6">
+            <div className="relative">
+              <input
+                type="search"
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                placeholder="Search by name..."
+                className="w-full bg-secondary border border-border px-4 py-3 pl-10 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-foreground"
+                aria-label="Search garments by name"
+              />
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none">
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                >
+                  <circle cx="11" cy="11" r="8" />
+                  <path d="M21 21l-4.35-4.35" />
+                </svg>
+              </span>
+              {searchInput && (
+                <button
+                  type="button"
+                  onClick={() => setSearchInput("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  aria-label="Clear search"
+                >
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                  </svg>
+                </button>
+              )}
+            </div>
+          </section>
+
           {/* Filter chips + Select toggle */}
           <section className="mb-10 md:mb-14">
             <div className="flex flex-wrap items-center justify-between gap-3">
@@ -275,26 +344,46 @@ export default function ClosetPage() {
               </ContentGrid>
             ) : filteredItems.length === 0 ? (
               <div className="py-16 text-center">
-                <p className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground mb-4">
-                  No garments yet
-                </p>
-                <Link
-                  href="/add"
-                  className="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.2em] text-foreground hover:text-signal-orange transition-colors duration-100"
-                >
-                  Add your first piece
-                  <svg
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                  >
-                    <line x1="5" y1="12" x2="19" y2="12" />
-                    <polyline points="12 5 19 12 12 19" />
-                  </svg>
-                </Link>
+                {debouncedSearch ? (
+                  <>
+                    <p className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground mb-2">
+                      No garments match &quot;{debouncedSearch}&quot;
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSearchInput("");
+                        setDebouncedSearch("");
+                      }}
+                      className="text-[11px] uppercase tracking-[0.2em] text-foreground hover:text-signal-orange transition-colors duration-100 underline underline-offset-2"
+                    >
+                      Clear search
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground mb-4">
+                      No garments yet
+                    </p>
+                    <Link
+                      href="/add"
+                      className="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.2em] text-foreground hover:text-signal-orange transition-colors duration-100"
+                    >
+                      Add your first piece
+                      <svg
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                      >
+                        <line x1="5" y1="12" x2="19" y2="12" />
+                        <polyline points="12 5 19 12 12 19" />
+                      </svg>
+                    </Link>
+                  </>
+                )}
               </div>
             ) : (
               <motion.div
