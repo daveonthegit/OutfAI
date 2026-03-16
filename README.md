@@ -134,14 +134,19 @@ See [docs/OutfAI_Project_Structure.md](docs/OutfAI_Project_Structure.md) for the
 
 ## Documentation
 
-| Document                                                          | Description                                             |
-| ----------------------------------------------------------------- | ------------------------------------------------------- |
-| [OutfAI_PRD.md](docs/OutfAI_PRD.md)                               | Product requirements, goals, and strategy               |
-| [OutfAI_Architecture.md](docs/OutfAI_Architecture.md)             | System architecture and key decisions                   |
-| [OutfAI_Database_Design.md](docs/OutfAI_Database_Design.md)       | Database schema and design                              |
-| [convex-schema.md](docs/convex-schema.md)                         | Auto-generated Convex schema reference                  |
-| [landing-and-public-routes.md](docs/landing-and-public-routes.md) | Landing page, public routes, and no-nav route constants |
-| [MIGRATION_NOTES.md](MIGRATION_NOTES.md)                          | Migration decisions and assumptions                     |
+Start at **[docs/README.md](docs/README.md)** for an index. Key docs:
+
+| Document                                                                               | Description                            |
+| -------------------------------------------------------------------------------------- | -------------------------------------- |
+| [docs/README.md](docs/README.md)                                                       | Documentation index                    |
+| [docs/implementation/FEATURE_STATUS.md](docs/implementation/FEATURE_STATUS.md)         | What's shipped vs planned              |
+| [docs/implementation/FEATURES_CANONICAL.md](docs/implementation/FEATURES_CANONICAL.md) | Canonical feature list                 |
+| [docs/architecture/SYSTEM_OVERVIEW.md](docs/architecture/SYSTEM_OVERVIEW.md)           | System architecture                    |
+| [docs/dev/SETUP.md](docs/dev/SETUP.md)                                                 | Local setup (detailed)                 |
+| [docs/OutfAI_PRD.md](docs/OutfAI_PRD.md)                                               | Product requirements and strategy      |
+| [docs/OutfAI_Database_Design.md](docs/OutfAI_Database_Design.md)                       | Database schema and design             |
+| [docs/convex-schema.md](docs/convex-schema.md)                                         | Auto-generated Convex schema reference |
+| [MIGRATION_NOTES.md](MIGRATION_NOTES.md)                                               | Migration decisions and assumptions    |
 
 ---
 

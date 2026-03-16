@@ -1,5 +1,9 @@
 # OutfAI — System Architecture
 
+> **Canonical architecture docs** are in [architecture/SYSTEM_OVERVIEW.md](architecture/SYSTEM_OVERVIEW.md) and [architecture/TECH_STACK.md](architecture/TECH_STACK.md). This file is kept for backward compatibility.
+
+---
+
 ## Architecture Overview
 
 OutfAI uses a web-first architecture with a single TypeScript codebase. The client talks to Convex (database, server functions, auth, file storage) and to Next.js API routes for the recommendation engine and auth proxy.
