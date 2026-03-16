@@ -34,11 +34,27 @@ export const deleteAllUserData = mutation({
       await ctx.db.delete(doc._id);
     }
 
+    const outfitPlans = await ctx.db
+      .query("outfitPlans")
+      .withIndex("by_userId", (q) => q.eq("userId", userId))
+      .collect();
+    for (const doc of outfitPlans) {
+      await ctx.db.delete(doc._id);
+    }
+
     const userOutfits = await ctx.db
       .query("outfits")
       .withIndex("by_userId", (q) => q.eq("userId", userId))
       .collect();
     for (const doc of userOutfits) {
+      await ctx.db.delete(doc._id);
+    }
+
+    const packingLists = await ctx.db
+      .query("packingLists")
+      .withIndex("by_userId", (q) => q.eq("userId", userId))
+      .collect();
+    for (const doc of packingLists) {
       await ctx.db.delete(doc._id);
     }
 
@@ -103,6 +119,16 @@ export const getExportData = query({
       .withIndex("by_userId", (q) => q.eq("userId", userId))
       .unique();
 
+    const outfitPlans = await ctx.db
+      .query("outfitPlans")
+      .withIndex("by_userId", (q) => q.eq("userId", userId))
+      .collect();
+
+    const packingLists = await ctx.db
+      .query("packingLists")
+      .withIndex("by_userId", (q) => q.eq("userId", userId))
+      .collect();
+
     return {
       exportedAt: new Date().toISOString(),
       userId,
@@ -111,6 +137,8 @@ export const getExportData = query({
       recommendationLogs,
       profile: profile ?? null,
       userPreferences: userPreferences ?? null,
+      outfitPlans,
+      packingLists,
     };
   },
 });

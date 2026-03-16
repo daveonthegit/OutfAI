@@ -56,17 +56,17 @@
 
 ## UX and infrastructure
 
-| Feature                              | Status  | Doc / implementation                                                                                   |
-| ------------------------------------ | ------- | ------------------------------------------------------------------------------------------------------ |
-| Loading states, toasts, empty states | Shipped | Sonner in layout; closet skeleton/empty/toasts; home skeleton/toasts; docs/issues/19                   |
-| Manual weather fallback (city)       | Shipped | authenticated-home city input; Open-Meteo geocoding + forecast; localStorage last city; docs/issues/17 |
-| Activity/stats on profile            | Backlog | docs/issues/11, FEATURE_EXPANSION §20, Phase 3                                                         |
-| Outfit calendar                      | Backlog | docs/issues/24, FEATURE_EXPANSION §10, Phase 3                                                         |
-| Packing planner                      | Backlog | docs/issues/25, FEATURE_EXPANSION §11, Phase 3                                                         |
-| E2E tests                            | Backlog | docs/issues/29, Phase 3                                                                                |
-| Accessibility audit                  | Backlog | docs/issues/28, Phase 3                                                                                |
-| Weather API caching                  | Backlog | FEATURE_EXPANSION §18, Phase 3                                                                         |
-| Recommendation digest (email)        | Backlog | FEATURE_EXPANSION §16, Phase 4                                                                         |
+| Feature                              | Status  | Doc / implementation                                                                                           |
+| ------------------------------------ | ------- | -------------------------------------------------------------------------------------------------------------- |
+| Loading states, toasts, empty states | Shipped | Sonner in layout; closet skeleton/empty/toasts; home skeleton/toasts; docs/issues/19                           |
+| Manual weather fallback (city)       | Shipped | authenticated-home city input; Open-Meteo geocoding + forecast; localStorage last city; docs/issues/17         |
+| Activity/stats on profile            | Shipped | Profile "Your activity" section; convex/profile.getActivityStats; Phase 3                                      |
+| Outfit calendar                      | Shipped | /plan, /calendar; convex/outfitPlans; assign outfit to date from archive; Phase 3                              |
+| Packing planner                      | Shipped | /plan, /packing, /packing/[id]; convex/packingLists; trip + packed garments; generate from packed set; Phase 3 |
+| E2E tests                            | Shipped | Playwright e2e/critical-path.spec.ts; npm run test:e2e; Phase 3                                                |
+| Accessibility audit                  | Backlog | docs/issues/28, Phase 3 follow-up                                                                              |
+| Weather API caching                  | Shipped | GET /api/weather (lat/lon or city), 10 min cache; home uses API; Phase 3                                       |
+| Recommendation digest (email)        | Backlog | FEATURE_EXPANSION §16, Phase 4                                                                                 |
 
 ---
 

@@ -195,16 +195,14 @@ export default function Home() {
       async ({ coords }) => {
         try {
           const { latitude, longitude } = coords;
-
-          // No temperature_unit param → Open-Meteo defaults to Celsius
-          const url =
-            `https://api.open-meteo.com/v1/forecast` +
-            `?latitude=${latitude}&longitude=${longitude}` +
-            `&current=temperature_2m,weather_code`;
-
+          const url = `/api/weather?lat=${latitude}&lon=${longitude}`;
           const res = await fetch(url);
-          if (!res.ok)
-            throw new Error(`Weather request failed (${res.status})`);
+          if (!res.ok) {
+            const errBody = await res.json().catch(() => ({}));
+            throw new Error(
+              (errBody as { error?: string })?.error ?? `Weather request failed (${res.status})`
+            );
+          }
           const data = await res.json();
 
           const temp = data?.current?.temperature_2m;
@@ -233,23 +231,16 @@ export default function Home() {
     if (!city || city.length < 2) return;
     setWeatherCityLoading(true);
     try {
-      const geoRes = await fetch(
-        `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1`
-      );
-      if (!geoRes.ok) throw new Error("City lookup failed");
-      const geoData = await geoRes.json();
-      const results = geoData?.results;
-      if (!results?.length) {
-        toast.error("City not found. Try another name.");
-        return;
+      const res = await fetch(`/api/weather?city=${encodeURIComponent(city)}`);
+      if (!res.ok) {
+        const errBody = await res.json().catch(() => ({}));
+        const msg = (errBody as { error?: string })?.error ?? "Could not get weather";
+        if (res.status === 400 && msg.includes("not found")) {
+          toast.error("City not found. Try another name.");
+          return;
+        }
+        throw new Error(msg);
       }
-      const { latitude, longitude } = results[0];
-      const url =
-        `https://api.open-meteo.com/v1/forecast` +
-        `?latitude=${latitude}&longitude=${longitude}` +
-        `&current=temperature_2m,weather_code`;
-      const res = await fetch(url);
-      if (!res.ok) throw new Error("Weather request failed");
       const data = await res.json();
       const temp = data?.current?.temperature_2m;
       const code = data?.current?.weather_code;
