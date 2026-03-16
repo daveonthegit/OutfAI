@@ -10,7 +10,7 @@
 # OutfAI — Convex Schema
 
 > Auto-generated from [`convex/schema.ts`](../convex/schema.ts) by [`scripts/generate-convex-docs.ts`](../scripts/generate-convex-docs.ts).
-> Last generated: 2026-03-14
+> Last generated: 2026-03-16
 
 ---
 
@@ -83,6 +83,8 @@
 | `preferredStyles` | `array<string>` | no |
 | `preferredColors` | `array<string>` | no |
 | `avoidedColors` | `array<string>` | no |
+| `styleGoal` | `string` | no |
+| `styleGoalTags` | `array<string>` | no |
 
 ---
 
@@ -93,13 +95,12 @@
 | `userId` | `string` | yes |
 | `bio` | `string` | no |
 | `avatarStorageId` | `id<_storage>` | no |
+| `onboardingComplete` | `boolean` | no |
 | `updatedAt` | `number` | yes |
 
 ---
 
 ## `external_products`
-
-Used for **optional** external product suggestions (e.g. “Suggested for your wardrobe” with links). The current home-page suggestion feature is Style insights (text-only; no product table required).
 
 | Field | Type | Required |
 |-------|------|----------|
