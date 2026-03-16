@@ -12,7 +12,7 @@
 | **Auth**                         | BetterAuth: signup, login, email verification (Resend), username. Session cookie; middleware protects routes.                       |
 | **Closet**                       | Garments CRUD, image upload (Convex storage), list by user, filters. Add page, closet grid.                                         |
 | **Outfit generation**            | Mood + weather (Open-Meteo + geolocation), POST /api/recommendations, OutfitRecommendationService, scored outfits with explanation. |
-| **Save outfit**                  | Save to Convex outfits; archive page; "I wore this" button (logging not wired).                                                     |
+| **Save outfit**                  | Save to Convex outfits; archive page; "I wore this" logs "worn".                                                                    |
 | **Style insights**               | Wardrobe gaps, complete-the-look, style/occasion tips. POST /api/style-insights, StyleInsightsSection on home.                      |
 | **Profile**                      | Read-only name, username, email, wardrobe stats. Profile and /profile/settings route.                                               |
 | **Navigation**                   | Bottom nav (Today, Mood, Closet, Add, Archive); theme toggle; no-nav routes in lib/routes.ts.                                       |
@@ -20,12 +20,12 @@
 | **Optional product suggestions** | External products (Amazon, Walmart, Macy's, Best Buy, JSON feed) when configured; not on home by default.                           |
 | **Garment image analysis**       | Optional POST /api/analyze-garment-image (Google Vision).                                                                           |
 | **CI**                           | Format, lint, typecheck, test, build, docs-consistency, security audit.                                                             |
+| **Recommendation logs in UI**    | Today: log "shown" when batch displayed, "saved" after save, "skipped" on Skip; Archive: "I wore this" logs "worn".                 |
 
 ---
 
 ## Not shipped (backlog)
 
-- **Recommendation logs in UI** — Mutation exists; UI does not call it (shown/saved/skipped/worn). Phase 1.
 - **Password reset** — Forgot-password flow. Phase 1.
 - **Loading / toasts / empty states** — Consistent skeletons, Sonner, empty-state CTAs. Phase 1.
 - **Score breakdown UI** — Expand outfit for category scores. Phase 1.

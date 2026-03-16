@@ -15,7 +15,7 @@
 | Save outfit / archive                                     | Shipped | convex/outfits.ts, apps/web/app/archive, home (save button)                                                       |
 | Style insights (gaps, complete-the-look, tips)            | Shipped | server/services/styleInsightsService.ts, POST /api/style-insights, StyleInsightsSection                           |
 | Profile (read-only identity, stats)                       | Shipped | convex/profile.ts, apps/web/app/profile, profile/settings                                                         |
-| Recommendation logs in UI                                 | Backlog | docs/issues/15, docs/product/FEATURE_EXPANSION.md §1, Phase 1                                                     |
+| Recommendation logs in UI                                 | Shipped | Today + Archive wire recommendationLogs.log (shown/saved/skipped/worn); FEATURE_EXPANSION §1                      |
 | User preferences UI                                       | Backlog | docs/issues/07, FEATURE_EXPANSION §2, Phase 2                                                                     |
 | Editable profile (name, username, avatar)                 | Backlog | docs/issues/01, 02, FEATURE_EXPANSION §4, Phase 2                                                                 |
 | Onboarding (complete profile + checklist)                 | Backlog | docs/issues/08, 09, FEATURE_EXPANSION §3, Phase 2                                                                 |
