@@ -62,6 +62,8 @@ interface OutfitRecommendationCardProps {
   onSave?: () => void;
   /** When true, Save was just used for this card (e.g. show "Saved" state). */
   isSaving?: boolean;
+  /** When set, called instead of pushing JSON in the URL (stable preview id flow). */
+  onNavigateToDetail?: () => void | Promise<void>;
 }
 
 export function OutfitRecommendationCard({
@@ -78,6 +80,7 @@ export function OutfitRecommendationCard({
   onSkip,
   onSave,
   isSaving = false,
+  onNavigateToDetail,
 }: OutfitRecommendationCardProps) {
   const router = useRouter();
   const [breakdownOpen, setBreakdownOpen] = useState(false);
@@ -106,6 +109,8 @@ export function OutfitRecommendationCard({
   const handleClick = () => {
     if (isSelectMode && onToggleSelect) {
       onToggleSelect();
+    } else if (onNavigateToDetail) {
+      void onNavigateToDetail();
     } else {
       const garmentIds = garments
         .map((g) => g.id)
@@ -230,7 +235,7 @@ export function OutfitRecommendationCard({
       )}
 
       {/* Info overlay + "See why" in one block so they don't overlap */}
-      <div className="absolute bottom-0 left-0 right-0 flex flex-col translate-y-full group-hover:translate-y-0 transition-transform duration-200 bg-background/95 px-4 py-4">
+      <div className="absolute bottom-0 left-0 right-0 flex flex-col translate-y-0 md:translate-y-full md:group-hover:translate-y-0 transition-transform duration-200 bg-background/95 px-4 py-4">
         <div className="pointer-events-none">
           <p className="text-[11px] uppercase tracking-widest text-foreground mb-2">
             {label}

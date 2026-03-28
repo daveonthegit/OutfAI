@@ -17,6 +17,9 @@ import { MOCK_CLOSET_ITEMS } from "../shared/data/mock-closet";
 export const seedDevCloset = mutation({
   args: {},
   handler: async (ctx) => {
+    if (process.env.ALLOW_DEV_CLOSET_SEED !== "true") {
+      return { seeded: false, count: 0 };
+    }
     const user = await getAuthUser(ctx);
     if (!user) throw new Error("Unauthorized");
     return seedGarmentsForUser(ctx, user._id);

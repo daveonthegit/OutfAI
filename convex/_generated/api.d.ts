@@ -12,14 +12,17 @@ import type * as account from "../account.js";
 import type * as auth from "../auth.js";
 import type * as commerceInteractionLogs from "../commerceInteractionLogs.js";
 import type * as externalProducts from "../externalProducts.js";
+import type * as garmentGuards from "../garmentGuards.js";
 import type * as garments from "../garments.js";
 import type * as http from "../http.js";
 import type * as outfitPlans from "../outfitPlans.js";
+import type * as outfitPreviews from "../outfitPreviews.js";
 import type * as outfits from "../outfits.js";
 import type * as packingLists from "../packingLists.js";
 import type * as profile from "../profile.js";
 import type * as recommendationLogs from "../recommendationLogs.js";
 import type * as seed from "../seed.js";
+import type * as storageImage from "../storageImage.js";
 import type * as userPreferences from "../userPreferences.js";
 
 import type {
@@ -33,14 +36,17 @@ declare const fullApi: ApiFromModules<{
   auth: typeof auth;
   commerceInteractionLogs: typeof commerceInteractionLogs;
   externalProducts: typeof externalProducts;
+  garmentGuards: typeof garmentGuards;
   garments: typeof garments;
   http: typeof http;
   outfitPlans: typeof outfitPlans;
+  outfitPreviews: typeof outfitPreviews;
   outfits: typeof outfits;
   packingLists: typeof packingLists;
   profile: typeof profile;
   recommendationLogs: typeof recommendationLogs;
   seed: typeof seed;
+  storageImage: typeof storageImage;
   userPreferences: typeof userPreferences;
 }>;
 

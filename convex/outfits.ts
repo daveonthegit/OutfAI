@@ -1,6 +1,25 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { getAuthUser } from "./auth";
+import { assertGarmentsOwnedByUser } from "./garmentGuards";
+
+/** Single saved outfit with resolved garments (for /outfit?saved=…). */
+export const getWithGarments = query({
+  args: { id: v.id("outfits") },
+  handler: async (ctx, { id }) => {
+    const user = await getAuthUser(ctx);
+    if (!user) return null;
+    const outfit = await ctx.db.get(id);
+    if (!outfit || outfit.userId !== user._id) return null;
+    const garments = await Promise.all(
+      outfit.garmentIds.map((gid) => ctx.db.get(gid))
+    );
+    return {
+      ...outfit,
+      garments: garments.filter(Boolean),
+    };
+  },
+});
 
 export const list = query({
   args: {},
@@ -11,7 +30,7 @@ export const list = query({
       .query("outfits")
       .withIndex("by_userId", (q) => q.eq("userId", user._id))
       .order("desc")
-      .collect();
+      .take(400);
 
     // Display order: Top → Outerwear → Bottom → Shoes → Accessory
     const CATEGORY_ORDER = [
@@ -62,6 +81,7 @@ export const save = mutation({
   handler: async (ctx, args) => {
     const user = await getAuthUser(ctx);
     if (!user) throw new Error("Unauthorized");
+    await assertGarmentsOwnedByUser(ctx, user._id, args.garmentIds);
     return ctx.db.insert("outfits", {
       userId: user._id,
       savedAt: Date.now(),

@@ -77,7 +77,8 @@ export class OutfitRecommendationService {
       filteredGarments,
       input.mood || "casual",
       input.preferences,
-      input.recentGarmentIds
+      input.recentGarmentIds,
+      input
     );
 
     // Minimum score threshold - outfits must meet this quality bar
@@ -317,7 +318,8 @@ export class OutfitRecommendationService {
     garments: Garment[],
     mood: Mood,
     preferences?: UserStylePreferences,
-    recentGarmentIds?: string[]
+    recentGarmentIds?: string[],
+    input?: RecommendationInput
   ): OutfitCandidate[] {
     const candidates: OutfitCandidate[] = [];
 
@@ -329,6 +331,7 @@ export class OutfitRecommendationService {
     const bottoms = categories.get("bottom") || [];
     const shoes = categories.get("shoes") || [];
     const accessories = categories.get("accessory") || [];
+    const outerwears = categories.get("outerwear") || [];
 
     if (tops.length === 0 || bottoms.length === 0) {
       return candidates; // Cannot create valid outfit
@@ -359,9 +362,14 @@ export class OutfitRecommendationService {
             outfitPieces,
             mood,
             preferences,
-            recentGarmentIds
+            recentGarmentIds,
+            input?.occasion
           );
-          const reasons = this.generateReasons(outfitPieces, mood);
+          const reasons = this.generateReasons(
+            outfitPieces,
+            mood,
+            input?.occasion
+          );
 
           candidates.push({
             garmentIds,
@@ -388,9 +396,14 @@ export class OutfitRecommendationService {
               outfitPieces,
               mood,
               preferences,
-              recentGarmentIds
+              recentGarmentIds,
+              input?.occasion
             );
-            const reasons = this.generateReasons(outfitPieces, mood);
+            const reasons = this.generateReasons(
+              outfitPieces,
+              mood,
+              input?.occasion
+            );
 
             const candidate: OutfitCandidate = {
               garmentIds,
@@ -403,6 +416,47 @@ export class OutfitRecommendationService {
           }
 
           if (best) candidates.push(best);
+        }
+      }
+    }
+
+    const coldish =
+      input?.weather === "cold" ||
+      input?.weather === "snowy" ||
+      (typeof input?.temperature === "number" && input.temperature < 10);
+    const wet =
+      input?.weather === "rainy" ||
+      input?.weather === "snowy" ||
+      input?.weather === "windy";
+    const wantsOuter = (coldish || wet) && outerwears.length > 0;
+    const garmentById = new Map(garments.map((g) => [g.id, g]));
+
+    if (wantsOuter) {
+      for (const c of [...candidates]) {
+        for (const ow of outerwears.slice(0, 2)) {
+          if (c.garmentIds.includes(ow.id)) continue;
+          const basePieces = c.garmentIds
+            .map((id) => garmentById.get(id))
+            .filter(Boolean) as Garment[];
+          const withOuter = [...basePieces, ow];
+          const { score, breakdown } = this.scoreOutfitWithBreakdown(
+            withOuter,
+            mood,
+            preferences,
+            recentGarmentIds,
+            input?.occasion
+          );
+          const reasons = this.generateReasons(
+            withOuter,
+            mood,
+            input?.occasion
+          );
+          candidates.push({
+            garmentIds: [...c.garmentIds, ow.id],
+            score,
+            reasons,
+            scoreBreakdown: breakdown,
+          });
         }
       }
     }
@@ -435,13 +489,18 @@ export class OutfitRecommendationService {
     garments: Garment[],
     mood: Mood,
     preferences?: UserStylePreferences,
-    recentGarmentIds?: string[]
+    recentGarmentIds?: string[],
+    explicitOccasion?: string
   ): { score: number; breakdown: ScoreBreakdown } {
     const base = 50;
     const colorHarmony = this.scoreColorHarmony(garments);
     const moodAlignment = this.scoreMoodAlignment(garments, mood);
     const styleCoherence = this.scoreStyleCoherence(garments);
-    const occasionMatching = this.scoreOccasionMatching(garments, mood);
+    const occasionMatching = this.scoreOccasionMatching(
+      garments,
+      mood,
+      explicitOccasion
+    );
     const versatility = this.scoreVersatility(garments);
     const fit = this.scoreFitConsistency(garments);
     const vibrancy = this.scoreVibrancyHarmony(garments);
@@ -500,9 +559,16 @@ export class OutfitRecommendationService {
   private static scoreOutfit(
     garments: Garment[],
     mood: Mood,
-    preferences?: UserStylePreferences
+    preferences?: UserStylePreferences,
+    explicitOccasion?: string
   ): number {
-    return this.scoreOutfitWithBreakdown(garments, mood, preferences).score;
+    return this.scoreOutfitWithBreakdown(
+      garments,
+      mood,
+      preferences,
+      undefined,
+      explicitOccasion
+    ).score;
   }
 
   /**
@@ -709,7 +775,8 @@ export class OutfitRecommendationService {
    */
   private static scoreOccasionMatching(
     garments: Garment[],
-    mood: Mood
+    mood: Mood,
+    explicitOccasion?: string
   ): number {
     const moodToOccasion: Record<Mood, string[]> = {
       casual: ["casual", "weekend"],
@@ -721,7 +788,8 @@ export class OutfitRecommendationService {
       bold: ["night", "weekend", "casual"],
     };
 
-    const targetOccasions = moodToOccasion[mood] || [];
+    const trimmed = explicitOccasion?.trim().toLowerCase();
+    const targetOccasions = trimmed ? [trimmed] : moodToOccasion[mood] || [];
     if (targetOccasions.length === 0) return 0;
 
     const knownOccasions = [
@@ -860,8 +928,16 @@ export class OutfitRecommendationService {
   /**
    * Generate human-readable reasons for the outfit
    */
-  private static generateReasons(garments: Garment[], mood: Mood): string[] {
+  private static generateReasons(
+    garments: Garment[],
+    mood: Mood,
+    explicitOccasion?: string
+  ): string[] {
     const reasons: string[] = [];
+
+    if (explicitOccasion?.trim()) {
+      reasons.push(`Tuned for “${explicitOccasion.trim()}”`);
+    }
 
     if (garments.length >= 3) {
       reasons.push(`Well-balanced outfit with ${garments.length} pieces`);
@@ -959,6 +1035,10 @@ export class OutfitRecommendationService {
 
     if (input.mood) {
       parts.push(`with a ${input.mood} vibe`);
+    }
+
+    if (input.occasion?.trim()) {
+      parts.push(`for ${input.occasion.trim()}`);
     }
 
     if (input.temperature !== undefined) {

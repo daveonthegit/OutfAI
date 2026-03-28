@@ -5,6 +5,7 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { getAuthUser } from "./auth";
+import { assertGarmentsOwnedByUser } from "./garmentGuards";
 
 /**
  * List all packing lists for the current user (newest first).
@@ -67,13 +68,17 @@ export const create = mutation({
       throw new Error("End date must be on or after start date");
     }
 
+    const garmentIds = args.garmentIds ?? [];
+    if (garmentIds.length > 0) {
+      await assertGarmentsOwnedByUser(ctx, user._id, garmentIds);
+    }
     const now = Date.now();
     return ctx.db.insert("packingLists", {
       userId: user._id,
       name,
       startDate: args.startDate,
       endDate: args.endDate,
-      garmentIds: args.garmentIds ?? [],
+      garmentIds,
       createdAt: now,
       updatedAt: now,
     });
@@ -113,7 +118,10 @@ export const update = mutation({
     }
     if (args.startDate !== undefined) updates.startDate = args.startDate;
     if (args.endDate !== undefined) updates.endDate = args.endDate;
-    if (args.garmentIds !== undefined) updates.garmentIds = args.garmentIds;
+    if (args.garmentIds !== undefined) {
+      await assertGarmentsOwnedByUser(ctx, user._id, args.garmentIds);
+      updates.garmentIds = args.garmentIds;
+    }
 
     if (updates.startDate !== undefined && updates.endDate !== undefined) {
       if (updates.startDate > updates.endDate) {

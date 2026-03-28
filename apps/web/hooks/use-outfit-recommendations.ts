@@ -70,9 +70,9 @@ export function useOutfitRecommendations(
 
         const response = await fetch("/api/recommendations", {
           method: "POST",
+          credentials: "include",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            userId: options.userId,
             mood: options.mood,
             weather: options.weather,
             temperature: options.temperature,

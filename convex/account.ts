@@ -63,6 +63,9 @@ export const deleteAllUserData = mutation({
       .withIndex("by_userId", (q) => q.eq("userId", userId))
       .collect();
     for (const doc of userGarments) {
+      if (doc.imageStorageId) {
+        await ctx.storage.delete(doc.imageStorageId);
+      }
       await ctx.db.delete(doc._id);
     }
 
@@ -76,7 +79,12 @@ export const deleteAllUserData = mutation({
       .query("profiles")
       .withIndex("by_userId", (q) => q.eq("userId", userId))
       .unique();
-    if (profile) await ctx.db.delete(profile._id);
+    if (profile) {
+      if (profile.avatarStorageId) {
+        await ctx.storage.delete(profile.avatarStorageId);
+      }
+      await ctx.db.delete(profile._id);
+    }
 
     return { deleted: true };
   },

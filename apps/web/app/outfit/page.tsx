@@ -1,31 +1,224 @@
 "use client";
 
-import { Suspense, useState } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { Suspense, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { useMutation } from "convex/react";
+import { useQuery, useMutation } from "convex/react";
 import { api } from "@convex/_generated/api";
 import type { Id } from "@convex/_generated/dataModel";
 import { PageContainer } from "@/components/layout/page-container";
 import { ContentGrid } from "@/components/layout/content-grid";
 import { SectionHeader } from "@/components/layout/section-header";
+import { formatDistanceToNow } from "date-fns";
+
+const GARMENT_CATEGORY_ORDER = [
+  "top",
+  "outerwear",
+  "bottom",
+  "shoes",
+  "accessory",
+] as const;
+
+function sortGarmentsByCategory<T extends { category: string }>(
+  garments: T[]
+): T[] {
+  const rank = (c: string) => {
+    const i = GARMENT_CATEGORY_ORDER.indexOf(
+      c as (typeof GARMENT_CATEGORY_ORDER)[number]
+    );
+    return i === -1 ? GARMENT_CATEGORY_ORDER.length : i;
+  };
+  return [...garments].sort((a, b) => rank(a.category) - rank(b.category));
+}
+
+type GarmentTile = {
+  src: string;
+  name: string;
+  type: string;
+  id?: Id<"garments">;
+  color?: string;
+  traits?: {
+    style?: string[];
+    fit?: string;
+    occasion?: string[];
+    versatility?: string;
+    vibrancy?: string;
+  };
+};
+
+type NormalizedOutfit = {
+  label: string;
+  garments: GarmentTile[];
+  garmentIds: Id<"garments">[];
+  explanation?: string;
+  contextMood?: string;
+  contextWeather?: string;
+  contextTemperature?: number;
+};
 
 function OutfitContent() {
   const [hoveredId, setHoveredId] = useState<number | null>(null);
-  const [selectedGarment, setSelectedGarment] = useState<any | null>(null);
+  const [selectedGarment, setSelectedGarment] = useState<GarmentTile | null>(
+    null
+  );
   const [savedOutfitId, setSavedOutfitId] = useState<Id<"outfits"> | null>(
     null
   );
   const [saveError, setSaveError] = useState<string | null>(null);
   const searchParams = useSearchParams();
-  const router = useRouter();
   const saveOutfit = useMutation(api.outfits.save);
 
-  // Get outfit data from query params
-  const outfitData = searchParams.get("outfit");
+  const previewId = searchParams.get("preview");
+  const savedId = searchParams.get("saved");
+  const legacyOutfit = searchParams.get("outfit");
 
-  if (!outfitData) {
+  const preview = useQuery(
+    api.outfitPreviews.get,
+    previewId ? { id: previewId as Id<"outfitPreviews"> } : ("skip" as const)
+  );
+  const saved = useQuery(
+    api.outfits.getWithGarments,
+    savedId ? { id: savedId as Id<"outfits"> } : ("skip" as const)
+  );
+
+  const normalized = useMemo((): NormalizedOutfit | null | "invalid" => {
+    if (previewId) {
+      if (preview === undefined) return null;
+      if (preview === null) return "invalid";
+      const sorted = sortGarmentsByCategory(
+        preview.garments.filter(Boolean) as Array<{
+          _id: Id<"garments">;
+          name: string;
+          category: string;
+          primaryColor: string;
+          imageUrl?: string;
+          style?: string[];
+          fit?: string;
+          occasion?: string[];
+          versatility?: string;
+          vibrancy?: string;
+        }>
+      );
+      return {
+        label: preview.label,
+        garmentIds: preview.garmentIds,
+        explanation: preview.explanation,
+        contextMood: preview.contextMood,
+        contextWeather: preview.contextWeather,
+        contextTemperature: preview.contextTemperature,
+        garments: sorted.map((g) => ({
+          id: g._id,
+          src: g.imageUrl ?? "",
+          name: g.name,
+          type: g.category,
+          color: g.primaryColor,
+          traits: {
+            style: g.style,
+            fit: g.fit,
+            occasion: g.occasion,
+            versatility: g.versatility,
+            vibrancy: g.vibrancy,
+          },
+        })),
+      };
+    }
+
+    if (savedId) {
+      if (saved === undefined) return null;
+      if (saved === null) return "invalid";
+      const sorted = sortGarmentsByCategory(
+        saved.garments.filter(Boolean) as Array<{
+          _id: Id<"garments">;
+          name: string;
+          category: string;
+          primaryColor: string;
+          imageUrl?: string;
+          style?: string[];
+          fit?: string;
+          occasion?: string[];
+          versatility?: string;
+          vibrancy?: string;
+        }>
+      );
+      return {
+        label: `Saved ${formatDistanceToNow(new Date(saved.savedAt), { addSuffix: true })}`,
+        garmentIds: saved.garmentIds,
+        explanation: saved.explanation,
+        contextMood: saved.contextMood,
+        contextWeather: saved.contextWeather,
+        contextTemperature: saved.contextTemperature,
+        garments: sorted.map((g) => ({
+          id: g._id,
+          src: g.imageUrl ?? "",
+          name: g.name,
+          type: g.category,
+          color: g.primaryColor,
+          traits: {
+            style: g.style,
+            fit: g.fit,
+            occasion: g.occasion,
+            versatility: g.versatility,
+            vibrancy: g.vibrancy,
+          },
+        })),
+      };
+    }
+
+    if (legacyOutfit) {
+      try {
+        const parsed = JSON.parse(legacyOutfit) as {
+          label?: string;
+          garments?: GarmentTile[];
+          garmentIds?: string[];
+          explanation?: string;
+          contextMood?: string;
+          contextWeather?: string;
+          contextTemperature?: number;
+        };
+        const garmentIds = (parsed.garmentIds ?? [])
+          .filter(Boolean)
+          .map((id) => id as Id<"garments">);
+        return {
+          label: parsed.label ?? "Outfit",
+          garments: parsed.garments ?? [],
+          garmentIds,
+          explanation: parsed.explanation,
+          contextMood: parsed.contextMood,
+          contextWeather: parsed.contextWeather,
+          contextTemperature: parsed.contextTemperature,
+        };
+      } catch {
+        return "invalid";
+      }
+    }
+
+    return "invalid";
+  }, [previewId, preview, savedId, saved, legacyOutfit]);
+
+  if (normalized === null) {
+    return (
+      <main className="min-h-screen bg-background text-foreground">
+        <header className="fixed top-0 left-0 right-0 z-50 bg-background border-b border-border">
+          <div className="flex items-center justify-between px-4 py-5 md:px-8 lg:px-10 xl:px-12">
+            <Link
+              href="/"
+              className="text-[10px] md:text-xs uppercase tracking-[0.3em] font-medium hover:text-signal-orange transition-colors"
+            >
+              OutfAI
+            </Link>
+          </div>
+        </header>
+        <div className="pt-20 sm:pt-24 md:pt-28 lg:pt-32 pb-24 md:pb-28">
+          <PageContainer>
+            <p className="text-muted-foreground">Loading…</p>
+          </PageContainer>
+        </div>
+      </main>
+    );
+  }
+
+  if (normalized === "invalid") {
     return (
       <main className="min-h-screen bg-background text-foreground">
         <header className="fixed top-0 left-0 right-0 z-50 bg-background border-b border-border">
@@ -50,41 +243,14 @@ function OutfitContent() {
     );
   }
 
-  let outfit;
-  try {
-    outfit = JSON.parse(outfitData);
-  } catch {
-    return (
-      <main className="min-h-screen bg-background text-foreground">
-        <header className="fixed top-0 left-0 right-0 z-50 bg-background border-b border-border">
-          <div className="flex items-center justify-between px-4 py-5 md:px-8 lg:px-10 xl:px-12">
-            <Link
-              href="/"
-              className="text-[10px] md:text-xs uppercase tracking-[0.3em] font-medium hover:text-signal-orange transition-colors"
-            >
-              OutfAI
-            </Link>
-          </div>
-        </header>
-        <div className="pt-20 sm:pt-24 md:pt-28 lg:pt-32 pb-24 md:pb-28">
-          <PageContainer>
-            <p className="text-muted-foreground">Invalid outfit data</p>
-            <Link href="/" className="text-signal-orange hover:underline">
-              Back to recommendations
-            </Link>
-          </PageContainer>
-        </div>
-      </main>
-    );
-  }
+  const outfit = normalized;
 
-  const source = searchParams.get("source"); // "archive" | "today" | null
+  const source = searchParams.get("source");
   const backHref = source === "archive" ? "/archive" : "/";
   const backLabel = source === "archive" ? "Back to Archive" : "Back to Today";
 
   return (
     <main className="min-h-screen bg-background text-foreground">
-      {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-background border-b border-border">
         <div className="flex items-center justify-between px-4 py-5 md:px-8 lg:px-10 xl:px-12">
           <Link
@@ -102,7 +268,6 @@ function OutfitContent() {
         </div>
       </header>
 
-      {/* Main content */}
       <div className="pt-20 sm:pt-24 md:pt-28 lg:pt-32 pb-24 md:pb-28">
         <PageContainer>
           <SectionHeader
@@ -110,7 +275,6 @@ function OutfitContent() {
             subtitle={`${outfit.garments.length} pieces`}
           />
 
-          {/* Explanation */}
           {outfit.explanation && (
             <section className="mb-12 md:mb-16 border-t border-b border-border py-6">
               <p className="text-[11px] leading-relaxed text-muted-foreground max-w-2xl">
@@ -119,12 +283,11 @@ function OutfitContent() {
             </section>
           )}
 
-          {/* Garment Grid - Same format as closet */}
           <section className="mb-16">
             <ContentGrid variant="tiles">
-              {outfit.garments.map((garment: any, index: number) => (
+              {outfit.garments.map((garment, index) => (
                 <div
-                  key={index}
+                  key={garment.id ?? index}
                   className="relative border border-border bg-card transition-all duration-100 cursor-pointer"
                   style={{
                     opacity:
@@ -134,7 +297,6 @@ function OutfitContent() {
                   onMouseLeave={() => setHoveredId(null)}
                   onClick={() => setSelectedGarment(garment)}
                 >
-                  {/* Image */}
                   <div className="aspect-square relative bg-secondary">
                     <Image
                       src={garment.src || "/placeholder.svg"}
@@ -144,7 +306,6 @@ function OutfitContent() {
                     />
                   </div>
 
-                  {/* Info overlay on hover */}
                   <div
                     className="absolute bottom-0 left-0 right-0 bg-background/95 px-3 py-3 transition-all duration-100"
                     style={{
@@ -164,7 +325,6 @@ function OutfitContent() {
                     </div>
                   </div>
 
-                  {/* Accent line */}
                   <div
                     className="absolute top-0 left-0 w-0.5 h-full transition-colors duration-100"
                     style={{
@@ -179,7 +339,6 @@ function OutfitContent() {
             </ContentGrid>
           </section>
 
-          {/* Garment detail modal */}
           {selectedGarment && (
             <div
               className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
@@ -201,11 +360,13 @@ function OutfitContent() {
                   {selectedGarment.name}
                 </h3>
                 <p className="text-[11px] text-muted-foreground mb-2">
-                  Type: {selectedGarment.type || selectedGarment.category}
+                  Type: {selectedGarment.type}
                 </p>
-                <p className="text-[11px] text-muted-foreground mb-3">
-                  Color: {selectedGarment.color}
-                </p>
+                {selectedGarment.color && (
+                  <p className="text-[11px] text-muted-foreground mb-3">
+                    Color: {selectedGarment.color}
+                  </p>
+                )}
                 {selectedGarment.traits && (
                   <div className="mb-4">
                     <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground mb-2">
@@ -240,6 +401,7 @@ function OutfitContent() {
                 )}
                 <div className="flex justify-end">
                   <button
+                    type="button"
                     onClick={() => setSelectedGarment(null)}
                     className="px-3 py-2 text-[11px] uppercase tracking-[0.2em] border border-border hover:bg-secondary transition-colors"
                   >
@@ -250,15 +412,14 @@ function OutfitContent() {
             </div>
           )}
 
-          {/* Action */}
           <section className="border-t border-border pt-10">
             {saveError && (
               <p className="text-[11px] text-destructive mb-2">{saveError}</p>
             )}
             <button
+              type="button"
               onClick={async () => {
-                const garmentIds = (outfit as { garmentIds?: Id<"garments">[] })
-                  .garmentIds;
+                const garmentIds = outfit.garmentIds;
                 if (!garmentIds || garmentIds.length === 0) {
                   setSaveError(
                     "This look can’t be saved from here. Save it from the main page."
@@ -269,13 +430,9 @@ function OutfitContent() {
                 try {
                   const id = await saveOutfit({
                     garmentIds,
-                    contextMood: (outfit as { contextMood?: string })
-                      .contextMood,
-                    contextWeather: (outfit as { contextWeather?: string })
-                      .contextWeather,
-                    contextTemperature: (
-                      outfit as { contextTemperature?: number }
-                    ).contextTemperature,
+                    contextMood: outfit.contextMood,
+                    contextWeather: outfit.contextWeather,
+                    contextTemperature: outfit.contextTemperature,
                     explanation: outfit.explanation,
                   });
                   setSavedOutfitId(id);

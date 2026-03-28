@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useMemo } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { OutfitRecommendationCard } from "@/components/outfit-recommendation-card";
 import { StyleInsightsSection } from "@/components/style-insights-section";
@@ -12,7 +12,6 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "@convex/_generated/api";
 import type { Doc, Id } from "@convex/_generated/dataModel";
 import type { Mood, WeatherCondition, ScoreBreakdown } from "@shared/types";
-import { MOCK_CLOSET_ITEMS } from "@shared/data/mock-closet";
 import { UserAvatar } from "@/components/user-avatar";
 import { MoodSelectModal } from "@/components/mood-select-modal";
 import { animateShuffleGrid, getStaggerVariants } from "@/lib/animations";
@@ -86,15 +85,21 @@ function isMood(value: string | null): value is Mood {
   return value !== null && (VALID_MOODS as string[]).includes(value);
 }
 
+const DEV_SEED_CLOSET = process.env.NEXT_PUBLIC_DEV_SEED_CLOSET === "true";
+
 export default function Home() {
   const currentUser = useRequireAuth("/");
+  const router = useRouter();
   const searchParams = useSearchParams();
   // Keep the raw value so we can tell "loading" (undefined) from "empty" ([])
   const convexGarmentsRaw = useQuery(api.garments.list);
   const convexGarments = convexGarmentsRaw ?? [];
+  const userPrefsRaw = useQuery(api.userPreferences.get);
+  const createOutfitPreview = useMutation(api.outfitPreviews.create);
 
   const [isShuffling, setIsShuffling] = useState(false);
   const [mood, setMood] = useState<Mood>("bold");
+  const [occasion, setOccasion] = useState("");
   const [moodModalOpen, setMoodModalOpen] = useState(false);
 
   // Sync mood from URL when coming from /mood (e.g. ?mood=minimalist)
@@ -153,6 +158,32 @@ export default function Home() {
         : temperatureCelsius;
 
   const userId = currentUser?._id ?? "default-user";
+  const stylePreferences = useMemo(():
+    | import("@shared/types").UserStylePreferences
+    | undefined => {
+    if (!userPrefsRaw) return undefined;
+    const ex = userPrefsRaw.explicit;
+    return {
+      explicit: ex
+        ? {
+            favoriteMoods: (ex.favoriteMoods?.filter(Boolean) ?? []) as Mood[],
+            preferredStyles: ex.preferredStyles,
+            preferredColors: ex.preferredColors,
+            avoidedColors: ex.avoidedColors,
+          }
+        : undefined,
+      learned: userPrefsRaw.learned
+        ? {
+            favoriteMoods: (userPrefsRaw.learned.favoriteMoods?.filter(
+              Boolean
+            ) ?? []) as Mood[],
+            preferredStyles: userPrefsRaw.learned.preferredStyles,
+            preferredColors: userPrefsRaw.learned.preferredColors,
+          }
+        : undefined,
+    };
+  }, [userPrefsRaw]);
+
   const saveOutfit = useMutation(api.outfits.save);
   const logRecommendation = useMutation(api.recommendationLogs.log);
   const seedDevCloset = useMutation(api.seed.seedDevCloset);
@@ -186,7 +217,9 @@ export default function Home() {
     mood,
     weather: weather ?? "cloudy",
     temperature: temperatureCelsius ?? 15, // always Celsius for the engine
+    occasion: occasion.trim() || undefined,
     limitCount: 30,
+    preferences: stylePreferences,
   });
 
   // Fetch weather once on mount. Open-Meteo returns Celsius by default which
@@ -202,7 +235,7 @@ export default function Home() {
         try {
           const { latitude, longitude } = coords;
           const url = `/api/weather?lat=${latitude}&lon=${longitude}`;
-          const res = await fetch(url);
+          const res = await fetch(url, { credentials: "include" });
           if (!res.ok) {
             const errBody = await res.json().catch(() => ({}));
             throw new Error(
@@ -238,7 +271,9 @@ export default function Home() {
     if (!city || city.length < 2) return;
     setWeatherCityLoading(true);
     try {
-      const res = await fetch(`/api/weather?city=${encodeURIComponent(city)}`);
+      const res = await fetch(`/api/weather?city=${encodeURIComponent(city)}`, {
+        credentials: "include",
+      });
       if (!res.ok) {
         const errBody = await res.json().catch(() => ({}));
         const msg =
@@ -284,8 +319,9 @@ export default function Home() {
     }
   }, [recommendationError]);
 
-  // Seed the closet with mock items on the user's first visit (empty closet).
+  // Dev-only: seed mock closet when flag is on (see .env.example).
   useEffect(() => {
+    if (!DEV_SEED_CLOSET) return;
     if (!currentUser || seeded) return;
     if (convexGarments.length > 0) return;
     setSeeded(true);
@@ -299,75 +335,44 @@ export default function Home() {
     if (convexGarmentsRaw === undefined) return; // still loading from Convex
 
     const generateRecommendations = async () => {
-      const garments =
-        convexGarments.length > 0
-          ? convexGarments.map((g: Doc<"garments">) => ({
-              id: g._id,
-              userId,
-              name: g.name,
-              category: g.category as
-                | "top"
-                | "bottom"
-                | "shoes"
-                | "outerwear"
-                | "accessory",
-              primaryColor: g.primaryColor,
-              secondaryColor: undefined,
-              material: g.material,
-              season: g.season as
-                | "spring"
-                | "summer"
-                | "fall"
-                | "winter"
-                | "all-season"
-                | undefined,
-              tags: g.tags,
-              style: g.style,
-              fit: g.fit,
-              occasion: g.occasion,
-              versatility: g.versatility as
-                | "high"
-                | "medium"
-                | "low"
-                | undefined,
-              vibrancy: g.vibrancy as
-                | "muted"
-                | "balanced"
-                | "vibrant"
-                | undefined,
-              imageOriginalUrl: g.imageUrl,
-              createdAt: new Date(g._creationTime),
-            }))
-          : MOCK_CLOSET_ITEMS.map((g, i) => ({
-              id: `mock-${i}`,
-              userId,
-              name: g.name,
-              category: g.category as
-                | "top"
-                | "bottom"
-                | "shoes"
-                | "outerwear"
-                | "accessory",
-              primaryColor: g.primaryColor,
-              secondaryColor: undefined,
-              material: undefined,
-              season: "all-season" as const,
-              tags: g.tags,
-              style: g.style,
-              fit: g.fit,
-              occasion: g.occasion,
-              versatility: g.versatility,
-              vibrancy: g.vibrancy,
-              imageOriginalUrl: g.imageUrl,
-              createdAt: new Date(),
-            }));
+      const garments = convexGarments.map((g: Doc<"garments">) => ({
+        id: g._id,
+        userId,
+        name: g.name,
+        category: g.category as
+          | "top"
+          | "bottom"
+          | "shoes"
+          | "outerwear"
+          | "accessory",
+        primaryColor: g.primaryColor,
+        secondaryColor: undefined,
+        material: g.material,
+        season: g.season as
+          | "spring"
+          | "summer"
+          | "fall"
+          | "winter"
+          | "all-season"
+          | undefined,
+        tags: g.tags,
+        style: g.style,
+        fit: g.fit,
+        occasion: g.occasion,
+        versatility: g.versatility as "high" | "medium" | "low" | undefined,
+        vibrancy: g.vibrancy as "muted" | "balanced" | "vibrant" | undefined,
+        imageUrl: g.imageUrl,
+        createdAt: new Date(g._creationTime),
+      }));
 
       await generate({
         garments,
         mood,
         weather: weather ?? "cloudy",
         temperature: temperatureCelsius ?? 15, // always Celsius for the engine
+        occasion: occasion.trim() || undefined,
         limitCount: 30,
+        preferences: stylePreferences,
       });
     };
 
@@ -376,7 +381,14 @@ export default function Home() {
     // convexGarmentsRaw is intentionally omitted — it changes reference on every
     // Convex subscription tick. We only care about the count (a stable number) and use
     // convexGarmentsRaw purely as a loading guard via closure.
-  }, [mood, weather, temperatureCelsius, convexGarments.length]);
+  }, [
+    mood,
+    occasion,
+    weather,
+    temperatureCelsius,
+    convexGarments.length,
+    stylePreferences,
+  ]);
 
   // Update displayed outfit when recommendations change.
   // Only depend on outfits so we don't re-run on every Convex subscription tick
@@ -650,6 +662,22 @@ export default function Home() {
                   {mood}
                 </h2>
               </button>
+              <div className="flex flex-wrap items-center gap-3 max-w-lg">
+                <label
+                  htmlFor="home-occasion"
+                  className="text-[9px] uppercase tracking-[0.25em] text-muted-foreground shrink-0"
+                >
+                  Occasion
+                </label>
+                <input
+                  id="home-occasion"
+                  type="text"
+                  value={occasion}
+                  onChange={(e) => setOccasion(e.target.value)}
+                  placeholder="Optional — e.g. work, dinner"
+                  className="flex-1 min-w-[12rem] border border-border bg-secondary px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-signal-orange/50"
+                />
+              </div>
               {/* Weather context - below mood */}
               <div className="inline-flex flex-wrap items-center gap-2 rounded-full border border-border/60 bg-background/60 px-3 py-1 text-[10px] uppercase tracking-[0.28em] text-muted-foreground backdrop-blur w-fit">
                 <span
@@ -886,6 +914,33 @@ export default function Home() {
                                 : () => handleSaveSingle(index)
                             }
                             isSaving={savingSingleIndex === index}
+                            onNavigateToDetail={
+                              isSelectMode
+                                ? undefined
+                                : async () => {
+                                    const garmentIds = outfit.garments
+                                      .map((g) => g.id)
+                                      .filter((id): id is Id<"garments"> =>
+                                        Boolean(id)
+                                      );
+                                    if (garmentIds.length === 0) return;
+                                    const previewId = await createOutfitPreview(
+                                      {
+                                        label: outfit.label,
+                                        garmentIds,
+                                        explanation: outfit.explanation,
+                                        scoreBreakdown: outfit.scoreBreakdown,
+                                        contextMood: outfit.contextMood,
+                                        contextWeather: outfit.contextWeather,
+                                        contextTemperature:
+                                          outfit.contextTemperature,
+                                      }
+                                    );
+                                    router.push(
+                                      `/outfit?preview=${previewId}&source=today`
+                                    );
+                                  }
+                            }
                           />
                         </motion.div>
                       )

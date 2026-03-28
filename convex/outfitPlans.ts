@@ -3,6 +3,7 @@
  */
 
 import { mutation, query } from "./_generated/server";
+import type { Id } from "./_generated/dataModel";
 import { v } from "convex/values";
 import { getAuthUser } from "./auth";
 
@@ -41,23 +42,41 @@ export const listByDateRange = query({
       (p) => p.date >= startDate && p.date <= endDate
     );
 
-    // Resolve outfit details (with garments) for display
-    const withOutfits = await Promise.all(
-      filtered.map(async (plan) => {
-        const outfit = await ctx.db.get(plan.outfitId);
-        if (!outfit || outfit.userId !== user._id) {
-          return { ...plan, outfit: null, garments: [] };
-        }
-        const garments = await Promise.all(
-          outfit.garmentIds.map((id) => ctx.db.get(id))
-        );
-        const resolved = garments.filter(Boolean);
-        return {
-          ...plan,
-          outfit: { ...outfit, garments: resolved },
-        };
-      })
+    const outfitIds = [...new Set(filtered.map((p) => p.outfitId))];
+    const outfitRows = await Promise.all(outfitIds.map((id) => ctx.db.get(id)));
+    const outfitById = new Map(
+      outfitRows.filter(Boolean).map((o) => [o!._id, o!])
     );
+
+    const garmentIdSet = new Set<Id<"garments">>();
+    for (const oid of outfitIds) {
+      const o = outfitById.get(oid);
+      if (o && o.userId === user._id) {
+        for (const gid of o.garmentIds) {
+          garmentIdSet.add(gid);
+        }
+      }
+    }
+    const garmentRows = await Promise.all(
+      [...garmentIdSet].map((id) => ctx.db.get(id))
+    );
+    const garmentById = new Map(
+      garmentRows.filter(Boolean).map((g) => [g!._id, g!])
+    );
+
+    const withOutfits = filtered.map((plan) => {
+      const outfit = outfitById.get(plan.outfitId);
+      if (!outfit || outfit.userId !== user._id) {
+        return { ...plan, outfit: null, garments: [] };
+      }
+      const resolved = outfit.garmentIds
+        .map((id) => garmentById.get(id))
+        .filter(Boolean);
+      return {
+        ...plan,
+        outfit: { ...outfit, garments: resolved },
+      };
+    });
 
     return withOutfits;
   },

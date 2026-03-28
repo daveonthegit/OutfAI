@@ -1,14 +1,35 @@
 import { StyleInsightsService } from "@/../../server/services/styleInsightsService";
 import type { Garment, Mood, Season } from "@/../../shared/types";
+import {
+  assertGarmentsBelongToUser,
+  checkRateLimit,
+  rateLimitKey,
+  rejectIfBodyTooLarge,
+  requireConvexUser,
+} from "@/lib/api-route-helpers";
 import { NextRequest, NextResponse } from "next/server";
+
+const MAX_BODY_BYTES = 512 * 1024;
+const RATE_MAX = 40;
+const RATE_WINDOW_MS = 60_000;
 
 /**
  * POST /api/style-insights
  *
  * Returns wardrobe gaps, complete-the-look tips, and style/occasion pairing advice.
- * Stateless; no Convex. Requires garments in body.
  */
 export async function POST(request: NextRequest) {
+  const userOr401 = await requireConvexUser();
+  if (userOr401 instanceof NextResponse) return userOr401;
+
+  const key = rateLimitKey(request, "style-insights");
+  if (!checkRateLimit(key, RATE_MAX, RATE_WINDOW_MS)) {
+    return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+  }
+
+  const tooLarge = rejectIfBodyTooLarge(request, MAX_BODY_BYTES);
+  if (tooLarge) return tooLarge;
+
   try {
     const body = await request.json();
     const {
@@ -56,6 +77,13 @@ export async function POST(request: NextRequest) {
             : new Date(String(g.createdAt ?? Date.now())),
       })
     );
+
+    if (!assertGarmentsBelongToUser(processedGarments, userOr401._id)) {
+      return NextResponse.json(
+        { error: "Invalid wardrobe payload" },
+        { status: 403 }
+      );
+    }
 
     const result = StyleInsightsService.getInsights({
       garments: processedGarments,

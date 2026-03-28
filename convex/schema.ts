@@ -18,6 +18,21 @@ export default defineSchema({
     material: v.optional(v.string()),
     season: v.optional(v.string()),
     imageUrl: v.optional(v.string()),
+    /** Durable file reference; prefer resolving display URL via storage. */
+    imageStorageId: v.optional(v.id("_storage")),
+  }).index("by_userId", ["userId"]),
+
+  // Ephemeral outfit detail payloads (replaces huge JSON query strings).
+  outfitPreviews: defineTable({
+    userId: v.string(),
+    label: v.string(),
+    garmentIds: v.array(v.id("garments")),
+    explanation: v.optional(v.string()),
+    scoreBreakdown: v.optional(v.any()),
+    contextMood: v.optional(v.string()),
+    contextWeather: v.optional(v.string()),
+    contextTemperature: v.optional(v.number()),
+    createdAt: v.number(),
   }).index("by_userId", ["userId"]),
 
   // Saved outfit instances.

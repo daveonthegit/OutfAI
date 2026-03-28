@@ -1,4 +1,4 @@
-import { mutation, query } from "./_generated/server";
+import { internalMutation, mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { getAuthUser } from "./auth";
 
@@ -9,6 +9,8 @@ export const list = query({
     category: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    const user = await getAuthUser(ctx);
+    if (!user) return [];
     const limit = args.limit ?? 50;
     if (args.category != null && args.category !== "") {
       const results = await ctx.db
@@ -25,12 +27,14 @@ export const list = query({
 export const getById = query({
   args: { id: v.id("external_products") },
   handler: async (ctx, args) => {
+    const user = await getAuthUser(ctx);
+    if (!user) return null;
     return ctx.db.get(args.id);
   },
 });
 
-/** Upsert a single external product (for ingestion). Idempotent by source + sourceProductId. */
-export const upsert = mutation({
+/** Upsert a single external product (for ingestion). Idempotent by source + sourceProductId. Internal-only. */
+export const upsert = internalMutation({
   args: {
     source: v.string(),
     sourceProductId: v.string(),

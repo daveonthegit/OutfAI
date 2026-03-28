@@ -37,6 +37,7 @@ export default function ProfileSettingsPage() {
   const [emailError, setEmailError] = useState("");
 
   const [deleteConfirm, setDeleteConfirm] = useState("");
+  const [deletePassword, setDeletePassword] = useState("");
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [exportLoading, setExportLoading] = useState(false);
 
@@ -137,10 +138,30 @@ export default function ProfileSettingsPage() {
 
   const handleDeleteAccount = async () => {
     if (deleteConfirm !== DELETE_CONFIRM_TEXT) return;
+    if (!deletePassword.trim()) {
+      toast.error("Enter your password to confirm account deletion.");
+      return;
+    }
     setDeleteLoading(true);
     try {
       await deleteAllUserData();
-      toast.success("Account data deleted. Signing out.");
+      const base = process.env.NEXT_PUBLIC_SITE_URL ?? "";
+      const authRes = await fetch(`${base}/api/auth/delete-user`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password: deletePassword }),
+      });
+      if (!authRes.ok) {
+        const errBody = await authRes.json().catch(() => null);
+        const msg =
+          errBody && typeof errBody === "object" && "message" in errBody
+            ? String((errBody as { message?: string }).message)
+            : "Could not remove login. Contact support.";
+        toast.error(msg);
+        return;
+      }
+      toast.success("Account deleted. Signing out.");
       await authClient.signOut();
       router.replace("/");
     } catch {
@@ -386,10 +407,27 @@ export default function ProfileSettingsPage() {
                 placeholder="DELETE"
               />
             </div>
+            <div>
+              <label className="block text-[10px] uppercase tracking-widest text-muted-foreground font-medium mb-1">
+                Current password
+              </label>
+              <input
+                type="password"
+                value={deletePassword}
+                onChange={(e) => setDeletePassword(e.target.value)}
+                className="w-full bg-secondary border border-border px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-destructive"
+                placeholder="Required to remove your login"
+                autoComplete="current-password"
+              />
+            </div>
             <BrutalistButton
               type="button"
               variant="outline"
-              disabled={deleteConfirm !== DELETE_CONFIRM_TEXT || deleteLoading}
+              disabled={
+                deleteConfirm !== DELETE_CONFIRM_TEXT ||
+                !deletePassword.trim() ||
+                deleteLoading
+              }
               onClick={handleDeleteAccount}
               className="border-destructive text-destructive hover:bg-destructive hover:text-background"
             >

@@ -98,9 +98,9 @@ export function useProductRecommendations(
       const products = externalProducts.map(mapConvexProductToExternal);
       const response = await fetch("/api/product-recommendations", {
         method: "POST",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          userId,
           garments: garments.map((g) => ({
             ...g,
             createdAt:

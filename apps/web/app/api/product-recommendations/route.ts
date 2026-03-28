@@ -6,20 +6,39 @@ import type {
   Mood,
   WeatherCondition,
 } from "@/../../shared/types";
+import {
+  assertGarmentsBelongToUser,
+  checkRateLimit,
+  rateLimitKey,
+  rejectIfBodyTooLarge,
+  requireConvexUser,
+} from "@/lib/api-route-helpers";
 import { NextRequest, NextResponse } from "next/server";
+
+const MAX_BODY_BYTES = 512 * 1024;
+const RATE_MAX = 40;
+const RATE_WINDOW_MS = 60_000;
 
 /**
  * POST /api/product-recommendations
  *
  * Wardrobe-first external product suggestions.
- * Call after outfit results; requires garments. Products are passed in the body
- * (client fetches from Convex externalProducts.list).
  */
 export async function POST(request: NextRequest) {
+  const userOr401 = await requireConvexUser();
+  if (userOr401 instanceof NextResponse) return userOr401;
+
+  const key = rateLimitKey(request, "product-recommendations");
+  if (!checkRateLimit(key, RATE_MAX, RATE_WINDOW_MS)) {
+    return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+  }
+
+  const tooLarge = rejectIfBodyTooLarge(request, MAX_BODY_BYTES);
+  if (tooLarge) return tooLarge;
+
   try {
     const body = await request.json();
     const {
-      userId,
       garments = [],
       products = [],
       outfitGarmentIds,
@@ -30,9 +49,9 @@ export async function POST(request: NextRequest) {
       limitCount = 4,
     } = body;
 
-    if (!userId || !Array.isArray(garments) || garments.length === 0) {
+    if (!Array.isArray(garments) || garments.length === 0) {
       return NextResponse.json(
-        { error: "userId and garments are required" },
+        { error: "garments array is required and must not be empty" },
         { status: 400 }
       );
     }
@@ -52,6 +71,13 @@ export async function POST(request: NextRequest) {
             : new Date(String(g.createdAt ?? Date.now())),
       })
     );
+
+    if (!assertGarmentsBelongToUser(processedGarments, userOr401._id)) {
+      return NextResponse.json(
+        { error: "Invalid wardrobe payload" },
+        { status: 403 }
+      );
+    }
 
     const externalProducts: ExternalProduct[] = products
       .filter(
@@ -85,7 +111,7 @@ export async function POST(request: NextRequest) {
       }));
 
     const input: ProductRecommendationInput = {
-      userId: String(userId),
+      userId: userOr401._id,
       garments: processedGarments,
       outfitGarmentIds: Array.isArray(outfitGarmentIds)
         ? outfitGarmentIds.map(String)

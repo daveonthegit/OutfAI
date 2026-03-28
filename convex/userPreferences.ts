@@ -1,6 +1,9 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { getAuthUser } from "./auth";
+import type { Id } from "./_generated/dataModel";
+
+const OUTFIT_SAMPLE_CAP = 500;
 
 export const get = query({
   args: {},
@@ -17,7 +20,21 @@ export const get = query({
     const outfits = await ctx.db
       .query("outfits")
       .withIndex("by_userId", (q) => q.eq("userId", user._id))
-      .collect();
+      .order("desc")
+      .take(OUTFIT_SAMPLE_CAP);
+
+    const garmentIdSet = new Set<Id<"garments">>();
+    for (const outfit of outfits) {
+      for (const gid of outfit.garmentIds) {
+        garmentIdSet.add(gid);
+      }
+    }
+    const garmentRows = await Promise.all(
+      [...garmentIdSet].map((id) => ctx.db.get(id))
+    );
+    const garmentById = new Map(
+      garmentRows.filter(Boolean).map((g) => [g!._id, g!])
+    );
 
     const styleCounts = new Map<string, number>();
     const colorCounts = new Map<string, number>();
@@ -34,11 +51,8 @@ export const get = query({
         increment(moodCounts, outfit.contextMood, 2);
       }
 
-      const garments = await Promise.all(
-        outfit.garmentIds.map((id) => ctx.db.get(id))
-      );
-
-      for (const garment of garments) {
+      for (const gid of outfit.garmentIds) {
+        const garment = garmentById.get(gid);
         if (!garment) continue;
 
         if (garment.primaryColor) {

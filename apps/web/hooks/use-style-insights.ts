@@ -62,6 +62,7 @@ export function useStyleInsights(
     try {
       const response = await fetch("/api/style-insights", {
         method: "POST",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           garments: garments.map((g) => ({

@@ -173,6 +173,7 @@ export default function AddGarmentPage() {
       const imageBase64 = await fileToBase64(selectedFile);
       const res = await fetch("/api/analyze-garment-image", {
         method: "POST",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ imageBase64 }),
       });

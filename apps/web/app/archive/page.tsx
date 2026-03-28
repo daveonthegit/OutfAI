@@ -184,27 +184,7 @@ export default function ArchivePage() {
   };
 
   const handleViewOutfit = (outfit: OutfitWithGarments) => {
-    const sorted = sortGarmentsByCategory(
-      outfit.garments.filter(Boolean) as ArchiveGarment[]
-    );
-    const garments = sorted.map((g) => ({
-      id: g._id,
-      src: g.imageUrl ?? "",
-      name: g.name,
-      type: g.category,
-    }));
-    const outfitData = JSON.stringify({
-      label: `Saved ${formatDistanceToNow(new Date(outfit.savedAt), { addSuffix: true })}`,
-      garments,
-      explanation: outfit.explanation,
-      garmentIds: outfit.garmentIds,
-      contextMood: outfit.contextMood,
-      contextWeather: outfit.contextWeather,
-      contextTemperature: outfit.contextTemperature,
-    });
-    router.push(
-      `/outfit?outfit=${encodeURIComponent(outfitData)}&source=archive`
-    );
+    router.push(`/outfit?saved=${outfit._id}&source=archive`);
   };
 
   return (
@@ -359,35 +339,29 @@ export default function ArchivePage() {
                                   ...(cardHoverProps.style as React.CSSProperties),
                                 }}
                               >
-                                {/* I wore this + Remove - same z as overlay */}
-                                {isHovered && (
-                                  <div className="absolute top-2 right-2 left-2 z-20 flex justify-between gap-2">
-                                    <button
-                                      type="button"
-                                      onClick={(e) => handleWoreThis(outfit, e)}
-                                      disabled={
-                                        woreThisLoadingId === outfit._id
-                                      }
-                                      className="p-1.5 bg-background/80 border border-border hover:border-signal-orange hover:text-signal-orange transition-colors text-[9px] uppercase tracking-widest disabled:opacity-60 focus-visible:ring-2 focus-visible:ring-signal-orange focus-visible:ring-offset-1 focus-visible:outline-none"
-                                    >
-                                      {woreThisLoadingId === outfit._id
-                                        ? "…"
-                                        : "I wore this"}
-                                    </button>
-                                    <button
-                                      type="button"
-                                      onClick={(e) =>
-                                        handleRemove(outfit._id, e)
-                                      }
-                                      disabled={removeLoadingId === outfit._id}
-                                      className="p-1.5 bg-background/80 border border-border hover:border-destructive hover:text-destructive transition-colors text-[9px] uppercase tracking-widest disabled:opacity-60 focus-visible:ring-2 focus-visible:ring-signal-orange focus-visible:ring-offset-1 focus-visible:outline-none"
-                                    >
-                                      {removeLoadingId === outfit._id
-                                        ? "…"
-                                        : "Remove"}
-                                    </button>
-                                  </div>
-                                )}
+                                {/* I wore this + Remove — always visible for touch / keyboard (not hover-only) */}
+                                <div className="absolute top-2 right-2 left-2 z-20 flex justify-between gap-2 pointer-events-none">
+                                  <button
+                                    type="button"
+                                    onClick={(e) => handleWoreThis(outfit, e)}
+                                    disabled={woreThisLoadingId === outfit._id}
+                                    className="pointer-events-auto p-1.5 bg-background/90 border border-border hover:border-signal-orange hover:text-signal-orange transition-colors text-[9px] uppercase tracking-widest disabled:opacity-60 focus-visible:ring-2 focus-visible:ring-signal-orange focus-visible:ring-offset-1 focus-visible:outline-none"
+                                  >
+                                    {woreThisLoadingId === outfit._id
+                                      ? "…"
+                                      : "I wore this"}
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={(e) => handleRemove(outfit._id, e)}
+                                    disabled={removeLoadingId === outfit._id}
+                                    className="pointer-events-auto p-1.5 bg-background/90 border border-border hover:border-destructive hover:text-destructive transition-colors text-[9px] uppercase tracking-widest disabled:opacity-60 focus-visible:ring-2 focus-visible:ring-signal-orange focus-visible:ring-offset-1 focus-visible:outline-none"
+                                  >
+                                    {removeLoadingId === outfit._id
+                                      ? "…"
+                                      : "Remove"}
+                                  </button>
+                                </div>
 
                                 {/* Clickable area: same square layout as recommendation options */}
                                 <button
@@ -442,8 +416,8 @@ export default function ArchivePage() {
                                     )}
                                   </div>
 
-                                  {/* Same hover overlay as recommendation cards */}
-                                  <div className="absolute bottom-0 left-0 right-0 bg-background/95 px-4 py-4 translate-y-full group-hover:translate-y-0 transition-transform duration-200">
+                                  {/* Summary: always on small screens; hover expand on md+ */}
+                                  <div className="absolute bottom-0 left-0 right-0 bg-background/95 px-4 py-4 translate-y-0 md:translate-y-full md:group-hover:translate-y-0 transition-transform duration-200">
                                     <p className="text-[11px] uppercase tracking-widest text-foreground mb-2">
                                       Saved{" "}
                                       {formatDistanceToNow(

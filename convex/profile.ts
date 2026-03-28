@@ -1,6 +1,7 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { getAuthUser } from "./auth";
+import { assertStorageIsImage } from "./storageImage";
 
 const BIO_MAX_LENGTH = 500;
 
@@ -46,19 +47,6 @@ export const getWithAvatarUrl = query({
       ...profile,
       avatarUrl,
     };
-  },
-});
-
-/**
- * Get profile by userId. For internal use; returns null if not found (no auto-creation).
- */
-export const getByUserId = query({
-  args: { userId: v.string() },
-  handler: async (ctx, { userId }) => {
-    return ctx.db
-      .query("profiles")
-      .withIndex("by_userId", (q) => q.eq("userId", userId))
-      .unique();
   },
 });
 
@@ -179,6 +167,8 @@ export const setAvatar = mutation({
   handler: async (ctx, { storageId }) => {
     const user = await getAuthUser(ctx);
     if (!user) throw new Error("Unauthorized");
+
+    await assertStorageIsImage(ctx, storageId);
 
     const url = await ctx.storage.getUrl(storageId);
     if (!url) throw new Error("Invalid or expired upload");

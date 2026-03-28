@@ -11,6 +11,10 @@ import authConfig from "./auth.config";
 
 const siteUrl = process.env.SITE_URL!;
 
+/** Set to "true" in Convex env for local/dev only so short test passwords work. */
+const allowWeakPasswords = process.env.ALLOW_WEAK_DEV_PASSWORDS === "true";
+const minPasswordLength = allowWeakPasswords ? 1 : 10;
+
 // Sender address: use a verified domain in production or Resend's onboarding domain
 const FROM_EMAIL = process.env.EMAIL_FROM ?? "OutfAI <onboarding@resend.dev>";
 
@@ -24,8 +28,7 @@ export const createAuth = (ctx: GenericCtx<DataModel>) =>
     emailAndPassword: {
       enabled: true,
       requireEmailVerification: true,
-      // Keep minimum length of 1 so the dev test/test account still works
-      minPasswordLength: 1,
+      minPasswordLength,
       sendResetPassword: async ({ user, url }) => {
         const runCtx = requireRunMutationCtx(ctx);
         await resend.sendEmail(runCtx, {
@@ -52,6 +55,9 @@ export const createAuth = (ctx: GenericCtx<DataModel>) =>
     },
     user: {
       changeEmail: {
+        enabled: true,
+      },
+      deleteUser: {
         enabled: true,
       },
     },

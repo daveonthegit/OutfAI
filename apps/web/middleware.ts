@@ -22,8 +22,9 @@ export function middleware(request: NextRequest) {
 }
 
 // Keep in sync with NO_NAV_ROUTES in lib/routes.ts. Next.js requires a literal here.
+// Skip all `/api/*` here so handlers return JSON 401/429 instead of HTML redirects.
 export const config = {
   matcher: [
-    "/((?!$|login|signup|check-email|verify-email|forgot-password|reset-password|api/auth|_next/static|_next/image|favicon\\.ico|icon|apple-icon|.*\\.(?:svg|png|jpg|jpeg|webp|gif|ico)$).*)",
+    "/((?!$|login|signup|check-email|verify-email|forgot-password|reset-password|api/|_next/static|_next/image|favicon\\.ico|icon|apple-icon|.*\\.(?:svg|png|jpg|jpeg|webp|gif|ico)$).*)",
   ],
 };

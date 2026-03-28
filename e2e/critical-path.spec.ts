@@ -50,5 +50,7 @@ test.describe("Authenticated critical path", () => {
     ).toBeVisible();
     await page.goto("/");
     await expect(page.getByText(/mood|today|outfit/i)).toBeVisible();
+    await page.goto("/archive");
+    await expect(page.getByRole("heading", { name: /archive/i })).toBeVisible();
   });
 });

@@ -1,3 +1,8 @@
+import {
+  checkRateLimit,
+  rateLimitKey,
+  requireConvexUser,
+} from "@/lib/api-route-helpers";
 import { NextRequest, NextResponse } from "next/server";
 
 const CACHE_TTL_MS = 10 * 60 * 1000; // 10 minutes
@@ -58,7 +63,18 @@ async function fetchWeatherByCity(city: string) {
   return fetchWeatherByCoords(latitude, longitude);
 }
 
+const RATE_MAX = 120;
+const RATE_WINDOW_MS = 60_000;
+
 export async function GET(request: NextRequest) {
+  const userOr401 = await requireConvexUser();
+  if (userOr401 instanceof NextResponse) return userOr401;
+
+  const key = rateLimitKey(request, "weather");
+  if (!checkRateLimit(key, RATE_MAX, RATE_WINDOW_MS)) {
+    return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+  }
+
   try {
     const { searchParams } = new URL(request.url);
     const lat = searchParams.get("lat");
