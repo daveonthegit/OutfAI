@@ -62,7 +62,7 @@ export default function PackingPage() {
 
   return (
     <main className="min-h-screen bg-background text-foreground selection:bg-signal-orange selection:text-background">
-      <header className="fixed top-0 left-0 right-0 z-50 bg-background border-b border-border">
+      <header className="fixed top-0 left-0 right-0 z-50 glass-bar rounded-none border-x-0 border-t-0 border-b border-border">
         <div className="flex items-center justify-between px-4 py-5 md:px-8 lg:px-10 xl:px-12">
           <Link
             href="/plan"

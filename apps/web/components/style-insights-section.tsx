@@ -112,7 +112,7 @@ export function StyleInsightsSection({
         <button
           type="button"
           onClick={() => setModalOpen(true)}
-          className="w-full text-left border border-border bg-card hover:border-signal-orange hover:bg-secondary/30 transition-colors duration-100 px-5 py-4 rounded flex items-center justify-between group"
+          className="w-full text-left glass-panel rounded-sm px-5 py-4 flex items-center justify-between group transition-colors duration-100 hover:border-signal-orange/80"
         >
           <span className="text-[13px] text-foreground">
             View style insights

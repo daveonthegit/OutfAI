@@ -29,7 +29,7 @@ export function AppSidebar({ collapsed, onCollapsedChange }: AppSidebarProps) {
   return (
     <aside
       className={cn(
-        "fixed left-0 top-0 z-40 hidden h-full flex-col border-r border-border bg-background transition-[width] duration-200 ease-out lg:flex",
+        "glass-rail fixed left-0 top-0 z-40 hidden h-full flex-col transition-[width] duration-200 ease-out lg:flex",
         collapsed ? "w-14" : "w-56"
       )}
       aria-label="Main navigation"

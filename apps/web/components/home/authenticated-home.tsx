@@ -16,6 +16,7 @@ import { UserAvatar } from "@/components/user-avatar";
 import { MoodSelectModal } from "@/components/mood-select-modal";
 import { animateShuffleGrid, getStaggerVariants } from "@/lib/animations";
 import { PageContainer } from "@/components/layout/page-container";
+import { AppHeader } from "@/components/layout/app-header";
 import { ContentGrid } from "@/components/layout/content-grid";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
@@ -644,15 +645,12 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-background text-foreground selection:bg-signal-orange selection:text-background">
-      {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-background border-b border-border">
-        <div className="flex items-center justify-between px-4 py-5 md:px-8 lg:px-10 xl:px-12">
-          <h1 className="text-[10px] md:text-xs uppercase tracking-[0.3em] font-medium">
-            OutfAI
-          </h1>
-          <UserAvatar />
-        </div>
-      </header>
+      <AppHeader>
+        <h1 className="text-[10px] md:text-xs uppercase tracking-[0.3em] font-medium">
+          OutfAI
+        </h1>
+        <UserAvatar />
+      </AppHeader>
 
       {/* Main content */}
       <div className="pt-20 sm:pt-24 md:pt-28 lg:pt-32 pb-24 md:pb-28">
@@ -705,7 +703,7 @@ export default function Home() {
                 ))}
               </div>
               {/* Weather context - below mood */}
-              <div className="inline-flex flex-wrap items-center gap-2 rounded-full border border-border/60 bg-background/60 px-3 py-1 text-[10px] uppercase tracking-[0.28em] text-muted-foreground backdrop-blur w-fit">
+              <div className="inline-flex flex-wrap items-center gap-2 rounded-full glass-panel px-3 py-1 text-[10px] uppercase tracking-[0.28em] text-muted-foreground shadow-none w-fit">
                 <span
                   className={`h-1.5 w-1.5 rounded-full ${locationError ? "bg-destructive" : "bg-acid-lime"}`}
                 />
@@ -721,7 +719,7 @@ export default function Home() {
                       value={cityInput}
                       onChange={(e) => setCityInput(e.target.value)}
                       placeholder="e.g. London"
-                      className="ml-1 w-28 rounded border border-border/60 bg-background/80 px-2 py-0.5 text-[10px] normal-case text-foreground placeholder:text-muted-foreground outline-none focus:border-signal-orange/50"
+                      className="ml-1 w-28 rounded border border-[var(--glass-border-strong)] bg-[var(--glass-panel)] px-2 py-0.5 text-[10px] normal-case text-foreground placeholder:text-muted-foreground outline-none focus:border-signal-orange/50 backdrop-blur-sm"
                       onKeyDown={(e) => {
                         if (e.key === "Enter") {
                           e.preventDefault();
@@ -735,7 +733,7 @@ export default function Home() {
                       disabled={
                         weatherCityLoading || cityInput.trim().length < 2
                       }
-                      className="rounded border border-border/60 bg-background/80 px-2 py-0.5 text-[9px] uppercase tracking-wider text-foreground hover:border-signal-orange/50 disabled:opacity-50"
+                      className="rounded border border-[var(--glass-border-strong)] bg-[var(--glass-panel)] px-2 py-0.5 text-[9px] uppercase tracking-wider text-foreground hover:border-signal-orange/50 disabled:opacity-50 backdrop-blur-sm"
                     >
                       {weatherCityLoading ? "…" : "Use"}
                     </button>
@@ -812,7 +810,7 @@ export default function Home() {
           {convexGarments.length === 0 &&
             recommendedOutfit &&
             recommendedOutfit.length > 0 && (
-              <section className="mb-6 border border-border bg-secondary/50 px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+              <section className="mb-6 glass-panel rounded-sm px-4 py-3 flex flex-wrap items-center justify-between gap-3">
                 <p className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
                   Using sample items. Add your own for personalized results.
                 </p>
@@ -829,7 +827,7 @@ export default function Home() {
           {isSelectMode &&
             recommendedOutfit &&
             recommendedOutfit.length > 0 && (
-              <section className="mb-6 flex flex-wrap items-center justify-between gap-3 border border-border px-4 py-3">
+              <section className="mb-6 flex flex-wrap items-center justify-between gap-3 glass-panel rounded-sm px-4 py-3">
                 <div className="flex items-center gap-4">
                   <span className="text-[11px] uppercase tracking-[0.2em] text-foreground">
                     {selectedOptionIndices.size === 0

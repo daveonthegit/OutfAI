@@ -67,7 +67,10 @@ export function FilterBar({
 
   return (
     <section
-      className={cn("mb-8 flex flex-col gap-4", className)}
+      className={cn(
+        "mb-8 flex flex-col gap-4 rounded-sm glass-panel p-4 sm:p-5",
+        className
+      )}
       aria-label="Filters"
     >
       <div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
@@ -79,7 +82,7 @@ export function FilterBar({
                 placeholder={search.placeholder}
                 value={search.value}
                 onChange={(e) => search.onChange(e.target.value)}
-                className="w-full bg-background border border-border px-3 py-2 pl-9 text-[11px] uppercase tracking-[0.12em] text-foreground placeholder:text-muted-foreground outline-none focus:border-signal-orange/60 focus-visible:ring-2 focus-visible:ring-signal-orange/50 focus-visible:ring-offset-0"
+                className="w-full bg-[var(--glass-panel)] backdrop-blur-sm border border-[var(--glass-border-strong)] px-3 py-2 pl-9 text-[11px] uppercase tracking-[0.12em] text-foreground placeholder:text-muted-foreground outline-none focus:border-signal-orange/60 focus-visible:ring-2 focus-visible:ring-signal-orange/50 focus-visible:ring-offset-0"
                 aria-label={search["aria-label"] ?? "Search"}
               />
               <span
@@ -124,7 +127,7 @@ export function FilterBar({
             <select
               value={sort.value}
               onChange={(e) => sort.onChange(e.target.value)}
-              className="w-full sm:w-auto bg-background border border-border px-3 py-2 text-[11px] uppercase tracking-[0.12em] text-foreground outline-none focus:border-signal-orange/60 focus-visible:ring-2 focus-visible:ring-signal-orange/50 focus-visible:ring-offset-0"
+              className="w-full sm:w-auto bg-[var(--glass-panel)] backdrop-blur-sm border border-[var(--glass-border-strong)] px-3 py-2 text-[11px] uppercase tracking-[0.12em] text-foreground outline-none focus:border-signal-orange/60 focus-visible:ring-2 focus-visible:ring-signal-orange/50 focus-visible:ring-offset-0"
               aria-label={sort["aria-label"] ?? "Sort order"}
             >
               {sort.options.map((opt) => (

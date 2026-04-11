@@ -156,7 +156,7 @@ export function OutfitRecommendationCard({
       {...cardMotionProps}
       ref={cardRef}
       tabIndex={0}
-      className="relative w-full aspect-square border border-border bg-card hover:bg-secondary/50 transition-colors duration-200 group overflow-hidden text-left origin-center cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal-orange focus-visible:ring-offset-1"
+      className="relative w-full aspect-square border border-[var(--glass-border-strong)] bg-card/90 shadow-[var(--glass-shadow)] backdrop-blur-[10px] hover:bg-secondary/40 transition-colors duration-200 group overflow-hidden text-left origin-center cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal-orange focus-visible:ring-offset-1"
       style={{
         transformOrigin: "center center",
         ...(cardMotionProps.style as React.CSSProperties),
@@ -205,7 +205,7 @@ export function OutfitRecommendationCard({
             <button
               type="button"
               onClick={handleSkip}
-              className="p-1.5 bg-background/80 border border-border hover:border-foreground hover:text-foreground transition-colors text-[9px] uppercase tracking-widest focus-visible:ring-2 focus-visible:ring-signal-orange focus-visible:ring-offset-1 focus-visible:outline-none"
+              className="p-1.5 glass-bar border-border hover:border-foreground hover:text-foreground transition-colors text-[9px] uppercase tracking-widest focus-visible:ring-2 focus-visible:ring-signal-orange focus-visible:ring-offset-1 focus-visible:outline-none rounded-sm"
               aria-label="Skip this outfit"
             >
               Skip
@@ -216,7 +216,7 @@ export function OutfitRecommendationCard({
               type="button"
               onClick={handleSave}
               disabled={isSaving}
-              className="p-1.5 bg-background/80 border border-signal-orange/60 text-signal-orange hover:bg-signal-orange/10 transition-colors text-[9px] uppercase tracking-widest disabled:opacity-60 focus-visible:ring-2 focus-visible:ring-signal-orange focus-visible:ring-offset-1 focus-visible:outline-none ml-auto"
+              className="p-1.5 glass-bar border-signal-orange/60 text-signal-orange hover:bg-signal-orange/10 transition-colors text-[9px] uppercase tracking-widest disabled:opacity-60 focus-visible:ring-2 focus-visible:ring-signal-orange focus-visible:ring-offset-1 focus-visible:outline-none ml-auto rounded-sm"
               aria-label={isSaving ? "Saving…" : "Save this outfit"}
             >
               {isSaving ? "Saving…" : "Save"}
@@ -232,7 +232,7 @@ export function OutfitRecommendationCard({
             className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all duration-100 ${
               isSelected
                 ? "bg-signal-orange border-signal-orange"
-                : "bg-background/80 border-border"
+                : "glass-bar border-border rounded-full"
             }`}
           >
             {isSelected && (
@@ -258,7 +258,7 @@ export function OutfitRecommendationCard({
       )}
 
       {/* Info overlay + "See why" in one block so they don't overlap */}
-      <div className="absolute bottom-0 left-0 right-0 flex flex-col translate-y-0 md:translate-y-full md:group-hover:translate-y-0 transition-transform duration-200 bg-background/95 px-4 py-4">
+      <div className="absolute bottom-0 left-0 right-0 flex flex-col translate-y-0 md:translate-y-full md:group-hover:translate-y-0 transition-transform duration-200 glass-bar !border-x-0 !border-b-0 rounded-none px-4 py-4">
         <div className="pointer-events-none">
           <p className="text-[11px] uppercase tracking-widest text-foreground mb-2">
             {label}
@@ -288,13 +288,13 @@ export function OutfitRecommendationCard({
             <button
               type="button"
               onClick={handleSeeWhy}
-              className="pointer-events-auto self-start px-2 py-1 text-[9px] uppercase tracking-widest text-muted-foreground hover:text-signal-orange border border-border hover:border-signal-orange/50 bg-background/95 transition-colors"
+              className="pointer-events-auto self-start px-2 py-1 text-[9px] uppercase tracking-widest text-muted-foreground hover:text-signal-orange border border-[var(--glass-border-strong)] hover:border-signal-orange/50 glass-panel transition-colors rounded-sm"
               aria-expanded={breakdownOpen}
             >
               {breakdownOpen ? "Hide why" : "See why"}
             </button>
             {breakdownOpen && (
-              <div className="pointer-events-auto mt-2 bg-background/98 border border-border px-3 py-2 space-y-1.5">
+              <div className="pointer-events-auto mt-2 glass-panel rounded-sm px-3 py-2 space-y-1.5">
                 {(() => {
                   const entries = (
                     Object.keys(BREAKDOWN_LABELS) as (keyof ScoreBreakdown)[]
