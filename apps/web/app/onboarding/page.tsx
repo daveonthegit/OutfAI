@@ -12,6 +12,16 @@ import type { Mood } from "@shared/types";
 import { BrutalistButton } from "@/components/brutalist-button";
 import { OutfitRecommendationCard } from "@/components/outfit-recommendation-card";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
+
+const chipBase =
+  "min-h-9 rounded-sm border px-3 py-2 text-[11px] uppercase tracking-[0.16em] transition-colors duration-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background";
+const chipActive = "border-foreground bg-foreground text-background";
+const chipInactive =
+  "border-border text-muted-foreground hover:border-foreground";
+
+const headerFocus =
+  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-sm";
 
 const STEPS = [
   { id: "welcome", title: "Welcome" },
@@ -161,41 +171,64 @@ export default function OnboardingPage() {
   }, [userPrefs]);
 
   return (
-    <main className="min-h-screen bg-background text-foreground selection:bg-signal-orange selection:text-background">
-      <header className="fixed top-0 left-0 right-0 z-50 bg-background border-b border-border">
-        <div className="flex items-center justify-between px-4 py-5">
-          <span className="text-[10px] uppercase tracking-[0.3em] font-medium text-muted-foreground">
+    <main className="relative min-h-screen overflow-hidden bg-background text-foreground selection:bg-signal-orange selection:text-background">
+      <div aria-hidden className="pointer-events-none absolute inset-0">
+        <div className="absolute -top-24 -left-24 h-72 w-72 rounded-full bg-foreground/[0.06] blur-3xl dark:bg-foreground/[0.08]" />
+        <div className="absolute top-1/3 -right-20 h-80 w-80 rounded-full bg-signal-orange/[0.06] blur-3xl dark:bg-signal-orange/[0.08]" />
+        <div className="absolute inset-0 bg-gradient-to-b from-background via-background/92 to-background" />
+      </div>
+      <div
+        aria-hidden
+        className="glass-veil pointer-events-none absolute inset-0 z-[1]"
+      />
+      <header className="glass-bar fixed left-0 right-0 top-0 z-50 rounded-none border-x-0 border-t-0 border-b border-border pt-[env(safe-area-inset-top)]">
+        <div className="flex items-center justify-between px-4 py-4 md:px-8 md:py-5">
+          <Link
+            href="/"
+            className={cn(
+              headerFocus,
+              "text-[10px] font-medium uppercase tracking-[0.3em] text-muted-foreground transition-colors hover:text-foreground"
+            )}
+          >
             OutfAI
-          </span>
+          </Link>
           <button
             type="button"
             onClick={handleSkip}
-            className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground hover:text-foreground transition-colors duration-100"
+            className={cn(
+              headerFocus,
+              "min-h-10 px-2 text-[10px] uppercase tracking-[0.2em] text-muted-foreground transition-colors duration-100 hover:text-foreground"
+            )}
           >
             Skip for now
           </button>
         </div>
       </header>
 
-      <div className="pt-24 pb-20 px-4 max-w-xl mx-auto">
+      <p className="sr-only">
+        Onboarding step {stepIndex + 1} of {STEPS.length}: {step.title}
+      </p>
+
+      <div className="relative z-10 mx-auto max-w-xl px-4 pb-[calc(5rem+env(safe-area-inset-bottom))] pt-[calc(6rem+env(safe-area-inset-top))] md:px-6">
         {/* Progress */}
-        <div className="flex gap-1 mb-10">
+        <div className="mb-10 flex gap-1.5" aria-hidden>
           {STEPS.map((s, i) => (
             <div
               key={s.id}
-              className={`h-0.5 flex-1 ${
+              className={cn(
+                "h-0.5 flex-1 rounded-full",
                 i <= stepIndex ? "bg-foreground" : "bg-border"
-              }`}
+              )}
             />
           ))}
         </div>
 
         {step.id === "welcome" && (
           <section className="space-y-6">
-            <h1 className="text-2xl font-light tracking-tight">
+            <h1 className="font-serif text-2xl font-normal italic leading-tight tracking-tight text-foreground">
               Set up your wardrobe
             </h1>
-            <p className="text-sm text-muted-foreground">
+            <p className="max-w-[60ch] text-sm leading-relaxed text-muted-foreground">
               We’ll guide you through adding a few items, your style
               preferences, and then show you your first outfit.
             </p>
@@ -205,25 +238,25 @@ export default function OnboardingPage() {
 
         {step.id === "garments" && (
           <section className="space-y-6">
-            <h1 className="text-2xl font-light tracking-tight">Add garments</h1>
-            <p className="text-sm text-muted-foreground">
+            <h1 className="font-serif text-2xl font-normal italic leading-tight tracking-tight text-foreground">
+              Add garments
+            </h1>
+            <p className="max-w-[60ch] text-sm leading-relaxed text-muted-foreground">
               Add at least {MIN_GARMENTS_SUGGESTED} items to get better
               recommendations. You can add more anytime.
             </p>
-            <div className="border border-border px-5 py-4">
+            <div className="glass-panel rounded-sm px-5 py-4">
               <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
                 Your closet
               </p>
-              <p className="text-2xl font-light mt-1 tabular-nums">
+              <p className="mt-1 text-2xl font-light tabular-nums tracking-tight text-foreground">
                 {garments.length} item{garments.length !== 1 ? "s" : ""}
               </p>
             </div>
-            <Link href="/add">
-              <BrutalistButton variant="outline" type="button">
-                Add garment
-              </BrutalistButton>
-            </Link>
-            <div className="flex gap-3 pt-4">
+            <BrutalistButton variant="outline" asChild>
+              <Link href="/add">Add garment</Link>
+            </BrutalistButton>
+            <div className="flex gap-3 pt-2">
               <BrutalistButton
                 onClick={handleNext}
                 disabled={garments.length === 0}
@@ -235,17 +268,19 @@ export default function OnboardingPage() {
         )}
 
         {step.id === "preferences" && (
-          <section className="space-y-6">
-            <h1 className="text-2xl font-light tracking-tight">
-              Style preferences
-            </h1>
-            <p className="text-sm text-muted-foreground">
-              Pick moods and styles you like. We’ll use these to tailor
-              recommendations.
-            </p>
+          <section className="space-y-8">
+            <div className="space-y-3">
+              <h1 className="font-serif text-2xl font-normal italic leading-tight tracking-tight text-foreground">
+                Style preferences
+              </h1>
+              <p className="max-w-[60ch] text-sm leading-relaxed text-muted-foreground">
+                Pick moods and styles you like. We’ll use these to tailor
+                recommendations.
+              </p>
+            </div>
 
-            <div>
-              <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground mb-2">
+            <div className="space-y-2">
+              <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
                 Favorite moods
               </p>
               <div className="flex flex-wrap gap-2">
@@ -253,14 +288,14 @@ export default function OnboardingPage() {
                   <button
                     key={m}
                     type="button"
+                    aria-pressed={favoriteMoods.includes(m)}
                     onClick={() =>
                       toggleList(m, favoriteMoods, setFavoriteMoods)
                     }
-                    className={`px-3 py-1 text-[11px] uppercase tracking-[0.16em] border transition-colors duration-100 ${
-                      favoriteMoods.includes(m)
-                        ? "border-foreground bg-foreground text-background"
-                        : "border-border text-muted-foreground hover:border-foreground"
-                    }`}
+                    className={cn(
+                      chipBase,
+                      favoriteMoods.includes(m) ? chipActive : chipInactive
+                    )}
                   >
                     {m}
                   </button>
@@ -268,8 +303,8 @@ export default function OnboardingPage() {
               </div>
             </div>
 
-            <div>
-              <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground mb-2">
+            <div className="space-y-2">
+              <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
                 Preferred styles
               </p>
               <div className="flex flex-wrap gap-2">
@@ -277,14 +312,14 @@ export default function OnboardingPage() {
                   <button
                     key={s}
                     type="button"
+                    aria-pressed={preferredStyles.includes(s)}
                     onClick={() =>
                       toggleList(s, preferredStyles, setPreferredStyles)
                     }
-                    className={`px-3 py-1 text-[11px] uppercase tracking-[0.16em] border transition-colors duration-100 ${
-                      preferredStyles.includes(s)
-                        ? "border-foreground bg-foreground text-background"
-                        : "border-border text-muted-foreground hover:border-foreground"
-                    }`}
+                    className={cn(
+                      chipBase,
+                      preferredStyles.includes(s) ? chipActive : chipInactive
+                    )}
                   >
                     {s}
                   </button>
@@ -292,8 +327,8 @@ export default function OnboardingPage() {
               </div>
             </div>
 
-            <div>
-              <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground mb-2">
+            <div className="space-y-2">
+              <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
                 Preferred colors
               </p>
               <div className="flex flex-wrap gap-2">
@@ -301,14 +336,14 @@ export default function OnboardingPage() {
                   <button
                     key={c}
                     type="button"
+                    aria-pressed={preferredColors.includes(c)}
                     onClick={() =>
                       toggleList(c, preferredColors, setPreferredColors)
                     }
-                    className={`px-3 py-1 text-[11px] uppercase tracking-[0.16em] border transition-colors duration-100 ${
-                      preferredColors.includes(c)
-                        ? "border-foreground bg-foreground text-background"
-                        : "border-border text-muted-foreground hover:border-foreground"
-                    }`}
+                    className={cn(
+                      chipBase,
+                      preferredColors.includes(c) ? chipActive : chipInactive
+                    )}
                   >
                     {c}
                   </button>
@@ -316,36 +351,41 @@ export default function OnboardingPage() {
               </div>
             </div>
 
-            <BrutalistButton
-              onClick={handleSavePreferences}
-              disabled={prefsSaved}
-            >
-              {prefsSaved ? "Saved" : "Save preferences"}
-            </BrutalistButton>
-            <BrutalistButton onClick={handleNext}>Continue</BrutalistButton>
+            <div className="flex flex-col gap-3 pt-1 sm:flex-row sm:flex-wrap sm:items-center">
+              <BrutalistButton
+                onClick={handleSavePreferences}
+                disabled={prefsSaved}
+              >
+                {prefsSaved ? "Saved" : "Save preferences"}
+              </BrutalistButton>
+              <BrutalistButton onClick={handleNext}>Continue</BrutalistButton>
+            </div>
           </section>
         )}
 
         {step.id === "try" && (
           <section className="space-y-6">
-            <h1 className="text-2xl font-light tracking-tight">
+            <h1 className="font-serif text-2xl font-normal italic leading-tight tracking-tight text-foreground">
               Try an outfit
             </h1>
-            <p className="text-sm text-muted-foreground">
+            <p className="max-w-[60ch] text-sm leading-relaxed text-muted-foreground">
               Pick a mood and we’ll suggest an outfit from your closet.
             </p>
 
             {garments.length === 0 ? (
-              <p className="text-sm text-muted-foreground border border-border px-5 py-4">
+              <div className="glass-panel rounded-sm px-5 py-4 text-sm leading-relaxed text-muted-foreground">
                 Add at least one garment first.{" "}
-                <Link href="/add" className="underline hover:text-foreground">
+                <Link
+                  href="/add"
+                  className="font-medium text-foreground underline underline-offset-4 transition-colors hover:text-[var(--signal-orange)] focus-visible:rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                >
                   Add garment
                 </Link>
-              </p>
+              </div>
             ) : (
               <>
-                <div>
-                  <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground mb-2">
+                <div className="space-y-2">
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
                     Mood
                   </p>
                   <div className="flex flex-wrap gap-2">
@@ -353,12 +393,12 @@ export default function OnboardingPage() {
                       <button
                         key={m}
                         type="button"
+                        aria-pressed={selectedMood === m}
                         onClick={() => setSelectedMood(m)}
-                        className={`px-3 py-1 text-[11px] uppercase tracking-[0.16em] border transition-colors duration-100 ${
-                          selectedMood === m
-                            ? "border-foreground bg-foreground text-background"
-                            : "border-border text-muted-foreground hover:border-foreground"
-                        }`}
+                        className={cn(
+                          chipBase,
+                          selectedMood === m ? chipActive : chipInactive
+                        )}
                       >
                         {m}
                       </button>
@@ -374,7 +414,10 @@ export default function OnboardingPage() {
                 </BrutalistButton>
 
                 {recError && (
-                  <p className="text-xs uppercase tracking-wider text-signal-orange">
+                  <p
+                    className="text-xs font-medium uppercase tracking-[0.14em] text-[var(--signal-orange)]"
+                    role="alert"
+                  >
                     {recError}
                   </p>
                 )}
@@ -394,8 +437,8 @@ export default function OnboardingPage() {
                         type: g.category,
                       }));
                     return (
-                      <div className="border border-border p-4">
-                        <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground mb-3">
+                      <div className="glass-panel rounded-sm p-4 sm:p-5">
+                        <p className="mb-3 text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
                           Suggested outfit
                         </p>
                         <OutfitRecommendationCard
@@ -418,10 +461,10 @@ export default function OnboardingPage() {
 
         {step.id === "done" && (
           <section className="space-y-6">
-            <h1 className="text-2xl font-light tracking-tight">
+            <h1 className="font-serif text-2xl font-normal italic leading-tight tracking-tight text-foreground">
               You’re all set
             </h1>
-            <p className="text-sm text-muted-foreground">
+            <p className="max-w-[60ch] text-sm leading-relaxed text-muted-foreground">
               Start from the home screen to get daily outfit ideas based on your
               mood and weather.
             </p>
@@ -433,7 +476,10 @@ export default function OnboardingPage() {
           <button
             type="button"
             onClick={() => setStepIndex((i) => i - 1)}
-            className="mt-8 text-[10px] uppercase tracking-[0.2em] text-muted-foreground hover:text-foreground transition-colors duration-100"
+            className={cn(
+              headerFocus,
+              "mt-10 min-h-10 px-1 text-[10px] uppercase tracking-[0.2em] text-muted-foreground transition-colors duration-100 hover:text-foreground"
+            )}
           >
             Back
           </button>

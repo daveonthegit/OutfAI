@@ -7,6 +7,9 @@ import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { NAV_ITEMS, isNavItemActive } from "@/lib/nav-items";
 
+const focusRing =
+  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background";
+
 interface AppSidebarProps {
   collapsed: boolean;
   onCollapsedChange: (collapsed: boolean) => void;
@@ -36,7 +39,8 @@ export function AppSidebar({ collapsed, onCollapsedChange }: AppSidebarProps) {
           <Link
             href="/"
             className={cn(
-              "font-medium uppercase tracking-[0.3em] text-foreground hover:text-signal-orange transition-colors duration-100 shrink-0 overflow-hidden",
+              focusRing,
+              "rounded-sm font-medium uppercase tracking-[0.3em] text-foreground transition-colors duration-100 hover:text-[var(--signal-orange)] shrink-0 overflow-hidden",
               collapsed ? "flex w-6 justify-center text-[10px]" : "text-[10px]"
             )}
             title={collapsed ? "OutfAI" : undefined}
@@ -51,7 +55,9 @@ export function AppSidebar({ collapsed, onCollapsedChange }: AppSidebarProps) {
               key={item.href}
               href={item.href}
               title={collapsed ? item.label : undefined}
+              aria-current={isActive ? "page" : undefined}
               className={cn(
+                focusRing,
                 "flex items-center gap-3 rounded-sm py-2.5 text-[11px] uppercase tracking-[0.2em] transition-colors duration-100",
                 collapsed ? "justify-center px-0" : "px-3",
                 isActive
@@ -75,8 +81,9 @@ export function AppSidebar({ collapsed, onCollapsedChange }: AppSidebarProps) {
               : "Toggle theme"
           }
           className={cn(
-            "flex items-center rounded-sm py-2.5 text-[11px] uppercase tracking-[0.2em] text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors duration-100",
-            collapsed ? "justify-center w-full px-0" : "w-full gap-3 px-3"
+            focusRing,
+            "flex items-center rounded-sm py-2.5 text-[11px] uppercase tracking-[0.2em] text-muted-foreground transition-colors duration-100 hover:bg-secondary hover:text-foreground",
+            collapsed ? "w-full justify-center px-0" : "w-full gap-3 px-3"
           )}
           aria-label={
             mounted
@@ -124,8 +131,9 @@ export function AppSidebar({ collapsed, onCollapsedChange }: AppSidebarProps) {
           onClick={() => onCollapsedChange(!collapsed)}
           title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
           className={cn(
-            "mt-2 flex items-center rounded-sm py-2.5 text-[11px] uppercase tracking-[0.2em] text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors duration-100",
-            collapsed ? "justify-center w-full px-0" : "w-full gap-3 px-3"
+            focusRing,
+            "mt-2 flex items-center rounded-sm py-2.5 text-[11px] uppercase tracking-[0.2em] text-muted-foreground transition-colors duration-100 hover:bg-secondary hover:text-foreground",
+            collapsed ? "w-full justify-center px-0" : "w-full gap-3 px-3"
           )}
           aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
         >

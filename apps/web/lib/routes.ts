@@ -18,6 +18,19 @@ export const NO_NAV_ROUTES = [
   "/onboarding",
 ] as const;
 
+/**
+ * Routes where bottom nav is always hidden. "/" is handled separately (show nav when signed in).
+ */
+export const BOTTOM_NAV_HIDDEN_ROUTES = [
+  "/login",
+  "/signup",
+  "/check-email",
+  "/verify-email",
+  "/forgot-password",
+  "/reset-password",
+  "/onboarding",
+] as const;
+
 export type NoNavRoute = (typeof NO_NAV_ROUTES)[number];
 
 /**
@@ -27,6 +40,11 @@ export function normalizePathname(pathname: string | null): string {
   if (pathname == null || pathname === "") return "/";
   const trimmed = pathname.replace(/\/+$/, "") || "/";
   return trimmed;
+}
+
+export function isBottomNavHiddenRoute(pathname: string | null): boolean {
+  const normalized = normalizePathname(pathname);
+  return (BOTTOM_NAV_HIDDEN_ROUTES as readonly string[]).includes(normalized);
 }
 
 /**

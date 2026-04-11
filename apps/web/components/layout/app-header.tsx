@@ -16,7 +16,7 @@ export function AppHeader({
   return (
     <header
       className={cn(
-        "fixed top-0 left-0 right-0 z-50 bg-background border-b border-border",
+        "glass-bar fixed top-0 left-0 right-0 z-50 rounded-none border-x-0 border-t-0 border-b border-border pt-[env(safe-area-inset-top)]",
         className
       )}
     >

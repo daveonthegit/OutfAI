@@ -1,8 +1,15 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { useMemo } from "react";
 import type { StyleInsight } from "@shared/types";
 import { cn } from "@/lib/utils";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface StyleInsightsModalProps {
   isOpen: boolean;
@@ -55,95 +62,52 @@ export function StyleInsightsModal({
   completeTheLook,
   styleTips,
 }: StyleInsightsModalProps) {
-  const modalRef = useRef<HTMLDivElement>(null);
   const sections = useMemo(
     () => buildSections(gaps, completeTheLook, styleTips),
     [gaps, completeTheLook, styleTips]
   );
 
-  useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    if (isOpen) {
-      document.addEventListener("keydown", handleEscape);
-      document.body.style.overflow = "hidden";
-    }
-    return () => {
-      document.removeEventListener("keydown", handleEscape);
-      document.body.style.overflow = "";
-    };
-  }, [isOpen, onClose]);
-
-  const handleBackdropClick = (e: React.MouseEvent) => {
-    if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
-      onClose();
-    }
-  };
-
-  if (!isOpen) return null;
-
   return (
-    <div
-      className="fixed inset-0 z-[100] flex items-end md:items-center justify-center"
-      onClick={handleBackdropClick}
+    <Dialog
+      open={isOpen}
+      onOpenChange={(open) => {
+        if (!open) onClose();
+      }}
     >
-      <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" />
-      <div
-        ref={modalRef}
+      <DialogContent
+        showCloseButton
         className={cn(
-          "relative w-full max-w-lg bg-card border border-border",
-          "max-h-[85vh] overflow-hidden flex flex-col",
-          "animate-in slide-in-from-bottom-4 duration-200 md:slide-in-from-bottom-0 md:fade-in md:zoom-in-95"
+          "flex max-h-[85vh] max-w-lg flex-col gap-0 overflow-hidden p-0 sm:max-w-lg"
         )}
+        overlayClassName="bg-[#050505]/60 backdrop-blur-md"
       >
-        <div className="flex items-center justify-between px-6 py-5 border-b border-border">
-          <div>
-            <h2 className="font-serif italic text-xl md:text-2xl text-foreground">
-              Style insights
-            </h2>
-            <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground mt-1">
-              Gaps, complete-the-look tips, and pairing ideas
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="p-2 text-muted-foreground hover:text-foreground transition-colors duration-100"
-            aria-label="Close modal"
-          >
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.5"
-            >
-              <line x1="18" y1="6" x2="6" y2="18" />
-              <line x1="6" y1="6" x2="18" y2="18" />
-            </svg>
-          </button>
-        </div>
+        <DialogHeader className="space-y-1 border-b border-border px-6 py-5 text-left">
+          <DialogTitle className="text-xl md:text-2xl">
+            Style insights
+          </DialogTitle>
+          <DialogDescription className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+            Gaps, complete-the-look tips, and pairing ideas
+          </DialogDescription>
+        </DialogHeader>
 
-        <div className="flex-1 overflow-y-auto px-6 py-6">
+        <div className="min-h-0 flex-1 overflow-y-auto px-6 py-6">
           <div className="space-y-8">
             {sections.map((section, sectionIndex) => (
               <section key={sectionIndex}>
-                <div className="flex items-center gap-3 mb-4">
+                <div className="mb-4 flex items-center gap-3">
                   <span className="text-[9px] uppercase tracking-[0.3em] text-muted-foreground">
                     {section.heading}
                   </span>
-                  <div className="h-px bg-border flex-1" />
+                  <div className="h-px flex-1 bg-border" />
                 </div>
                 <div className="space-y-4">
                   {section.items.map((item, itemIndex) => (
                     <div key={itemIndex} className="group">
-                      <p className="text-sm text-foreground leading-relaxed">
+                      <p className="text-sm leading-relaxed text-foreground">
                         {item.title}
                       </p>
                       {item.description ? (
-                        <p className="text-[11px] text-muted-foreground mt-1 leading-relaxed">
+                        <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
                           {item.description}
                         </p>
                       ) : null}
@@ -155,20 +119,23 @@ export function StyleInsightsModal({
           </div>
         </div>
 
-        <div className="px-6 py-4 border-t border-border bg-secondary/30">
-          <div className="flex items-center justify-between">
+        <div className="border-t border-border bg-secondary/30 px-6 py-4">
+          <div className="flex items-center justify-between gap-3">
             <span className="text-[9px] uppercase tracking-[0.2em] text-muted-foreground">
               Based on your wardrobe
             </span>
-            <div className="flex items-center gap-1">
-              <div className="w-1.5 h-1.5 bg-acid-lime" />
+            <div className="flex items-center gap-1.5">
+              <span
+                className="size-1.5 shrink-0 bg-[var(--acid-lime)]"
+                aria-hidden
+              />
               <span className="text-[9px] uppercase tracking-[0.15em] text-muted-foreground">
-                AI Analysis
+                AI analysis
               </span>
             </div>
           </div>
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }

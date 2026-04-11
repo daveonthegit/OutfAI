@@ -49,6 +49,32 @@
   --sidebar-ring: oklch(0.708 0 0);
 
   --radius: 0;
+
+  /*
+   * Marketing inspiration (getdesign: Apple / Ferrari / BMW)
+   * Apple: #f5f5f7 alt canvas, 8px radius, soft diffuse shadow, frosted nav
+   * Ferrari: #000 void, #DA291C sparse accent, 2px engineered controls
+   * BMW: #1c69d4 / #0653b6 interactive & focus, #262626 body ink, tight rhythm
+   */
+  --marketing-canvas-apple: #f5f5f7;
+  --marketing-void: #000000;
+  --marketing-ink-bmw: #262626;
+  --marketing-blue-bmw: #1c69d4;
+  --marketing-focus-bmw: #0653b6;
+  --marketing-red-ferrari: #da291c;
+  --marketing-radius-engineered: 2px;
+  --marketing-radius-apple: 8px;
+  --marketing-shadow-elevated: 3px 5px 30px rgba(0, 0, 0, 0.22);
+
+  /* Frosted glass — light (editorial / Apple-style veil) */
+  --glass-blur: 22px;
+  --glass-saturate: 1.4;
+  --glass-veil: rgba(244, 243, 239, 0.38);
+  --glass-panel: rgba(255, 255, 255, 0.62);
+  --glass-bar: rgba(244, 243, 239, 0.72);
+  --glass-border: rgba(10, 10, 10, 0.09);
+  --glass-border-strong: rgba(10, 10, 10, 0.14);
+  --glass-shadow: 0 12px 48px -16px rgba(0, 0, 0, 0.14);
 }
 
 /* Dark mode - near-black cybersigilism aesthetic */
@@ -91,6 +117,14 @@
   --acid-lime: #b6ff00;
   --electric-blue: #0038ff;
   --chrome-silver: #c9ccd6;
+
+  /* Frosted glass — noir / dark */
+  --glass-veil: rgba(0, 0, 0, 0.42);
+  --glass-panel: rgba(17, 17, 17, 0.58);
+  --glass-bar: rgba(10, 10, 10, 0.78);
+  --glass-border: rgba(244, 243, 239, 0.1);
+  --glass-border-strong: rgba(244, 243, 239, 0.16);
+  --glass-shadow: 0 16px 56px -12px rgba(0, 0, 0, 0.55);
 }
 
 /* Responsive layout tokens */
@@ -189,6 +223,43 @@
 @layer utilities {
   .focus-visible-ring {
     @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-signal-orange focus-visible:ring-offset-2 focus-visible:ring-offset-background;
+  }
+
+  /**
+   * Full-area frosted veil — sits above decorative backdrops, below UI (z-1).
+   * Light: milky frost; dark: ink frost (noir).
+   */
+  .glass-veil {
+    background: var(--glass-veil);
+    -webkit-backdrop-filter: blur(var(--glass-blur))
+      saturate(var(--glass-saturate));
+    backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  }
+
+  /** Cards, modals, elevated panels */
+  .glass-panel {
+    background: var(--glass-panel);
+    border: 1px solid var(--glass-border-strong);
+    box-shadow: var(--glass-shadow);
+    -webkit-backdrop-filter: blur(18px) saturate(1.25);
+    backdrop-filter: blur(18px) saturate(1.25);
+  }
+
+  /** Sticky headers, nav strips, marketing bar */
+  .glass-bar {
+    background: var(--glass-bar);
+    border: 1px solid var(--glass-border);
+    -webkit-backdrop-filter: blur(20px) saturate(1.35);
+    backdrop-filter: blur(20px) saturate(1.35);
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .glass-veil,
+  .glass-panel,
+  .glass-bar {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
   }
 }
 

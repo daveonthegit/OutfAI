@@ -5,19 +5,22 @@ import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 import { NAV_ITEMS, isNavItemActive } from "@/lib/nav-items";
+import { cn } from "@/lib/utils";
+import { isBottomNavHiddenRoute } from "@/lib/routes";
 
-const AUTH_PATHS = ["/login", "/signup", "/check-email", "/verify-email"];
+const focusRing =
+  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-md";
 
 export function BottomNav() {
   const pathname = usePathname();
-  const { theme, setTheme, resolvedTheme } = useTheme();
+  const { setTheme, resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  if (AUTH_PATHS.includes(pathname)) return null;
+  if (isBottomNavHiddenRoute(pathname)) return null;
 
   const toggleTheme = () => {
     setTheme(resolvedTheme === "dark" ? "light" : "dark");
@@ -26,28 +29,36 @@ export function BottomNav() {
   const isDark = resolvedTheme === "dark";
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background border-t border-border lg:hidden">
-      <div className="flex items-center justify-between px-2 md:px-4">
-        {/* Nav items */}
-        <div className="flex items-center justify-around flex-1">
+    <nav
+      className="glass-bar fixed bottom-0 left-0 right-0 z-50 rounded-none border-x-0 border-b-0 border-t border-border lg:hidden pb-[env(safe-area-inset-bottom)]"
+      aria-label="Primary"
+    >
+      <div className="flex min-h-[3.5rem] items-center justify-between px-1 sm:px-2 md:px-4">
+        <div className="flex flex-1 items-center justify-around">
           {NAV_ITEMS.map((item) => {
             const isActive = isNavItemActive(item.href, pathname);
             return (
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex flex-col items-center gap-1 py-3 px-3 md:px-5 transition-colors duration-100 ${
+                aria-current={isActive ? "page" : undefined}
+                className={cn(
+                  focusRing,
+                  "flex min-h-11 min-w-11 flex-col items-center justify-center gap-1 px-2 py-2 transition-colors duration-150 md:px-4",
                   isActive
-                    ? "text-signal-orange"
+                    ? "text-[var(--signal-orange)]"
                     : "text-muted-foreground hover:text-foreground"
-                }`}
+                )}
               >
                 <span
-                  className={`transition-transform duration-100 ${isActive ? "scale-110" : ""}`}
+                  className={cn(
+                    "transition-transform duration-150 motion-reduce:transform-none",
+                    isActive && "scale-110 motion-reduce:scale-100"
+                  )}
                 >
                   {item.icon}
                 </span>
-                <span className="text-[8px] md:text-[9px] uppercase tracking-[0.15em]">
+                <span className="text-[10px] uppercase tracking-[0.14em] md:text-[11px]">
                   {item.label}
                 </span>
               </Link>
@@ -55,10 +66,13 @@ export function BottomNav() {
           })}
         </div>
 
-        {/* Theme toggle - aria-label must be stable until mounted to avoid hydration mismatch with next-themes */}
         <button
+          type="button"
           onClick={toggleTheme}
-          className="flex flex-col items-center gap-1 py-3 px-3 md:px-5 text-muted-foreground hover:text-foreground transition-colors duration-100 border-l border-border"
+          className={cn(
+            focusRing,
+            "flex min-h-11 min-w-11 flex-col items-center justify-center gap-1 border-l border-border px-2 py-2 text-muted-foreground transition-colors duration-150 hover:text-foreground md:px-4"
+          )}
           aria-label={
             mounted
               ? `Switch to ${isDark ? "light" : "dark"} mode`
@@ -66,7 +80,7 @@ export function BottomNav() {
           }
         >
           {!mounted ? (
-            <div className="w-[18px] h-[18px]" />
+            <div className="h-[18px] w-[18px]" aria-hidden />
           ) : isDark ? (
             <svg
               width="18"
@@ -75,6 +89,7 @@ export function BottomNav() {
               fill="none"
               stroke="currentColor"
               strokeWidth="1.5"
+              aria-hidden
             >
               <circle cx="12" cy="12" r="5" />
               <line x1="12" y1="1" x2="12" y2="3" />
@@ -94,11 +109,12 @@ export function BottomNav() {
               fill="none"
               stroke="currentColor"
               strokeWidth="1.5"
+              aria-hidden
             >
               <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
             </svg>
           )}
-          <span className="text-[8px] md:text-[9px] uppercase tracking-[0.15em]">
+          <span className="text-[10px] uppercase tracking-[0.14em] md:text-[11px]">
             {!mounted ? "" : isDark ? "Light" : "Dark"}
           </span>
         </button>

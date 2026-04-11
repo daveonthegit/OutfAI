@@ -105,19 +105,17 @@ export function MoodSelectModal({
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent
         className={cn(
-          "max-w-2xl w-[calc(100vw-2rem)] p-0 gap-0 overflow-hidden",
-          "bg-card border-2 border-border shadow-2xl ring-1 ring-black/20 dark:ring-white/10",
-          "rounded-none"
+          "max-w-2xl w-[calc(100vw-2rem)] gap-0 overflow-hidden rounded-none p-0"
         )}
-        overlayClassName="bg-[#050505]/70 backdrop-blur-md"
+        overlayClassName="bg-[#050505]/65 backdrop-blur-md"
         showCloseButton={true}
       >
         {/* Header: visible title + prompt, with space for close button */}
-        <DialogHeader className="relative px-6 pt-6 pb-4 pr-12 border-b border-border">
-          <DialogTitle className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-2">
+        <DialogHeader className="relative border-b border-border px-6 pt-6 pb-4 pr-12">
+          <DialogTitle className="mb-2 font-sans text-xs font-normal not-italic uppercase tracking-[0.2em] text-muted-foreground">
             Select mood
           </DialogTitle>
-          <p className="font-serif italic text-2xl sm:text-3xl text-foreground leading-tight">
+          <p className="font-serif text-2xl font-normal italic leading-tight text-foreground sm:text-3xl">
             how do you{" "}
             <span
               className="transition-colors duration-200"
@@ -143,14 +141,14 @@ export function MoodSelectModal({
                 onMouseEnter={() => setHoveredMood(mood.id)}
                 onMouseLeave={() => setHoveredMood(null)}
                 className={cn(
-                  "relative text-left px-4 py-4 sm:py-5 border transition-all duration-100 rounded-md",
+                  "relative rounded-sm border px-4 py-4 text-left transition-colors duration-100 sm:py-5",
                   selectedMood === mood.id
                     ? "border-foreground bg-foreground text-background"
                     : "border-border bg-muted/30 hover:border-foreground hover:bg-muted/50"
                 )}
               >
                 <div
-                  className="absolute top-0 left-0 w-full h-[2px] rounded-t-md transition-all duration-100"
+                  className="absolute left-0 top-0 h-[2px] w-full rounded-t-sm transition-colors duration-100"
                   style={{
                     backgroundColor:
                       selectedMood === mood.id || hoveredMood === mood.id
@@ -198,7 +196,7 @@ export function MoodSelectModal({
             <button
               type="button"
               onClick={handleApply}
-              className="ml-auto px-5 py-2.5 text-[10px] uppercase tracking-[0.2em] bg-foreground text-background hover:bg-foreground/90 transition-all duration-100 rounded-md"
+              className="ml-auto rounded-sm bg-foreground px-5 py-2.5 text-[10px] uppercase tracking-[0.2em] text-background transition-colors duration-100 hover:bg-foreground/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             >
               Apply
             </button>

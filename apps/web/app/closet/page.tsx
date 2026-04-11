@@ -563,7 +563,7 @@ export default function ClosetPage() {
               <div className="p-6">
                 <div className="flex items-start justify-between mb-4">
                   <div>
-                    <h3 className="text-base font-medium tracking-tight mb-1">
+                    <h3 className="mb-1 font-serif text-lg font-normal italic leading-tight tracking-tight text-foreground">
                       {selectedGarment.name}
                     </h3>
                     <div className="flex items-center gap-3">
