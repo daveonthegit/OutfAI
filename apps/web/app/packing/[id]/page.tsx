@@ -318,7 +318,7 @@ export default function PackingTripPage() {
 
       <div className="pt-20 sm:pt-24 md:pt-28 lg:pt-32 pb-24 md:pb-28">
         <PageContainer>
-          <h1 className="font-serif text-3xl italic mb-1">{trip.name}</h1>
+          <h1 className="font-serif italic text-3xl mb-1">{trip.name}</h1>
           <p className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground mb-6">
             {format(trip.startDate, "MMM d, yyyy")} –{" "}
             {format(trip.endDate, "MMM d, yyyy")}

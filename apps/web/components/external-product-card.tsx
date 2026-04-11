@@ -36,7 +36,7 @@ export function ExternalProductCard({
   };
 
   return (
-    <article className="relative border border-border bg-card transition-colors duration-200 hover:bg-secondary/30 overflow-hidden group text-left">
+    <article className="relative border border-border bg-card transition-colors duration-200 hover:bg-secondary/30 hover:border-signal-orange overflow-hidden group text-left">
       <a
         href={url}
         target="_blank"
@@ -97,7 +97,6 @@ export function ExternalProductCard({
           </span>
         </div>
       </a>
-      <div className="absolute top-0 left-0 w-0.5 h-full bg-border group-hover:bg-signal-orange transition-colors duration-200" />
     </article>
   );
 }

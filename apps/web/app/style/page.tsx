@@ -387,14 +387,14 @@ export default function StyleDocPage() {
                     Display / Headings
                   </p>
                   <p className="font-serif italic text-5xl md:text-6xl mb-4 text-foreground">
-                    Instrument Serif
+                    Bodoni Moda
                   </p>
                   <p className="text-xs text-muted-foreground leading-relaxed mb-6">
-                    Used for headlines, mood text, and editorial moments. Always
-                    italic. Creates tension against the sharp UI elements. Never
-                    used for body text.
+                    Used for headlines, mood text, and editorial moments. Italic
+                    at all display sizes for maximum editorial contrast against
+                    the sharp UI elements. Never used for body text.
                   </p>
-                  <CodeBlock>{`font-serif italic text-5xl\nfont-serif italic text-3xl\nfont-serif italic text-2xl`}</CodeBlock>
+                  <CodeBlock>{`font-serif italic text-5xl   /* Display L */\nfont-serif italic text-3xl   /* Display M */\nfont-serif italic text-2xl   /* Display S */`}</CodeBlock>
                 </div>
 
                 <div>
@@ -402,7 +402,7 @@ export default function StyleDocPage() {
                     UI / Body
                   </p>
                   <p className="text-5xl md:text-6xl font-medium mb-4 text-foreground">
-                    Inter
+                    Hanken Grotesk
                   </p>
                   <p className="text-xs text-muted-foreground leading-relaxed mb-6">
                     Used for all UI elements, labels, navigation, and body text.

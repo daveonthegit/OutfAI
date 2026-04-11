@@ -57,7 +57,7 @@ function CheckEmailContent() {
                   </svg>
                 </div>
 
-                <h1 className="font-serif text-[clamp(2.8rem,3.6vw,4.5rem)] italic leading-[0.92] tracking-tight text-[rgba(249,244,237,0.98)] [text-shadow:0_0_22px_rgba(255,255,255,0.04)]">
+                <h1 className="font-serif italic text-[clamp(2.8rem,3.6vw,4.5rem)] leading-[0.92] tracking-tight text-[rgba(249,244,237,0.98)] [text-shadow:0_0_22px_rgba(255,255,255,0.04)]">
                   Check your email
                 </h1>
 

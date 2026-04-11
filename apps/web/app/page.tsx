@@ -32,7 +32,7 @@ function LandingLoadingState() {
   return (
     <main className="flex min-h-[100dvh] items-center justify-center bg-[#050505]">
       <div className="flex flex-col items-center gap-4">
-        <span className="font-serif text-xl italic tracking-tight text-[rgba(249,244,237,0.7)]">
+        <span className="font-serif italic text-xl tracking-tight text-[rgba(249,244,237,0.7)]">
           OutfAI
         </span>
         <div
@@ -128,10 +128,10 @@ export default function HomePage() {
                     Your wardrobe, refined by AI
                   </div>
 
-                  <h1 className="font-serif text-[clamp(1.75rem,4vw,2.75rem)] italic leading-[0.84] tracking-[-0.03em] text-[rgba(249,244,237,0.98)] [text-shadow:0_0_22px_rgba(255,255,255,0.04)] sm:text-[clamp(2rem,5vw,3.25rem)]">
+                  <h1 className="font-serif italic text-[clamp(1.75rem,4vw,2.75rem)] leading-[0.84] tracking-[-0.03em] text-[rgba(249,244,237,0.98)] [text-shadow:0_0_22px_rgba(255,255,255,0.04)] sm:text-[clamp(2rem,5vw,3.25rem)]">
                     Dress
                   </h1>
-                  <h1 className="mt-0.5 font-serif text-[clamp(1.75rem,4vw,2.75rem)] italic leading-[0.84] tracking-[-0.03em] text-[rgba(204,184,149,0.74)] sm:mt-1 sm:text-[clamp(2rem,5vw,3.25rem)]">
+                  <h1 className="mt-0.5 font-serif italic text-[clamp(1.75rem,4vw,2.75rem)] leading-[0.84] tracking-[-0.03em] text-[rgba(204,184,149,0.74)] sm:mt-1 sm:text-[clamp(2rem,5vw,3.25rem)]">
                     with clarity.
                   </h1>
                 </div>
@@ -234,7 +234,7 @@ export default function HomePage() {
                       </div>
                     </div>
 
-                    <div className="overflow-hidden rounded-lg border border-[rgba(255,255,255,0.07)] bg-black/[0.18] shadow-[inset_0_1px_0_rgba(255,255,255,0.025)] sm:rounded-[1rem]">
+                    <div className="overflow-hidden rounded-lg border border-[rgba(255,255,255,0.07)] bg-[#050505]/[0.18] shadow-[inset_0_1px_0_rgba(255,255,255,0.025)] sm:rounded-[1rem]">
                       <div className="relative aspect-[10/13] sm:aspect-[7/9] lg:aspect-[10/13] xl:aspect-[11/14] w-full">
                         {GALLERY_IMAGES.map((item, index) => (
                           <div
@@ -258,7 +258,7 @@ export default function HomePage() {
                         <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/10 to-transparent" />
 
                         <div className="absolute left-4 right-4 bottom-4 sm:left-4 sm:right-auto sm:bottom-4 sm:max-w-[12.5rem]">
-                          <div className="rounded-2xl border border-white/10 bg-black/35 p-3 backdrop-blur-md">
+                          <div className="rounded-2xl border border-white/10 bg-[#050505]/35 p-3 backdrop-blur-md">
                             <div className="text-[11px] uppercase tracking-[0.22em] text-[rgba(214,188,140,0.72)]">
                               Refined styling
                             </div>
@@ -285,7 +285,7 @@ export default function HomePage() {
                     </div>
 
                     <div className="mt-2.5 grid gap-2 sm:grid-cols-3">
-                      <div className="rounded-lg border border-[rgba(255,255,255,0.07)] bg-black/[0.18] p-2.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.025)]">
+                      <div className="rounded-lg border border-[rgba(255,255,255,0.07)] bg-[#050505]/[0.18] p-2.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.025)]">
                         <div className="text-xs uppercase tracking-[0.22em] text-[rgba(210,194,167,0.42)]">
                           Plan
                         </div>
@@ -294,7 +294,7 @@ export default function HomePage() {
                         </div>
                       </div>
 
-                      <div className="rounded-lg border border-[rgba(255,255,255,0.07)] bg-black/[0.18] p-2.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.025)]">
+                      <div className="rounded-lg border border-[rgba(255,255,255,0.07)] bg-[#050505]/[0.18] p-2.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.025)]">
                         <div className="text-xs uppercase tracking-[0.22em] text-[rgba(210,194,167,0.42)]">
                           Curate
                         </div>
@@ -303,7 +303,7 @@ export default function HomePage() {
                         </div>
                       </div>
 
-                      <div className="rounded-lg border border-[rgba(255,255,255,0.07)] bg-black/[0.18] p-2.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.025)]">
+                      <div className="rounded-lg border border-[rgba(255,255,255,0.07)] bg-[#050505]/[0.18] p-2.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.025)]">
                         <div className="text-xs uppercase tracking-[0.22em] text-[rgba(210,194,167,0.42)]">
                           Refine
                         </div>

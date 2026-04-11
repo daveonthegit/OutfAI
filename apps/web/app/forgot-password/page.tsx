@@ -63,7 +63,7 @@ export default function ForgotPasswordPage() {
                   <div className="text-xs uppercase tracking-[0.22em] text-[rgba(210,194,167,0.42)]">
                     Reset password
                   </div>
-                  <h1 className="mt-1.5 font-serif text-2xl italic leading-tight text-[rgba(248,244,238,0.9)] sm:text-3xl">
+                  <h1 className="mt-1.5 font-serif italic text-2xl leading-tight text-[rgba(248,244,238,0.9)] sm:text-3xl">
                     Forgot your password?
                   </h1>
                   <p className="mt-2 text-sm text-[rgba(242,236,227,0.6)]">
@@ -87,7 +87,7 @@ export default function ForgotPasswordPage() {
                   </div>
                 ) : (
                   <form onSubmit={handleSubmit} className="space-y-4">
-                    <div className="rounded-lg border border-[rgba(255,255,255,0.07)] bg-black/[0.18] focus-within:border-[rgba(214,188,140,0.18)] focus-within:ring-2 focus-within:ring-[rgba(214,188,140,0.06)]">
+                    <div className="rounded-lg border border-[rgba(255,255,255,0.07)] bg-[#050505]/[0.18] focus-within:border-[rgba(214,188,140,0.18)] focus-within:ring-2 focus-within:ring-[rgba(214,188,140,0.06)]">
                       <label className="block px-4 pt-3 pb-1.5 text-xs uppercase tracking-[0.22em] text-[rgba(210,194,167,0.42)]">
                         Email
                       </label>

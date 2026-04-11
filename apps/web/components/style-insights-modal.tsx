@@ -99,7 +99,7 @@ export function StyleInsightsModal({
       >
         <div className="flex items-center justify-between px-6 py-5 border-b border-border">
           <div>
-            <h2 className="font-serif text-xl md:text-2xl italic text-foreground">
+            <h2 className="font-serif italic text-xl md:text-2xl text-foreground">
               Style insights
             </h2>
             <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground mt-1">
@@ -138,10 +138,7 @@ export function StyleInsightsModal({
                 </div>
                 <div className="space-y-4">
                   {section.items.map((item, itemIndex) => (
-                    <div
-                      key={itemIndex}
-                      className="group pl-4 border-l-2 border-border hover:border-signal-orange transition-colors duration-100"
-                    >
+                    <div key={itemIndex} className="group">
                       <p className="text-sm text-foreground leading-relaxed">
                         {item.title}
                       </p>

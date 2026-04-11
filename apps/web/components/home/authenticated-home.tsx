@@ -527,7 +527,15 @@ export default function Home() {
       toast.success(
         selectedOptionIndices.size === 1
           ? "Outfit saved"
-          : `${selectedOptionIndices.size} outfits saved`
+          : `${selectedOptionIndices.size} outfits saved`,
+        {
+          description: "View in your archive",
+          action: {
+            label: "Archive →",
+            onClick: () => router.push("/archive"),
+          },
+          duration: 4000,
+        }
       );
     } catch {
       toast.error("Could not save. Try again.");
@@ -585,7 +593,11 @@ export default function Home() {
         mood: outfit.contextMood ?? mood,
         weather: weather ?? undefined,
       }).catch(console.error);
-      toast.success("Outfit saved");
+      toast.success("Outfit saved", {
+        description: "View in your archive",
+        action: { label: "Archive →", onClick: () => router.push("/archive") },
+        duration: 4000,
+      });
     } catch {
       toast.error("Could not save. Try again.");
     } finally {
@@ -655,28 +667,42 @@ export default function Home() {
                 className="text-left group focus:outline-none focus-visible:ring-2 focus-visible:ring-signal-orange focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-sm w-fit"
                 aria-label="Change mood"
               >
-                <h2 className="font-serif text-4xl sm:text-5xl md:text-7xl lg:text-8xl italic text-foreground leading-[0.9] tracking-tight mb-0">
+                <h2 className="font-serif italic text-4xl sm:text-5xl md:text-7xl lg:text-8xl text-foreground leading-[0.9] tracking-tight mb-0">
                   today feels
                 </h2>
-                <h2 className="font-serif text-4xl sm:text-5xl md:text-7xl lg:text-8xl italic text-signal-orange leading-[0.9] tracking-tight group-hover:underline underline-offset-2">
+                <h2 className="font-serif italic text-4xl sm:text-5xl md:text-7xl lg:text-8xl text-signal-orange leading-[0.9] tracking-tight group-hover:underline underline-offset-2">
                   {mood}
                 </h2>
               </button>
-              <div className="flex flex-wrap items-center gap-3 max-w-lg">
-                <label
-                  htmlFor="home-occasion"
-                  className="text-[9px] uppercase tracking-[0.25em] text-muted-foreground shrink-0"
-                >
+              <div className="flex flex-wrap items-center gap-2 max-w-lg">
+                <span className="text-[9px] uppercase tracking-[0.25em] text-muted-foreground shrink-0 mr-1">
                   Occasion
-                </label>
-                <input
-                  id="home-occasion"
-                  type="text"
-                  value={occasion}
-                  onChange={(e) => setOccasion(e.target.value)}
-                  placeholder="Optional — e.g. work, dinner"
-                  className="flex-1 min-w-[12rem] border border-border bg-secondary px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-signal-orange/50"
-                />
+                </span>
+                {[
+                  "Work",
+                  "Dinner",
+                  "Weekend",
+                  "Gym",
+                  "Date",
+                  "Party",
+                  "Travel",
+                  "Casual",
+                ].map((tag) => (
+                  <button
+                    key={tag}
+                    type="button"
+                    onClick={() =>
+                      setOccasion((prev) => (prev === tag ? "" : tag))
+                    }
+                    className={`px-2.5 py-1 text-[9px] uppercase tracking-[0.18em] border transition-colors duration-100 focus:outline-none focus-visible:ring-1 focus-visible:ring-signal-orange ${
+                      occasion === tag
+                        ? "border-signal-orange text-signal-orange bg-signal-orange/5"
+                        : "border-border text-muted-foreground hover:border-foreground/40 hover:text-foreground"
+                    }`}
+                  >
+                    {tag}
+                  </button>
+                ))}
               </div>
               {/* Weather context - below mood */}
               <div className="inline-flex flex-wrap items-center gap-2 rounded-full border border-border/60 bg-background/60 px-3 py-1 text-[10px] uppercase tracking-[0.28em] text-muted-foreground backdrop-blur w-fit">

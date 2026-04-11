@@ -87,7 +87,7 @@ function ResetPasswordForm() {
     return (
       <main className="relative flex min-h-screen flex-col items-center justify-center px-4 py-8 bg-background text-foreground">
         <div className="w-full max-w-[36rem] rounded-xl border border-[rgba(255,255,255,0.08)] bg-[rgba(14,14,14,0.72)] p-6 sm:p-8">
-          <h1 className="font-serif text-xl italic text-foreground">
+          <h1 className="font-serif italic text-xl text-foreground">
             Invalid or expired link
           </h1>
           <p className="mt-2 text-sm text-muted-foreground">
@@ -149,13 +149,13 @@ function ResetPasswordForm() {
                   <div className="text-xs uppercase tracking-[0.22em] text-[rgba(210,194,167,0.42)]">
                     Set new password
                   </div>
-                  <h1 className="mt-1.5 font-serif text-2xl italic leading-tight text-[rgba(248,244,238,0.9)] sm:text-3xl">
+                  <h1 className="mt-1.5 font-serif italic text-2xl leading-tight text-[rgba(248,244,238,0.9)] sm:text-3xl">
                     Create a new password
                   </h1>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
-                  <div className="rounded-lg border border-[rgba(255,255,255,0.07)] bg-black/[0.18] focus-within:border-[rgba(214,188,140,0.18)] focus-within:ring-2 focus-within:ring-[rgba(214,188,140,0.06)]">
+                  <div className="rounded-lg border border-[rgba(255,255,255,0.07)] bg-[#050505]/[0.18] focus-within:border-[rgba(214,188,140,0.18)] focus-within:ring-2 focus-within:ring-[rgba(214,188,140,0.06)]">
                     <label className="block px-4 pt-3 pb-1.5 text-xs uppercase tracking-[0.22em] text-[rgba(210,194,167,0.42)]">
                       New password
                     </label>
@@ -171,7 +171,7 @@ function ResetPasswordForm() {
                     />
                   </div>
 
-                  <div className="rounded-lg border border-[rgba(255,255,255,0.07)] bg-black/[0.18] focus-within:border-[rgba(214,188,140,0.18)] focus-within:ring-2 focus-within:ring-[rgba(214,188,140,0.06)]">
+                  <div className="rounded-lg border border-[rgba(255,255,255,0.07)] bg-[#050505]/[0.18] focus-within:border-[rgba(214,188,140,0.18)] focus-within:ring-2 focus-within:ring-[rgba(214,188,140,0.06)]">
                     <label className="block px-4 pt-3 pb-1.5 text-xs uppercase tracking-[0.22em] text-[rgba(210,194,167,0.42)]">
                       Confirm password
                     </label>

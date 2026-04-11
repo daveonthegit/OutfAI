@@ -129,10 +129,8 @@
 }
 
 @theme inline {
-  --font-sans:
-    "Inter", "Inter Fallback", system-ui, sans-serif; /* Preserved from existing */
-  --font-serif:
-    "Instrument Serif", Georgia, serif; /* Preserved from existing */
+  --font-sans: var(--font-hanken), "Hanken Grotesk", system-ui, sans-serif;
+  --font-serif: var(--font-bodoni), "Bodoni Moda", Georgia, serif;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);

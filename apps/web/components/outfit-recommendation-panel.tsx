@@ -157,7 +157,7 @@ export function OutfitRecommendationPanel({
         <button
           onClick={handleGenerate}
           disabled={loading}
-          className="w-full bg-black text-white py-3 rounded-lg font-semibold hover:bg-gray-800 disabled:opacity-50"
+          className="w-full bg-foreground text-background py-3 font-semibold hover:opacity-90 disabled:opacity-50"
         >
           {loading ? "Generating..." : "Generate Outfits"}
         </button>

@@ -1,6 +1,6 @@
 import React from "react";
 import type { Metadata } from "next";
-import { Inter, Instrument_Serif } from "next/font/google";
+import { Hanken_Grotesk, Bodoni_Moda } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ConditionalAppShell } from "@/components/layout/conditional-app-shell";
@@ -11,15 +11,18 @@ import { OnboardingGuard } from "@/components/onboarding-guard";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
-const inter = Inter({
+const hankenGrotesk = Hanken_Grotesk({
   subsets: ["latin"],
-  variable: "--font-inter",
+  variable: "--font-hanken",
+  display: "swap",
 });
 
-const instrumentSerif = Instrument_Serif({
-  weight: "400",
+const bodoniModa = Bodoni_Moda({
   subsets: ["latin"],
-  variable: "--font-instrument",
+  variable: "--font-bodoni",
+  display: "swap",
+  style: ["normal", "italic"],
+  weight: ["400", "700"],
 });
 
 export const metadata: Metadata = {
@@ -39,8 +42,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head />
       <body
-        className={`${inter.variable} ${instrumentSerif.variable} font-sans antialiased`}
+        className={`${hankenGrotesk.variable} ${bodoniModa.variable} font-sans antialiased`}
         suppressHydrationWarning
       >
         <Providers>

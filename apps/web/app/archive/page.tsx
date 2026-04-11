@@ -435,9 +435,6 @@ export default function ArchivePage() {
                                     </span>
                                   </div>
                                 </button>
-
-                                {/* Accent line on hover - same as options */}
-                                <div className="absolute top-0 left-0 w-0.5 h-full bg-signal-orange opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none" />
                               </motion.div>
                             );
                           })}

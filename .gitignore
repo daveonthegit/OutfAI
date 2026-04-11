@@ -154,3 +154,8 @@ vite.config.ts.timestamp-*
 
 # Dev script runtime files
 .dev-pids
+
+# Local agent / IDE tooling (optional)
+.agents/
+.claude/
+skills-lock.json

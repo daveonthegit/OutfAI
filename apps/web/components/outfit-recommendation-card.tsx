@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { motion } from "framer-motion";
@@ -30,17 +30,17 @@ const BREAKDOWN_MAX: Record<keyof ScoreBreakdown, number> = {
 };
 
 const BREAKDOWN_LABELS: Record<keyof ScoreBreakdown, string> = {
-  base: "Base",
-  colorHarmony: "Color harmony",
-  moodAlignment: "Mood",
-  styleCoherence: "Style",
-  occasionMatching: "Occasion",
-  versatility: "Versatility",
-  fit: "Fit",
-  vibrancy: "Vibrancy",
-  diversity: "Diversity",
-  preferences: "Preferences",
-  repetitionPenalty: "Repeat penalty",
+  base: "Foundation",
+  colorHarmony: "Colors work together",
+  moodAlignment: "Matches your mood",
+  styleCoherence: "Style cohesion",
+  occasionMatching: "Fits the occasion",
+  versatility: "Easy to restyle",
+  fit: "Proportion & fit",
+  vibrancy: "Color energy",
+  diversity: "Variety of pieces",
+  preferences: "Matches your taste",
+  repetitionPenalty: "Freshness",
 };
 
 interface OutfitRecommendationCardProps {
@@ -84,7 +84,28 @@ export function OutfitRecommendationCard({
 }: OutfitRecommendationCardProps) {
   const router = useRouter();
   const [breakdownOpen, setBreakdownOpen] = useState(false);
+  const [breakdownExpanded, setBreakdownExpanded] = useState(false);
   const cardMotionProps = getCardHoverMotionProps();
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  // Keyboard shortcuts: S = save, X = skip (when card is focused)
+  useEffect(() => {
+    const el = cardRef.current;
+    if (!el) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.target !== el && !el.contains(e.target as Node)) return;
+      if (e.key === "s" || e.key === "S") {
+        e.preventDefault();
+        onSave?.();
+      }
+      if (e.key === "x" || e.key === "X") {
+        e.preventDefault();
+        onSkip?.();
+      }
+    };
+    el.addEventListener("keydown", onKeyDown);
+    return () => el.removeEventListener("keydown", onKeyDown);
+  }, [onSave, onSkip]);
 
   if (garments.length === 0) return null;
 
@@ -133,7 +154,9 @@ export function OutfitRecommendationCard({
   return (
     <motion.div
       {...cardMotionProps}
-      className="relative w-full aspect-square border border-border bg-card hover:bg-secondary/50 transition-colors duration-200 group overflow-hidden text-left origin-center cursor-pointer"
+      ref={cardRef}
+      tabIndex={0}
+      className="relative w-full aspect-square border border-border bg-card hover:bg-secondary/50 transition-colors duration-200 group overflow-hidden text-left origin-center cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal-orange focus-visible:ring-offset-1"
       style={{
         transformOrigin: "center center",
         ...(cardMotionProps.style as React.CSSProperties),
@@ -271,43 +294,72 @@ export function OutfitRecommendationCard({
               {breakdownOpen ? "Hide why" : "See why"}
             </button>
             {breakdownOpen && (
-              <div className="pointer-events-auto mt-2 bg-background/98 border border-border px-3 py-2 space-y-1.5 max-h-32 overflow-y-auto">
-                {(
-                  Object.keys(BREAKDOWN_LABELS) as (keyof ScoreBreakdown)[]
-                ).map((key) => {
-                  const value = scoreBreakdown[key];
-                  const max = BREAKDOWN_MAX[key];
-                  const pct = max > 0 ? Math.min(100, (value / max) * 100) : 0;
+              <div className="pointer-events-auto mt-2 bg-background/98 border border-border px-3 py-2 space-y-1.5">
+                {(() => {
+                  const entries = (
+                    Object.keys(BREAKDOWN_LABELS) as (keyof ScoreBreakdown)[]
+                  )
+                    .filter((k) => k !== "base" && k !== "repetitionPenalty")
+                    .sort((a, b) => {
+                      const pctA =
+                        BREAKDOWN_MAX[a] > 0
+                          ? scoreBreakdown[a] / BREAKDOWN_MAX[a]
+                          : 0;
+                      const pctB =
+                        BREAKDOWN_MAX[b] > 0
+                          ? scoreBreakdown[b] / BREAKDOWN_MAX[b]
+                          : 0;
+                      return pctB - pctA;
+                    });
+                  const visible = breakdownExpanded
+                    ? entries
+                    : entries.slice(0, 3);
                   return (
-                    <div
-                      key={key}
-                      className="flex items-center gap-2 text-[9px] uppercase tracking-wider"
-                    >
-                      <span className="text-muted-foreground w-24 shrink-0">
-                        {BREAKDOWN_LABELS[key]}
-                      </span>
-                      <div className="flex-1 h-1.5 bg-secondary overflow-hidden">
-                        <div
-                          className="h-full bg-signal-orange/80 transition-all"
-                          style={{ width: `${Math.max(0, pct)}%` }}
-                        />
-                      </div>
-                      <span className="text-foreground w-6 text-right">
-                        {value}
-                      </span>
-                    </div>
+                    <>
+                      {visible.map((key) => {
+                        const value = scoreBreakdown[key];
+                        const max = BREAKDOWN_MAX[key];
+                        const pct =
+                          max > 0 ? Math.min(100, (value / max) * 100) : 0;
+                        return (
+                          <div
+                            key={key}
+                            className="flex items-center gap-2 text-[9px]"
+                          >
+                            <span className="text-muted-foreground w-28 shrink-0 leading-tight">
+                              {BREAKDOWN_LABELS[key]}
+                            </span>
+                            <div className="flex-1 h-1 bg-secondary overflow-hidden">
+                              <div
+                                className="h-full bg-signal-orange/80 transition-all"
+                                style={{ width: `${Math.max(0, pct)}%` }}
+                              />
+                            </div>
+                          </div>
+                        );
+                      })}
+                      {entries.length > 3 && (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setBreakdownExpanded((p) => !p);
+                          }}
+                          className="text-[9px] text-muted-foreground hover:text-foreground transition-colors mt-0.5"
+                        >
+                          {breakdownExpanded
+                            ? "Show less"
+                            : `+${entries.length - 3} more`}
+                        </button>
+                      )}
+                    </>
                   );
-                })}
+                })()}
               </div>
             )}
           </div>
         )}
       </div>
-
-      {/* Accent line on hover (only when not in select mode) */}
-      {!isSelectMode && (
-        <div className="absolute top-0 left-0 w-0.5 h-full bg-signal-orange opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none" />
-      )}
     </motion.div>
   );
 }

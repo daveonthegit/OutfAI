@@ -341,7 +341,7 @@ function OutfitContent() {
 
           {selectedGarment && (
             <div
-              className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+              className="fixed inset-0 z-50 flex items-center justify-center bg-[#050505]/50"
               onClick={() => setSelectedGarment(null)}
             >
               <div

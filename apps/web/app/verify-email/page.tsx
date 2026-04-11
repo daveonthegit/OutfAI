@@ -62,7 +62,7 @@ function VerifyEmailContent() {
                     <path d="M20 6L9 17l-5-5" />
                   </svg>
                 </div>
-                <h1 className="font-serif text-2xl italic text-foreground tracking-tight">
+                <h1 className="font-serif italic text-2xl text-foreground tracking-tight">
                   Email verified
                 </h1>
                 <p className="mt-3 text-sm text-muted-foreground">
@@ -77,7 +77,7 @@ function VerifyEmailContent() {
               </>
             ) : (
               <>
-                <h1 className="font-serif text-2xl italic text-foreground tracking-tight">
+                <h1 className="font-serif italic text-2xl text-foreground tracking-tight">
                   Verification failed
                 </h1>
                 <p className="mt-3 text-sm text-muted-foreground">

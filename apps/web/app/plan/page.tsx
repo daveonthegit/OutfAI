@@ -51,7 +51,7 @@ export default function PlanPage() {
               <span className="text-[11px] uppercase tracking-[0.25em] text-muted-foreground">
                 Calendar
               </span>
-              <h2 className="mt-2 font-serif text-2xl italic text-foreground group-hover:text-signal-orange transition-colors">
+              <h2 className="mt-2 font-serif italic text-2xl text-foreground group-hover:text-signal-orange transition-colors">
                 Outfit calendar
               </h2>
               <p className="mt-3 text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
@@ -69,7 +69,7 @@ export default function PlanPage() {
               <span className="text-[11px] uppercase tracking-[0.25em] text-muted-foreground">
                 Trips
               </span>
-              <h2 className="mt-2 font-serif text-2xl italic text-foreground group-hover:text-signal-orange transition-colors">
+              <h2 className="mt-2 font-serif italic text-2xl text-foreground group-hover:text-signal-orange transition-colors">
                 Packing planner
               </h2>
               <p className="mt-3 text-[11px] uppercase tracking-[0.2em] text-muted-foreground">

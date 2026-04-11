@@ -107,9 +107,9 @@ export function MoodSelectModal({
         className={cn(
           "max-w-2xl w-[calc(100vw-2rem)] p-0 gap-0 overflow-hidden",
           "bg-card border-2 border-border shadow-2xl ring-1 ring-black/20 dark:ring-white/10",
-          "rounded-xl sm:rounded-2xl"
+          "rounded-none"
         )}
-        overlayClassName="bg-black/70 backdrop-blur-md"
+        overlayClassName="bg-[#050505]/70 backdrop-blur-md"
         showCloseButton={true}
       >
         {/* Header: visible title + prompt, with space for close button */}
@@ -117,7 +117,7 @@ export function MoodSelectModal({
           <DialogTitle className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-2">
             Select mood
           </DialogTitle>
-          <p className="font-serif text-2xl sm:text-3xl italic text-foreground leading-tight">
+          <p className="font-serif italic text-2xl sm:text-3xl text-foreground leading-tight">
             how do you{" "}
             <span
               className="transition-colors duration-200"
@@ -160,7 +160,7 @@ export function MoodSelectModal({
                 />
                 <span
                   className={cn(
-                    "block font-serif text-lg sm:text-xl italic mb-1",
+                    "block font-serif italic text-lg sm:text-xl mb-1",
                     selectedMood === mood.id
                       ? "text-background"
                       : "text-foreground"

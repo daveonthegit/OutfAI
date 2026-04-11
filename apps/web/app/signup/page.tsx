@@ -107,10 +107,10 @@ export default function SignupPage() {
                     Happy to have you here
                   </div>
 
-                  <h1 className="font-serif text-[clamp(1.75rem,4vw,2.75rem)] italic leading-[0.84] tracking-[-0.03em] text-[rgba(249,244,237,0.98)] [text-shadow:0_0_22px_rgba(255,255,255,0.04)] sm:text-[clamp(2rem,5vw,3.25rem)]">
+                  <h1 className="font-serif italic text-[clamp(1.75rem,4vw,2.75rem)] leading-[0.84] tracking-[-0.03em] text-[rgba(249,244,237,0.98)] [text-shadow:0_0_22px_rgba(255,255,255,0.04)] sm:text-[clamp(2rem,5vw,3.25rem)]">
                     Create your
                   </h1>
-                  <h1 className="mt-0.5 font-serif text-[clamp(1.75rem,4vw,2.75rem)] italic leading-[0.84] tracking-[-0.03em] text-[rgba(204,184,149,0.74)] sm:mt-1 sm:text-[clamp(2rem,5vw,3.25rem)]">
+                  <h1 className="mt-0.5 font-serif italic text-[clamp(1.75rem,4vw,2.75rem)] leading-[0.84] tracking-[-0.03em] text-[rgba(204,184,149,0.74)] sm:mt-1 sm:text-[clamp(2rem,5vw,3.25rem)]">
                     wardrobe today!
                   </h1>
                 </div>
@@ -176,7 +176,7 @@ export default function SignupPage() {
                     </div>
 
                     <form onSubmit={handleSubmit} className="space-y-0">
-                      <div className="overflow-hidden rounded-lg border border-[rgba(255,255,255,0.07)] bg-black/[0.18] shadow-[inset_0_1px_0_rgba(255,255,255,0.025)] focus-within:border-[rgba(214,188,140,0.18)] focus-within:ring-2 focus-within:ring-[rgba(214,188,140,0.06)]">
+                      <div className="overflow-hidden rounded-lg border border-[rgba(255,255,255,0.07)] bg-[#050505]/[0.18] shadow-[inset_0_1px_0_rgba(255,255,255,0.025)] focus-within:border-[rgba(214,188,140,0.18)] focus-within:ring-2 focus-within:ring-[rgba(214,188,140,0.06)]">
                         <div className="border-b border-[rgba(255,255,255,0.06)]">
                           <label className="block px-4 pt-2.5 pb-1 text-xs uppercase tracking-[0.22em] text-[rgba(210,194,167,0.42)]">
                             Username

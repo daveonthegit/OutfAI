@@ -71,7 +71,7 @@ export default function ExplainPage() {
           <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground mb-4">
             Look Analysis
           </p>
-          <h1 className="font-serif text-4xl md:text-6xl lg:text-7xl italic text-foreground leading-[0.9] tracking-tight">
+          <h1 className="font-serif italic text-4xl md:text-6xl lg:text-7xl text-foreground leading-[0.9] tracking-tight">
             why this works
           </h1>
         </section>
