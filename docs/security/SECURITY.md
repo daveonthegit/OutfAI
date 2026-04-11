@@ -33,3 +33,18 @@
 - Server-side size limit for base64 image in analyze-garment-image.
 
 For full patterns, see **`rules/security-patterns.mdc`**.
+
+---
+
+## CI dependency baseline
+
+GitHub Actions runs **`npm audit --omit=dev --audit-level=high`** (see `.github/workflows/ci.yml`). The job is **advisory** (`continue-on-error: true`) so merges are not blocked by npm alone; still run **`npm audit fix`** after dependency work and commit a clean **`package-lock.json`** when fixes apply.
+
+### Known issues without a clean upstream fix
+
+These appear in **`npm audit --omit=dev`** until dependencies change:
+
+| Area                                                               | Notes                                                                                                                                                                   |
+| ------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **paapi5-nodejs-sdk** → **crypto-js**                              | Amazon PA-API SDK pins an older **crypto-js**. Used only in **server-side** commerce code. Monitor SDK releases or replace signing if Amazon publishes a patched major. |
+| **request** (deprecated) → **form-data**, **qs**, **tough-cookie** | Direct **`request`** usage should be migrated to **`fetch`** / **`undici`** over time; nested advisories clear when **`request`** is removed.                           |

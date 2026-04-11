@@ -78,14 +78,14 @@ export function PublicLanding() {
         />
 
         <motion.div
-          className="flex min-h-0 flex-1 flex-col gap-3 overflow-hidden lg:grid lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:items-stretch lg:gap-8 xl:gap-10 [@media(max-height:700px)]:gap-2"
+          className="flex min-h-0 flex-1 flex-col gap-3 overflow-x-hidden lg:grid lg:grid-cols-[minmax(0,1.12fr)_minmax(0,0.88fr)] lg:items-center lg:gap-6 lg:overflow-visible xl:gap-10 [@media(max-height:700px)]:gap-2"
           initial={reduceMotion ? false : "hidden"}
           animate={reduceMotion ? false : "show"}
           variants={marketingContainerVariants}
         >
           <motion.div
             variants={marketingItemVariants}
-            className="flex min-h-0 shrink-0 flex-col justify-center overflow-hidden max-lg:max-h-[min(40vh,360px)] lg:min-h-0 lg:max-h-none lg:overflow-visible lg:py-0 [@media(max-height:700px)]:shrink"
+            className="flex min-h-0 shrink-0 flex-col justify-center overflow-x-hidden overflow-y-auto max-sm:max-h-[min(52vh,440px)] sm:max-h-none sm:overflow-visible lg:min-h-0 lg:justify-center lg:py-1 [@media(max-height:700px)]:shrink"
           >
             <p className="mb-1 font-sans text-[10px] uppercase tracking-[0.28em] text-[#5a5a5a] dark:text-[#9a9a9a] sm:text-[11px]">
               Your wardrobe, refined by AI
@@ -98,7 +98,7 @@ export function PublicLanding() {
               <span> with clarity.</span>
             </h1>
 
-            <p className="mt-2 line-clamp-3 max-w-[42ch] font-sans text-sm leading-[1.35] text-[var(--marketing-ink-bmw)] opacity-95 dark:text-[#b8b6b0] dark:opacity-100 sm:line-clamp-2 sm:leading-[1.3] [@media(max-height:700px)]:mt-1 [@media(max-height:700px)]:line-clamp-2 [@media(max-height:700px)]:text-xs">
+            <p className="mt-2 max-w-[min(42ch,100%)] text-pretty font-sans text-sm leading-relaxed text-[var(--marketing-ink-bmw)] opacity-95 dark:text-[#b8b6b0] dark:opacity-100 max-sm:line-clamp-4 sm:line-clamp-none lg:max-w-[min(48ch,100%)] [@media(max-height:700px)]:mt-1 [@media(max-height:700px)]:text-xs">
               OutfAI helps you organize your closet and build polished
               outfits—so you can step out with intention, not noise.
             </p>
@@ -140,11 +140,11 @@ export function PublicLanding() {
 
           <motion.div
             variants={marketingItemVariants}
-            className="flex min-h-0 flex-1 flex-col items-center justify-center lg:min-h-0"
+            className="flex min-h-0 w-full flex-1 flex-col items-center justify-center lg:max-h-[min(88dvh,780px)] lg:min-h-0"
           >
-            <PhoneMockFrame>
+            <PhoneMockFrame className="max-h-[min(82dvh,720px)] w-full lg:max-h-full">
               <div
-                className="relative flex min-h-0 w-full flex-1 flex-col overflow-hidden border-x border-b border-[#0a0a0a]/12 bg-[var(--marketing-canvas-apple)] dark:border-[#f4f3ef]/10 dark:bg-[#111111]"
+                className="relative flex min-h-0 w-full flex-col overflow-hidden border-x border-b border-[#0a0a0a]/12 bg-[var(--marketing-canvas-apple)] dark:border-[#f4f3ef]/10 dark:bg-[#111111]"
                 onMouseEnter={() => setPauseHover(true)}
                 onMouseLeave={() => setPauseHover(false)}
               >
@@ -175,7 +175,7 @@ export function PublicLanding() {
                   </div>
                 </div>
 
-                <div className="relative aspect-[10/13] min-h-[13.5rem] w-full flex-1 border-b border-[#0a0a0a]/[0.08] dark:border-[#f4f3ef]/10 sm:min-h-[16rem] lg:min-h-[17rem]">
+                <div className="relative aspect-[10/13] w-full shrink-0 border-b border-[#0a0a0a]/[0.08] dark:border-[#f4f3ef]/10 min-h-[12rem] sm:min-h-[14rem]">
                   <div className="absolute inset-0">
                     {GALLERY_IMAGES.map((item, index) => (
                       <div
@@ -197,7 +197,7 @@ export function PublicLanding() {
                     ))}
                     <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#0a0a0a]/55 via-[#0a0a0a]/10 to-transparent dark:from-[#0a0a0a]/75 dark:via-[#0a0a0a]/15" />
 
-                    <div className="pointer-events-none absolute bottom-3 left-3 max-w-[min(100%,18rem)] border border-[#0a0a0a]/12 bg-white/90 px-3 py-2 backdrop-blur-sm dark:border-[#f4f3ef]/20 dark:bg-[#0a0a0a]/55 sm:bottom-4 sm:left-4 sm:px-4 sm:py-3">
+                    <div className="pointer-events-none absolute bottom-3 left-3 max-w-[min(100%,18rem)] rounded-sm glass-panel px-3 py-2 shadow-none dark:border-[#f4f3ef]/20 sm:bottom-4 sm:left-4 sm:px-4 sm:py-3">
                       <p className="font-sans text-[10px] uppercase tracking-[0.22em] text-[#ff4d00] dark:text-[#c6a564]">
                         Refined styling
                       </p>
