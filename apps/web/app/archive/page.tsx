@@ -329,7 +329,7 @@ export default function ArchivePage() {
                                 key={outfit._id}
                                 variants={staggerVariants.item}
                                 {...cardHoverProps}
-                                className="group relative w-full aspect-square border border-border bg-card hover:bg-secondary/50 transition-all duration-200 overflow-hidden text-left origin-center"
+                                className="group relative w-full aspect-square border border-border bg-card hover:bg-secondary/50 transition-colors duration-100 overflow-hidden text-left origin-center"
                                 onMouseEnter={() => setHoveredId(outfit._id)}
                                 onMouseLeave={() => setHoveredId(null)}
                                 style={{
@@ -417,7 +417,7 @@ export default function ArchivePage() {
                                   </div>
 
                                   {/* Summary: always on small screens; hover expand on md+ */}
-                                  <div className="absolute bottom-0 left-0 right-0 bg-background/95 px-4 py-4 translate-y-0 md:translate-y-full md:group-hover:translate-y-0 transition-transform duration-200">
+                                  <div className="absolute bottom-0 left-0 right-0 bg-background/95 px-4 py-4 translate-y-0 md:translate-y-full md:group-hover:translate-y-0 transition-transform duration-100 motion-reduce:transition-none">
                                     <p className="text-[11px] uppercase tracking-widest text-foreground mb-2">
                                       Saved{" "}
                                       {formatDistanceToNow(

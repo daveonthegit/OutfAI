@@ -58,7 +58,7 @@ const staggerVariants = getStaggerVariants();
 
 ### Card hover
 
-Use motion props from `getCardHoverMotionProps()` on a `motion.div`:
+`getCardHoverMotionProps()` applies a **subtle shadow lift** on hover (no scale). Use on a `motion.div`:
 
 ```ts
 import { motion } from "framer-motion";
@@ -84,7 +84,7 @@ The check is done once per session and cached. To reset the cache (e.g. in tests
 
 ## Performance
 
-- Only **transform** and **opacity** are animated (and optional **box-shadow** for hover).
+- **box-shadow** is animated for card hover lift; other motion favors **transform** and **opacity** where used.
 - No animating layout properties; no forced reflow.
 - Framer Motion uses requestAnimationFrame-friendly updates.
 - Stagger delays are small (e.g. 60ms per item) to keep total duration short.

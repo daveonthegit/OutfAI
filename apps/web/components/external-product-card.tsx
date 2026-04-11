@@ -36,7 +36,7 @@ export function ExternalProductCard({
   };
 
   return (
-    <article className="relative border border-border bg-card transition-colors duration-200 hover:bg-secondary/30 hover:border-signal-orange overflow-hidden group text-left">
+    <article className="relative border border-border bg-card transition-colors duration-100 hover:bg-secondary/30 hover:border-signal-orange overflow-hidden group text-left">
       <a
         href={url}
         target="_blank"

@@ -106,7 +106,7 @@ export function PublicLanding() {
             <div className="mt-3 flex flex-wrap gap-2 sm:mt-4 sm:gap-3 [@media(max-height:700px)]:mt-2">
               <Link
                 href="/signup"
-                className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center gap-2 rounded-[var(--marketing-radius-apple)] bg-[#0a0a0a] px-4 py-2.5 text-[11px] font-medium uppercase tracking-[0.2em] text-[#f4f3ef] transition-colors duration-150 hover:bg-[#1a1a1a] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--marketing-focus-bmw)] focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-[0.98] dark:bg-[#f4f3ef] dark:text-[#0a0a0a] dark:hover:bg-[#e8e6e0] dark:focus-visible:ring-offset-[var(--marketing-void)] sm:px-5 sm:text-xs [@media(max-height:700px)]:py-2"
+                className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center gap-2 rounded-[var(--marketing-radius-apple)] bg-[#0a0a0a] px-4 py-2.5 text-[11px] font-medium uppercase tracking-[0.2em] text-[#f4f3ef] transition-colors duration-150 hover:bg-[#1a1a1a] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--marketing-focus-bmw)] focus-visible:ring-offset-2 focus-visible:ring-offset-background dark:bg-[#f4f3ef] dark:text-[#0a0a0a] dark:hover:bg-[#e8e6e0] dark:focus-visible:ring-offset-[var(--marketing-void)] sm:px-5 sm:text-xs [@media(max-height:700px)]:py-2"
               >
                 Create account
                 <svg
@@ -124,7 +124,7 @@ export function PublicLanding() {
               </Link>
               <Link
                 href="/login"
-                className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-[var(--marketing-radius-apple)] border border-[#0a0a0a]/18 bg-transparent px-4 py-2.5 text-[11px] font-medium uppercase tracking-[0.2em] text-[#0a0a0a] transition-colors duration-150 hover:border-[#0a0a0a]/35 hover:bg-[#0a0a0a]/[0.03] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--marketing-focus-bmw)] focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-[0.98] dark:border-[#f4f3ef]/25 dark:text-[#f4f3ef] dark:hover:border-[#f4f3ef]/45 dark:hover:bg-[#f4f3ef]/[0.06] dark:focus-visible:ring-offset-[var(--marketing-void)] sm:px-5 sm:text-xs [@media(max-height:700px)]:py-2"
+                className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-[var(--marketing-radius-apple)] border border-[#0a0a0a]/18 bg-transparent px-4 py-2.5 text-[11px] font-medium uppercase tracking-[0.2em] text-[#0a0a0a] transition-colors duration-150 hover:border-[#0a0a0a]/35 hover:bg-[#0a0a0a]/[0.03] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--marketing-focus-bmw)] focus-visible:ring-offset-2 focus-visible:ring-offset-background dark:border-[#f4f3ef]/25 dark:text-[#f4f3ef] dark:hover:border-[#f4f3ef]/45 dark:hover:bg-[#f4f3ef]/[0.06] dark:focus-visible:ring-offset-[var(--marketing-void)] sm:px-5 sm:text-xs [@media(max-height:700px)]:py-2"
               >
                 Sign in
               </Link>

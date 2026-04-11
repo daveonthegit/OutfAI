@@ -1,4 +1,5 @@
 node_modules
+convex/_generated
 .next
 dist
 coverage

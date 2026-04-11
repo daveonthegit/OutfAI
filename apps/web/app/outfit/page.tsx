@@ -452,7 +452,7 @@ function OutfitContent() {
                 fill="none"
                 stroke="currentColor"
                 strokeWidth="1.5"
-                className="transition-transform duration-100 group-hover:scale-110"
+                className="shrink-0"
               >
                 <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
               </svg>

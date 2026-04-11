@@ -989,7 +989,7 @@ export default function StyleDocPage() {
                     </li>
                     <li className="flex items-center gap-2">
                       <span className="w-1.5 h-1.5 bg-acid-lime" />{" "}
-                      {"hover:scale-110 (icons only)"}
+                      {"No icon scale on hover (color / weight only)"}
                     </li>
                   </ul>
                 </div>

@@ -4,6 +4,7 @@
   "scripts": {
     "dev": "cd apps/web && next dev --turbo",
     "build": "cd apps/web && next build",
+    "build:ci": "NEXT_PUBLIC_CONVEX_URL=https://placeholder.convex.cloud NEXT_PUBLIC_CONVEX_SITE_URL=https://placeholder.convex.site CONVEX_SITE_URL=https://placeholder.convex.site npm run build",
     "start": "cd apps/web && next start",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
@@ -16,7 +17,7 @@
     "convex:deploy": "npx convex deploy",
     "db:doc": "npx tsx scripts/generate-convex-docs.ts",
     "gen:db-docs": "npx tsx scripts/generate-convex-docs.ts",
-    "ci": "npm run format:check && npm run lint && npm run typecheck && npm run test && npm run build",
+    "ci": "npm run format:check && npm run lint && npm run typecheck && npm run test && npm run build:ci",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "prepare": "husky",

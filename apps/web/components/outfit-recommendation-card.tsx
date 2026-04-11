@@ -156,7 +156,7 @@ export function OutfitRecommendationCard({
       {...cardMotionProps}
       ref={cardRef}
       tabIndex={0}
-      className="relative w-full aspect-square border border-[var(--glass-border-strong)] bg-card/90 shadow-[var(--glass-shadow)] backdrop-blur-[10px] hover:bg-secondary/40 transition-colors duration-200 group overflow-hidden text-left origin-center cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal-orange focus-visible:ring-offset-1"
+      className="relative w-full aspect-square border border-[var(--glass-border-strong)] bg-card/90 shadow-[var(--glass-shadow)] backdrop-blur-[10px] hover:bg-secondary/40 transition-colors duration-100 group overflow-hidden text-left origin-center cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal-orange focus-visible:ring-offset-1"
       style={{
         transformOrigin: "center center",
         ...(cardMotionProps.style as React.CSSProperties),
@@ -258,7 +258,7 @@ export function OutfitRecommendationCard({
       )}
 
       {/* Info overlay + "See why" in one block so they don't overlap */}
-      <div className="absolute bottom-0 left-0 right-0 flex flex-col translate-y-0 md:translate-y-full md:group-hover:translate-y-0 transition-transform duration-200 glass-bar !border-x-0 !border-b-0 rounded-none px-4 py-4">
+      <div className="absolute bottom-0 left-0 right-0 flex flex-col translate-y-0 md:translate-y-full md:group-hover:translate-y-0 transition-transform duration-100 motion-reduce:transition-none glass-bar !border-x-0 !border-b-0 rounded-none px-4 py-4">
         <div className="pointer-events-none">
           <p className="text-[11px] uppercase tracking-widest text-foreground mb-2">
             {label}

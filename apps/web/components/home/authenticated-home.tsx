@@ -1015,7 +1015,7 @@ export default function Home() {
                     fill="none"
                     stroke="currentColor"
                     strokeWidth="1.5"
-                    className="transition-transform duration-100 group-hover:scale-110"
+                    className="shrink-0"
                   >
                     <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
                   </svg>
@@ -1043,7 +1043,7 @@ export default function Home() {
                 fill="none"
                 stroke="currentColor"
                 strokeWidth="1.5"
-                className="transition-transform duration-100 group-hover:rotate-180"
+                className="shrink-0"
               >
                 <polyline points="16 3 21 3 21 8" />
                 <line x1="4" y1="20" x2="21" y2="3" />
@@ -1069,7 +1069,7 @@ export default function Home() {
                 fill="none"
                 stroke="currentColor"
                 strokeWidth="1.5"
-                className="transition-transform duration-100 group-hover:translate-x-1"
+                className="shrink-0"
               >
                 <line x1="5" y1="12" x2="19" y2="12" />
                 <polyline points="12 5 19 12 12 19" />

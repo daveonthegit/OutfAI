@@ -95,7 +95,7 @@ export function MarketingHeader({
         >
           <span className="relative inline-block">
             OutfAI
-            <span className="absolute -bottom-1 left-0 h-px w-0 bg-[#ff4d00] transition-all duration-300 ease-out group-hover:w-full dark:bg-[#c6a564]" />
+            <span className="absolute -bottom-1 left-0 h-px w-0 bg-[#ff4d00] transition-[width] duration-150 ease-out group-hover:w-full dark:bg-[#c6a564]" />
           </span>
         </Link>
         <div className="flex max-w-full flex-wrap items-center justify-end gap-2 sm:gap-3">
@@ -127,7 +127,7 @@ export function MarketingHeader({
       >
         <span className="relative inline-block">
           OutfAI
-          <span className="absolute -bottom-1 left-0 h-px w-0 bg-[#ff4d00] transition-all duration-300 ease-out group-hover:w-full dark:bg-[#c6a564]" />
+          <span className="absolute -bottom-1 left-0 h-px w-0 bg-[#ff4d00] transition-[width] duration-150 ease-out group-hover:w-full dark:bg-[#c6a564]" />
         </span>
       </Link>
 
@@ -138,13 +138,13 @@ export function MarketingHeader({
         {showThemeToggle ? <LandingThemeToggle dense={dense} /> : null}
         <Link
           href="/login"
-          className={`rounded-[var(--marketing-radius-apple)] border border-[#0a0a0a]/[0.12] bg-transparent text-xs font-medium uppercase tracking-[0.22em] text-[#0a0a0a] transition-colors duration-150 hover:border-[#0a0a0a]/30 hover:bg-[#0a0a0a]/[0.03] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--marketing-focus-bmw)] focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-[0.98] dark:border-[#f4f3ef]/20 dark:text-[#f4f3ef] dark:hover:border-[#f4f3ef]/40 dark:hover:bg-[#f4f3ef]/[0.06] dark:focus-visible:ring-offset-[var(--marketing-void)] ${pad}`}
+          className={`rounded-[var(--marketing-radius-apple)] border border-[#0a0a0a]/[0.12] bg-transparent text-xs font-medium uppercase tracking-[0.22em] text-[#0a0a0a] transition-colors duration-150 hover:border-[#0a0a0a]/30 hover:bg-[#0a0a0a]/[0.03] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--marketing-focus-bmw)] focus-visible:ring-offset-2 focus-visible:ring-offset-background dark:border-[#f4f3ef]/20 dark:text-[#f4f3ef] dark:hover:border-[#f4f3ef]/40 dark:hover:bg-[#f4f3ef]/[0.06] dark:focus-visible:ring-offset-[var(--marketing-void)] ${pad}`}
         >
           Sign in
         </Link>
         <Link
           href="/signup"
-          className={`rounded-[var(--marketing-radius-apple)] bg-[#0a0a0a] text-xs font-medium uppercase tracking-[0.22em] text-[#f4f3ef] transition-colors duration-150 hover:bg-[#1a1a1a] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--marketing-focus-bmw)] focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-[0.98] dark:bg-[#f4f3ef] dark:text-[#0a0a0a] dark:hover:bg-[#e8e6e0] dark:focus-visible:ring-offset-[var(--marketing-void)] ${pad}`}
+          className={`rounded-[var(--marketing-radius-apple)] bg-[#0a0a0a] text-xs font-medium uppercase tracking-[0.22em] text-[#f4f3ef] transition-colors duration-150 hover:bg-[#1a1a1a] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--marketing-focus-bmw)] focus-visible:ring-offset-2 focus-visible:ring-offset-background dark:bg-[#f4f3ef] dark:text-[#0a0a0a] dark:hover:bg-[#e8e6e0] dark:focus-visible:ring-offset-[var(--marketing-void)] ${pad}`}
         >
           Create account
         </Link>
