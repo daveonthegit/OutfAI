@@ -37,7 +37,7 @@ export default defineSchema({
 
   // Saved outfit instances.
   // outfit_items (Prisma-era join table) is embedded as a garmentIds array to
-  // avoid joins at MVP scale. See MIGRATION_NOTES.md for rationale.
+  // avoid joins at MVP scale.
   outfits: defineTable({
     userId: v.string(),
     garmentIds: v.array(v.id("garments")),

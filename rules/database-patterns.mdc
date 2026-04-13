@@ -29,7 +29,7 @@ Purpose: This repo uses **Convex** as the only database. There is **no Prisma**,
 ## Migrations and docs
 
 - **Schema changes:** Edit `convex/schema.ts` and run `npx convex dev` (or deploy); Convex handles schema evolution.
-- **Docs:** The repo has `npm run db:doc` / `gen:db-docs` that generate Convex schema docs (see `scripts/generate-convex-docs.ts`). Use them to keep `docs/convex-schema.md` (or equivalent) up to date after schema changes; do not reference Prisma or Supabase in these rules.
+- **Docs:** The repo has `npm run db:doc` / `gen:db-docs` that generate Convex schema docs (see `scripts/generate-convex-docs.ts`). Use them to keep `docs/reference/convex-schema.md` (or equivalent) up to date after schema changes; do not reference Prisma or Supabase in these rules.
 
 ## Anti-patterns
 

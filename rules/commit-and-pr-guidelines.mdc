@@ -1,6 +1,6 @@
 ---
 description: Commit and PR guidelines — what to run and check before merge
-globs: [".github/**", "package.json", "docs/cicd.md"]
+globs: [".github/**", "package.json", "docs/ci-cd.md"]
 alwaysApply: false
 ---
 
@@ -34,8 +34,8 @@ Purpose: Keep CI green and PRs consistent. Run the same checks locally that CI r
 ## Database / schema
 
 - **Convex:** Schema changes are done in `convex/schema.ts`; run `npx convex dev` (or deploy) to apply. No Prisma or separate migration files.
-- **Docs:** If the repo keeps generated schema docs (e.g. `docs/convex-schema.md`), regenerate and commit after schema changes.
+- **Docs:** If the repo keeps generated schema docs (e.g. `docs/reference/convex-schema.md`), regenerate and commit after schema changes.
 
 ## New scripts
 
-- Add new scripts to root `package.json`. If a script is a quality gate (lint, test, typecheck), wire it into CI (e.g. `.github/workflows/ci.yml`) and document in `docs/cicd.md` if that doc exists.
+- Add new scripts to root `package.json`. If a script is a quality gate (lint, test, typecheck), wire it into CI (e.g. `.github/workflows/ci.yml`) and document in `docs/ci-cd.md` if that doc exists.

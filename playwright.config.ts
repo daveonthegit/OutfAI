@@ -5,7 +5,7 @@ import { defineConfig, devices } from "@playwright/test";
  * Run with: npm run test:e2e
  * Requires: dev server running (npm run dev) or set baseURL to a deployed preview.
  * Optional: E2E_TEST_EMAIL and E2E_TEST_PASSWORD for authenticated flows.
- * @see docs/issues/29-e2e-tests.md
+ * @see docs/archive/issues/29-e2e-tests.md
  */
 export default defineConfig({
   testDir: "./e2e",

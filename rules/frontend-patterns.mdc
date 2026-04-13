@@ -17,7 +17,7 @@ Purpose: Consistent UI patterns for the OutfAI web app using **Next.js 15 App Ro
 - **Data (primary):** Convex — `useQuery(api.*)` and `useMutation(api.*)` from `convex/react`; `api` from `@convex/_generated/api`
 - **Data (secondary):** Next.js API routes — e.g. `fetch("/api/recommendations")` for the recommendation engine; no tRPC client usage for main flows
 - **Auth:** Better Auth (client in `lib/auth-client.ts`); route protection via `useRequireAuth` and middleware (session cookie check)
-- **Styling:** Tailwind CSS 4, Radix-based UI in `components/ui/`, design system “cybersigilism” (see `docs/style.md`)
+- **Styling:** Tailwind CSS 4, Radix-based UI in `components/ui/`, design system “cybersigilism” (see `docs/design-system.md`)
 
 ## Non-negotiables
 
@@ -85,7 +85,7 @@ Purpose: Consistent UI patterns for the OutfAI web app using **Next.js 15 App Ro
 - Use **Tailwind** utility classes; avoid ad-hoc inline styles except for dynamic values (e.g. animation, layout)
 - Use design tokens and existing UI primitives (`Button`, `Card`, `Input`, etc.) from `components/ui/`
 - Respect reduced motion: use `lib/animations/prefers-reduced-motion` when adding motion
-- Keep styling consistent with the existing “cybersigilism” direction (see `docs/style.md` and current pages)
+- Keep styling consistent with the existing “cybersigilism” direction (see `docs/design-system.md` and current pages)
 
 ## Data flow
 

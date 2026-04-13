@@ -1,6 +1,6 @@
 ---
 description: Styling — Tailwind, design system, and UI primitives
-globs: ["apps/web/**/*.tsx", "apps/web/**/*.css", "docs/style.md"]
+globs: ["apps/web/**/*.tsx", "apps/web/**/*.css", "docs/design-system.md"]
 alwaysApply: false
 ---
 
@@ -12,7 +12,7 @@ Purpose: Consistent styling using **Tailwind CSS 4**, **Radix-based UI** (`compo
 
 - **Tailwind CSS 4** with PostCSS; global styles in `apps/web/styles/globals.css` (minimal: font, box-sizing, body).
 - **Components:** `apps/web/components/ui/` — shadcn-style primitives (Button, Card, Input, Skeleton, Dialog, etc.). Prefer these over custom one-off components.
-- **Design system:** See `docs/style.md` and existing pages (closet, archive, add, outfit) for typography, spacing, and color usage. The README references a “cybersigilism” aesthetic.
+- **Design system:** See `docs/design-system.md` and existing pages (closet, archive, add, outfit) for typography, spacing, and color usage. The README references a “cybersigilism” aesthetic.
 
 ## Conventions
 
@@ -25,5 +25,5 @@ Purpose: Consistent styling using **Tailwind CSS 4**, **Radix-based UI** (`compo
 ## Do not
 
 - Introduce a second CSS framework or random inline styles for layout that Tailwind can handle.
-- Change design tokens or global styles without aligning with `docs/style.md` or the rest of the app.
+- Change design tokens or global styles without aligning with `docs/design-system.md` or the rest of the app.
 - Remove or bypass the existing `components/ui` primitives in favor of one-off styled divs unless necessary.

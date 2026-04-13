@@ -1,11 +1,11 @@
 /**
  * generate-convex-docs.ts
  *
- * Reads convex/schema.ts and generates docs/convex-schema.md.
+ * Reads convex/schema.ts and generates docs/reference/convex-schema.md.
  * Run: npm run gen:db-docs   (or: npx tsx scripts/generate-convex-docs.ts)
  *
  * Hooking into your workflow:
- *   - Pre-commit:  add "*.ts": ["npm run gen:db-docs", "git add docs/convex-schema.md"]
+ *   - Pre-commit:  add "*.ts": ["npm run gen:db-docs", "git add docs/reference/convex-schema.md"]
  *                  for convex/schema.ts changes in lint-staged
  *   - CI:          the docs-consistency job re-runs this and fails on uncommitted changes
  */
@@ -15,7 +15,7 @@ import * as path from "path";
 
 const ROOT = path.resolve(__dirname, "..");
 const SCHEMA_PATH = path.join(ROOT, "convex", "schema.ts");
-const OUTPUT_PATH = path.join(ROOT, "docs", "convex-schema.md");
+const OUTPUT_PATH = path.join(ROOT, "docs", "reference", "convex-schema.md");
 
 // ──────────────────────────────────────────────────────────────
 // Types
@@ -240,8 +240,8 @@ function generateMarkdown(tables: TableDef[]): string {
   lines.push(`# OutfAI — Convex Schema`);
   lines.push(``);
   lines.push(
-    `> Auto-generated from [\`convex/schema.ts\`](../convex/schema.ts) by ` +
-      `[\`scripts/generate-convex-docs.ts\`](../scripts/generate-convex-docs.ts).`
+    `> Auto-generated from [\`convex/schema.ts\`](../../convex/schema.ts) by ` +
+      `[\`scripts/generate-convex-docs.ts\`](../../scripts/generate-convex-docs.ts).`
   );
   lines.push(`> Last generated: ${now}`);
   lines.push(``);

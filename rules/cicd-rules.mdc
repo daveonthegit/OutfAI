@@ -42,7 +42,7 @@ Run **`npm run ci`** locally before pushing to catch the same checks CI runs (fo
 ## Scripts and tooling
 
 - New scripts go in root `package.json`.
-- Quality gates (lint, test, typecheck, format) are already wired in CI; document new scripts in `docs/cicd.md` if they become part of the workflow.
+- Quality gates (lint, test, typecheck, format) are already wired in CI; document new scripts in `docs/ci-cd.md` if they become part of the workflow.
 - **Database:** This repo uses **Convex** only. Schema changes are in `convex/schema.ts`; run `npx convex dev` (or deploy) to apply. Use `npm run db:doc` / `gen:db-docs` to regenerate schema docs; there are no Prisma migrations.
 
 ## Pre-push checklist

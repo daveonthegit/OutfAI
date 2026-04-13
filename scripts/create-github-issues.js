@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Creates GitHub issues from docs/issues/*.md.
+ * Creates GitHub issues from docs/archive/issues/*.md.
  * Requires: GITHUB_TOKEN env var (with repo scope).
  * Usage: node scripts/create-github-issues.js
  *   Or:  GITHUB_TOKEN=xxx node scripts/create-github-issues.js
@@ -12,7 +12,7 @@ const https = require("https");
 
 const REPO_OWNER = "daveonthegit";
 const REPO_NAME = "OutfAI";
-const ISSUES_DIR = path.join(__dirname, "..", "docs", "issues");
+const ISSUES_DIR = path.join(__dirname, "..", "docs", "archive", "issues");
 
 const token = process.env.GITHUB_TOKEN;
 if (!token) {
