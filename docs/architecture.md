@@ -19,7 +19,7 @@ Runtime model
 Browser
   -> Next.js App Router UI in apps/web/app
   -> Convex React client for CRUD and auth-backed data
-  -> Next.js API routes for recommendations, style insights, weather, product suggestions, image analysis
+  -> Next.js API routes for style insights, weather, product suggestions, image analysis (outfit recommendations use Convex)
   -> server/services business logic
   -> Convex for persisted data, auth, and storage
 ```
@@ -50,7 +50,6 @@ Primary user-facing routes in `apps/web/app` include:
 
 Key API routes
 
-- `POST /api/recommendations`
 - `POST /api/style-insights`
 - `POST /api/product-recommendations`
 - `POST /api/analyze-garment-image`
@@ -66,7 +65,7 @@ Data model
 Design choices
 
 - Use Convex for persisted application data and auth-aware CRUD.
-- Use Next.js API routes only when a request needs service-layer orchestration or external APIs.
+- Use Next.js API routes when a request needs service-layer orchestration or external APIs (outfit recommendations are served by Convex queries, not these routes).
 - Keep server services stateless and reusable.
 - Keep shared types in `shared` to avoid drift between the app, Convex handlers, and services.
 

@@ -2,7 +2,9 @@ import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
 import {
   externalProductMetadataValidator,
+  learnedWeightsValidator,
   scoreBreakdownValidator,
+  userPreferenceStatsValidator,
 } from "./validators";
 
 export default defineSchema({
@@ -56,10 +58,13 @@ export default defineSchema({
   recommendationLogs: defineTable({
     userId: v.string(),
     outfitId: v.optional(v.id("outfits")),
+    outfitPreviewId: v.optional(v.id("outfitPreviews")),
     garmentIds: v.array(v.string()),
     action: v.string(), // "shown" | "saved" | "skipped" | "worn"
     mood: v.optional(v.string()),
     weather: v.optional(v.string()),
+    /** Present on "shown" rows from ranked feed: explore vs exploit slot. */
+    pickMode: v.optional(v.union(v.literal("exploit"), v.literal("explore"))),
     loggedAt: v.number(),
   })
     .index("by_userId", ["userId"])
@@ -94,6 +99,10 @@ export default defineSchema({
     avoidedColors: v.optional(v.array(v.string())),
     styleGoal: v.optional(v.string()),
     styleGoalTags: v.optional(v.array(v.string())),
+    /** Learned weights from save/skip/worn feedback; dimensions are optional. */
+    learnedWeights: v.optional(learnedWeightsValidator),
+    /** Action counts, streaks, and freshness for personalization + retention UI. */
+    stats: v.optional(userPreferenceStatsValidator),
   }).index("by_userId", ["userId"]),
 
   // User profile extension: bio, avatar storage, onboarding. Identity (name, username, email) lives in Better Auth user table.

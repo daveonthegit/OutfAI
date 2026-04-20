@@ -14,7 +14,7 @@ Purpose: Clarify which backend surface to use for what. The codebase uses **Conv
 |------|-----|--------|
 | CRUD for garments, outfits, user prefs, auth state | **Convex** | `convex/*.ts`; frontend uses `useQuery` / `useMutation` with `api` from `@convex/_generated/api` |
 | File upload URL / storage URL | **Convex** | Convex mutations that call `ctx.storage.generateUploadUrl()` and `ctx.storage.getUrl()` |
-| Generate outfit recommendations from garment list | **Next.js API route** | `POST /api/recommendations` → `OutfitRecommendationService`; client uses `fetch("/api/recommendations")` or hook that does |
+| Generate outfit recommendations | **Convex query** | `api.recommendationRank.getRankedRecommendations` (optional `garmentIds` subset); client uses `useQuery` or `useOutfitRecommendations` |
 | Analyze garment image (e.g. Vision API) | **Next.js API route** | `POST /api/analyze-garment-image` → `garmentImageAnalysisService`; keeps API keys server-side |
 | Auth (sign in, sign up, sign out, session) | **Better Auth** | Proxied via Convex HTTP; client uses `authClient` from `lib/auth-client.ts` |
 

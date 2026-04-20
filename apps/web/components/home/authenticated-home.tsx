@@ -3,10 +3,11 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { StyleInsightsSection } from "@/components/style-insights-section";
-import { useOutfitRecommendations } from "@/hooks/use-outfit-recommendations";
 import { useRequireAuth } from "@/hooks/use-require-auth";
-import { useStylePreferencesFromConvex } from "@/hooks/use-style-preferences-from-convex";
 import { useHomeWeather } from "@/hooks/use-home-weather";
+import { TrainedCounter } from "@/components/retention/TrainedCounter";
+import { StreakBadge } from "@/components/retention/StreakBadge";
+import { TasteNudge } from "@/components/retention/TasteNudge";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@convex/_generated/api";
 import type { Doc, Id } from "@convex/_generated/dataModel";
@@ -42,10 +43,7 @@ export default function Home() {
   const searchParams = useSearchParams();
   const convexGarmentsRaw = useQuery(api.garments.list);
   const convexGarments = convexGarmentsRaw ?? [];
-  const userPrefsRaw = useQuery(api.userPreferences.get);
-  const stylePreferences = useStylePreferencesFromConvex(
-    userPrefsRaw ?? undefined
-  );
+  const pendingTasteNudges = useQuery(api.userPreferences.pendingTasteNudges);
   const createOutfitPreview = useMutation(api.outfitPreviews.create);
 
   const weather = useHomeWeather();
@@ -87,7 +85,7 @@ export default function Home() {
 
   const userId = currentUser?._id ?? "default-user";
   const saveOutfit = useMutation(api.outfits.save);
-  const logRecommendation = useMutation(api.recommendationLogs.log);
+  const logOutfitAction = useMutation(api.recommendationLogs.logOutfitAction);
   const seedDevCloset = useMutation(api.seed.seedDevCloset);
   const [savedOutfitId, setSavedOutfitId] = useState<string | null>(null);
   const [seeded, setSeeded] = useState(false);
@@ -107,26 +105,14 @@ export default function Home() {
     [outfitIdsKey]
   );
 
-  const {
-    outfits,
-    loading,
-    error: recommendationError,
-    generate,
-  } = useOutfitRecommendations({
-    userId,
+  const ranked = useQuery(api.recommendationRank.getRankedRecommendations, {
     mood,
-    weather: weather.weather ?? "cloudy",
-    temperature: weather.temperatureCelsius ?? 15,
+    weather: weather.weather ?? undefined,
+    temperature: weather.temperatureCelsius ?? undefined,
     occasion: occasion.trim() || undefined,
-    limitCount: 30,
-    preferences: stylePreferences,
+    limit: 30,
   });
-
-  useEffect(() => {
-    if (recommendationError) {
-      toast.error(recommendationError);
-    }
-  }, [recommendationError]);
+  const loading = ranked === undefined;
 
   useEffect(() => {
     if (!DEV_SEED_CLOSET) return;
@@ -137,32 +123,16 @@ export default function Home() {
   }, [currentUser, convexGarments.length, seeded, seedDevCloset]);
 
   useEffect(() => {
-    if (convexGarmentsRaw === undefined) return;
-
-    const generateRecommendations = async () => {
-      await generate({
-        mood,
-        weather: weather.weather ?? "cloudy",
-        temperature: weather.temperatureCelsius ?? 15,
-        occasion: occasion.trim() || undefined,
-        limitCount: 30,
-        preferences: stylePreferences,
-      });
-    };
-
-    generateRecommendations();
-    // Re-run when mood, weather, or garment count changes — not on every Convex tick (see original).
-  }, [
-    mood,
-    occasion,
-    weather.weather,
-    weather.temperatureCelsius,
-    convexGarments.length,
-    stylePreferences,
-  ]);
-
-  useEffect(() => {
-    if (!outfits?.length) return;
+    if (ranked === undefined || !ranked.outfits?.length) {
+      if (ranked !== undefined && ranked.outfits.length === 0) {
+        setAllRecommendedOutfits([]);
+        setRecommendedOutfit([]);
+        setSkippedIndices(new Set());
+      }
+      return;
+    }
+    const outfits = ranked.outfits;
+    const feedTotal = ranked.totalActions;
     const garments = convexGarmentsRef.current;
     const convertedOutfits: DisplayOutfit[] = outfits.map((outfit, index) => {
       const rawGarments = outfit.garmentIds
@@ -195,6 +165,9 @@ export default function Home() {
         contextWeather: weather.weather ?? undefined,
         contextTemperature: weather.temperatureCelsius ?? undefined,
         scoreBreakdown: outfit.scoreBreakdown,
+        topContributors: outfit.topContributors,
+        feedTotalActions: feedTotal,
+        pickMode: outfit.pickMode,
       };
     });
     setAllRecommendedOutfits(convertedOutfits);
@@ -203,26 +176,27 @@ export default function Home() {
 
     const batchKey = outfits
       .slice(0, DISPLAY_OUTFIT_COUNT)
-      .map((o) => o.garmentIds.join(","))
+      .map((o) => `${o.garmentIds.join(",")}:${o.pickMode ?? ""}`)
       .join("|");
     if (batchKey !== lastLoggedShownBatchRef.current) {
       lastLoggedShownBatchRef.current = batchKey;
       const weatherStr = weather.weather ?? undefined;
       outfits.slice(0, DISPLAY_OUTFIT_COUNT).forEach((outfit) => {
-        logRecommendation({
+        logOutfitAction({
           action: "shown",
           garmentIds: outfit.garmentIds,
           mood,
           weather: weatherStr,
+          pickMode: outfit.pickMode,
         }).catch(console.error);
       });
     }
   }, [
-    outfits,
+    ranked,
     mood,
     weather.weather,
     weather.temperatureCelsius,
-    logRecommendation,
+    logOutfitAction,
   ]);
 
   useEffect(() => {
@@ -288,12 +262,13 @@ export default function Home() {
             undefined,
           explanation: outfit.explanation,
         });
-        await logRecommendation({
+        await logOutfitAction({
           action: "saved",
           outfitId,
           garmentIds: garmentIds.map(String),
           mood: outfit.contextMood ?? mood,
           weather: weatherStr,
+          pickMode: outfit.pickMode,
         }).catch(console.error);
       }
       setSavedOutfitId("done");
@@ -323,11 +298,12 @@ export default function Home() {
     const garmentIds = outfit.garments
       .map((g) => g.id)
       .filter((id): id is NonNullable<typeof id> => id != null) as string[];
-    logRecommendation({
+    logOutfitAction({
       action: "skipped",
       garmentIds,
       mood: outfit.contextMood ?? mood,
       weather: weather.weather ?? undefined,
+      pickMode: outfit.pickMode,
     }).catch(console.error);
     setSkippedIndices((prev) => new Set([...prev, index]));
   };
@@ -359,12 +335,13 @@ export default function Home() {
           outfit.contextTemperature ?? weather.temperatureCelsius ?? undefined,
         explanation: outfit.explanation,
       });
-      await logRecommendation({
+      await logOutfitAction({
         action: "saved",
         outfitId,
         garmentIds: garmentIds.map(String),
         mood: outfit.contextMood ?? mood,
         weather: weather.weather ?? undefined,
+        pickMode: outfit.pickMode,
       }).catch(console.error);
       toast.success("Outfit saved", {
         description: "View in your archive",
@@ -376,6 +353,22 @@ export default function Home() {
     } finally {
       setSavingSingleIndex(null);
     }
+  };
+
+  const handleWorn = (index: number) => {
+    const outfit = recommendedOutfit[index];
+    if (!outfit?.garments?.length) return;
+    const garmentIds = outfit.garments
+      .map((g) => g.id)
+      .filter((id): id is NonNullable<typeof id> => id != null) as string[];
+    logOutfitAction({
+      action: "worn",
+      garmentIds,
+      mood: outfit.contextMood ?? mood,
+      weather: weather.weather ?? undefined,
+      pickMode: outfit.pickMode,
+    }).catch(console.error);
+    toast.success("Marked as worn");
   };
 
   const handleShuffle = () => {
@@ -439,6 +432,11 @@ export default function Home() {
 
       <div className="pt-20 sm:pt-24 md:pt-28 lg:pt-32 pb-24 md:pb-28">
         <PageContainer>
+          <TasteNudge pending={pendingTasteNudges ?? undefined} />
+          <div className="flex flex-wrap items-center justify-end gap-3 mb-6">
+            <TrainedCounter totalActions={ranked?.totalActions} />
+            <StreakBadge streakDays={ranked?.streakDays} />
+          </div>
           <HomeHeroSection
             mood={mood}
             onOpenMoodModal={() => setMoodModalOpen(true)}
@@ -507,6 +505,7 @@ export default function Home() {
             onToggleSelect={toggleOptionIndex}
             onSkip={handleSkip}
             onSaveSingle={(i) => void handleSaveSingle(i)}
+            onWorn={handleWorn}
             savingSingleIndex={savingSingleIndex}
             onCreatePreviewNavigate={navigateToOutfitPreview}
           />

@@ -85,10 +85,12 @@
 |-------|------|----------|
 | `userId` | `string` | yes |
 | `outfitId` | `id<outfits>` | no |
+| `outfitPreviewId` | `id<outfitPreviews>` | no |
 | `garmentIds` | `array<string>` | yes |
 | `action` | `string` | yes |
 | `mood` | `string` | no |
 | `weather` | `string` | no |
+| `pickMode` | `` | no |
 | `loggedAt` | `number` | yes |
 
 ---
@@ -128,6 +130,8 @@
 | `avoidedColors` | `array<string>` | no |
 | `styleGoal` | `string` | no |
 | `styleGoalTags` | `array<string>` | no |
+| `learnedWeights` | `learnedWeightsValidator` | no |
+| `stats` | `userPreferenceStatsValidator` | no |
 
 ---
 

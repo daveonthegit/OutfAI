@@ -1,17 +1,11 @@
-import React, { useMemo, useState } from "react";
-import { useQuery } from "convex/react";
-import { api } from "@convex/_generated/api";
-import {
-  Mood,
-  UserStylePreferences,
-  WeatherCondition,
-} from "@/../../shared/types";
+import React, { useState } from "react";
+import { Mood, WeatherCondition } from "@/../../shared/types";
 import { useOutfitRecommendations } from "@/hooks/use-outfit-recommendations";
 
 /**
  * OutfitRecommendationPanel
  *
- * UI component for generating and displaying outfit recommendations.
+ * Dev/demo UI for generating outfit recommendations via Convex-ranked pipeline.
  */
 
 interface OutfitRecommendationPanelProps {
@@ -41,37 +35,10 @@ const WEATHER_CONDITIONS: WeatherCondition[] = [
 export function OutfitRecommendationPanel({
   userId,
 }: OutfitRecommendationPanelProps) {
-  const preferences = useQuery(api.userPreferences.get);
   const [selectedMood, setSelectedMood] = useState<Mood>("casual");
   const [selectedWeather, setSelectedWeather] =
     useState<WeatherCondition>("sunny");
   const [temperature, setTemperature] = useState(20);
-
-  // Map Convex result to UserStylePreferences (explicit can be null; doc has extra fields; favoriteMoods are strings)
-  const normalizedPreferences: UserStylePreferences | undefined = useMemo(
-    () =>
-      preferences
-        ? {
-            explicit: preferences.explicit
-              ? {
-                  favoriteMoods: preferences.explicit.favoriteMoods as
-                    | Mood[]
-                    | undefined,
-                  preferredStyles: preferences.explicit.preferredStyles,
-                  preferredColors: preferences.explicit.preferredColors,
-                  avoidedColors: preferences.explicit.avoidedColors,
-                }
-              : undefined,
-            learned: {
-              ...preferences.learned,
-              favoriteMoods: preferences.learned.favoriteMoods as
-                | Mood[]
-                | undefined,
-            },
-          }
-        : undefined,
-    [preferences]
-  );
 
   const { outfits, loading, error, explanation, generate } =
     useOutfitRecommendations({
@@ -80,7 +47,6 @@ export function OutfitRecommendationPanel({
       weather: selectedWeather,
       temperature,
       limitCount: 5,
-      preferences: normalizedPreferences,
     });
 
   const handleGenerate = async () => {
@@ -88,7 +54,6 @@ export function OutfitRecommendationPanel({
       mood: selectedMood,
       weather: selectedWeather,
       temperature,
-      preferences: normalizedPreferences,
     });
   };
 
@@ -155,7 +120,8 @@ export function OutfitRecommendationPanel({
 
         {/* Generate Button */}
         <button
-          onClick={handleGenerate}
+          type="button"
+          onClick={() => void handleGenerate()}
           disabled={loading}
           className="w-full bg-foreground text-background py-3 font-semibold hover:opacity-90 disabled:opacity-50"
         >
@@ -203,7 +169,6 @@ export function OutfitRecommendationPanel({
                   {outfit.explanation}
                 </p>
 
-                {/* Garment IDs (would be expanded to show full garment details in real app) */}
                 <div className="mb-4">
                   <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">
                     Pieces:
@@ -220,12 +185,17 @@ export function OutfitRecommendationPanel({
                   </div>
                 </div>
 
-                {/* Action Buttons */}
                 <div className="flex gap-2">
-                  <button className="flex-1 px-4 py-2 border rounded-md hover:bg-gray-50">
+                  <button
+                    type="button"
+                    className="flex-1 px-4 py-2 border rounded-md hover:bg-gray-50"
+                  >
                     Save
                   </button>
-                  <button className="flex-1 px-4 py-2 border rounded-md hover:bg-gray-50">
+                  <button
+                    type="button"
+                    className="flex-1 px-4 py-2 border rounded-md hover:bg-gray-50"
+                  >
                     Shuffle
                   </button>
                 </div>
@@ -239,8 +209,8 @@ export function OutfitRecommendationPanel({
       {!loading && outfits.length === 0 && !error && (
         <div className="p-8 text-center bg-gray-50 rounded-lg">
           <p className="text-gray-600">
-            Select your mood and weather, then click "Generate Outfits" to get
-            started.
+            Select your mood and weather, then click &quot;Generate
+            Outfits&quot; to get started.
           </p>
         </div>
       )}

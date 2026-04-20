@@ -8,12 +8,30 @@ export type UserPreferencesGetPayload = {
     preferredStyles?: string[];
     preferredColors?: string[];
     avoidedColors?: string[];
+    stats?: {
+      totalActions?: number;
+      streakDays?: number;
+      savedCount?: number;
+      skippedCount?: number;
+      wornCount?: number;
+      tasteNudgesFired?: number[];
+    };
+    learnedWeights?: unknown;
   } | null;
   learned: {
     favoriteMoods: string[];
     preferredStyles: string[];
     preferredColors: string[];
   };
+  stats?: {
+    totalActions?: number;
+    streakDays?: number;
+    savedCount?: number;
+    skippedCount?: number;
+    wornCount?: number;
+    tasteNudgesFired?: number[];
+  } | null;
+  learnedWeights?: unknown;
 } | null;
 
 /** Maps Convex userPreferences.get result to the shape expected by the recommendation API. */

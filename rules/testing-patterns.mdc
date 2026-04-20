@@ -18,12 +18,12 @@ Purpose: How tests are run and where they live. The repo uses **Vitest**; tests 
 
 ## Current coverage
 
-- **Server services:** `server/services/garmentImageAnalysisService.test.ts`, `tests/services/outfitRecommendationService.test.ts`. These cover business logic with unit tests.
+- **Server services:** `server/services/garmentImageAnalysisService.test.ts` and commerce tests under `tests/`. **Convex recommendation logic:** `tests/personalization/*.test.ts` (signals, decay, scoring).
 - **Frontend:** No frontend unit or integration tests in the audit; add tests for hooks or pure logic when adding non-trivial behavior (e.g. `useOutfitRecommendations` or form validation).
 
 ## Conventions
 
-- **Naming:** `*.test.ts` or `*.test.tsx` next to the module or in a `tests/` mirror (e.g. `tests/services/outfitRecommendationService.test.ts`).
+- **Naming:** `*.test.ts` or `*.test.tsx` next to the module or in a `tests/` mirror (e.g. `tests/personalization/scoring.test.ts`).
 - **Scope:** Prefer testing server services and shared pure logic; Convex functions can be tested via Convex’s test utilities if needed (not required for MVP).
 - **CI:** `npm run test` runs Vitest; keep it green. Add new test files for new server services with non-trivial logic.
 

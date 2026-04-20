@@ -2,68 +2,44 @@
 
 Purpose
 
-Describe the current outfit recommendation flow, the main service/API boundaries, and the scoring model that powers the core product experience.
+Describe how outfit recommendations are generated, scored, and delivered to the app.
 
 Read this when
 
-- You are changing outfit generation, scoring, or the recommendation API.
-- You need to understand how the main home experience is assembled.
+- You are changing outfit generation, scoring, personalization, or the home / onboarding / packing flows.
 
 Current state
 
-The recommendation system is explainable and rule-based. It uses the user’s garments plus optional mood, weather, temperature, and occasion context to return scored outfits with human-readable explanations.
+Recommendations are computed in **Convex**: `convex/recommendationRank.ts` (`getRankedRecommendations`) loads the user’s garments (optionally filtered by `garmentIds`), builds candidates, scores them with the personalized scorer (`convex/personalization/scoring.ts`), applies ε-greedy exploration, and returns ranked outfits with score breakdowns and `pickMode` (`exploit` | `explore`). User preferences and learned weights come from Convex `userPreferences`; interaction feedback flows through `recommendationLogs.logOutfitAction` and `personalization/hooks`.
 
 Key paths
 
-- `server/services/outfitRecommendationService.ts`
-- `apps/web/app/api/recommendations/route.ts`
-- `apps/web/hooks/use-outfit-recommendations.ts`
-- `apps/web/components/outfit-recommendation-panel.tsx`
-- `shared/types/index.ts`
+- `convex/recommendationRank.ts` — ranked outfits query
+- `convex/recommendations/candidates.ts` — candidate generation
+- `convex/personalization/*` — scoring, signals, decay, preference store
+- `apps/web/hooks/use-outfit-recommendations.ts` — client hook wrapping `useQuery(api.recommendationRank.getRankedRecommendations)` (used by onboarding, packing trip ideas, demo panel)
+- `apps/web/components/home/authenticated-home.tsx` — home feed uses the same query directly + logging
+- `shared/types/index.ts` — `Outfit`, `ScoreBreakdown`, etc.
 
 Flow
 
 ```text
 Client UI
-  -> useOutfitRecommendations
-  -> POST /api/recommendations
-  -> OutfitRecommendationService
-  -> scored outfit results returned to the UI
+  -> useQuery(api.recommendationRank.getRankedRecommendations) or useOutfitRecommendations (same query)
+  -> Convex: candidates + personalized score + exploration
+  -> outfits + breakdowns returned to the UI
 ```
-
-Pipeline
-
-1. Filter garments by context
-2. Generate candidate outfit combinations
-3. Score and rank candidates
-4. Return explanations and breakdowns for the UI
-
-Current scoring concepts
-
-- Base score
-- Color harmony
-- Mood alignment
-- Diversity/completeness
-- Context-sensitive adjustments
 
 Outputs used by the UI
 
-- Ranked outfits
-- Total score
-- Score breakdown
-- Human-readable explanation
+- Ranked outfits with `garmentIds`, `explanation`, `scoreBreakdown`, `topContributors`, `pickMode`
+- Aggregate `totalActions`, `streakDays` where returned for retention UI
 
 Related systems
 
-- Saved outfits are persisted through Convex `outfits`
-- Recommendation interactions are logged through Convex `recommendationLogs`
-- Style insights are handled separately in `server/services/styleInsightsService.ts`
-
-Known limits
-
-- The system is not yet a learning pipeline
-- Auto-tagging and deeper personalization remain future work
-- The quality of results still depends heavily on the completeness of garment metadata
+- Saved outfits: Convex `outfits`
+- Interaction logs: Convex `recommendationLogs` + personalization hooks
+- Style insights: separate API / services
 
 Related docs
 

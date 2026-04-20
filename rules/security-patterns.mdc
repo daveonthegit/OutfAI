@@ -12,7 +12,7 @@ Purpose: Repo-specific security practices for auth, secrets, validation, and API
 
 - **Session:** Better Auth session cookie; middleware checks for cookie presence before allowing access to protected routes. Full validation happens in Convex via `getAuthUser(ctx)`.
 - **Convex:** Every handler that touches user data must call `getAuthUser(ctx)` and scope by `user._id`. Never trust client-provided userId for authorization.
-- **API routes:** `/api/recommendations` and `/api/analyze-garment-image` do not currently verify the session in the route; they rely on the app only being reachable after login (middleware) and on Convex for data ownership. For stricter guarantees, add server-side session resolution (e.g. using `auth-server` helpers) and reject unauthenticated requests.
+- **API routes:** Routes such as `/api/analyze-garment-image` do not always verify the session inside the handler; they rely on middleware and Convex for data ownership where applicable. For stricter guarantees, add server-side session resolution (e.g. using `auth-server` helpers) and reject unauthenticated requests.
 
 ## Secrets and env
 
@@ -34,7 +34,7 @@ Purpose: Repo-specific security practices for auth, secrets, validation, and API
 ## API and DB safety
 
 - **Scoping:** All Convex queries that return user data must filter by `userId` from `getAuthUser(ctx)`.
-- **Rate limiting:** Not implemented in the audit; consider adding rate limits for `/api/recommendations` and `/api/analyze-garment-image` in production.
+- **Rate limiting:** Consider rate limits for expensive API routes (e.g. `/api/analyze-garment-image`) in production.
 - **Third-party APIs:** Call external APIs (e.g. Google Vision) only from server-side code (API routes or server services); never expose API keys to the client.
 
 ## Client-side

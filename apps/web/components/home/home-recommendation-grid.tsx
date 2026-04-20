@@ -20,6 +20,7 @@ type HomeRecommendationGridProps = {
   onToggleSelect: (index: number) => void;
   onSkip: (index: number) => void;
   onSaveSingle: (index: number) => void;
+  onWorn?: (index: number) => void;
   savingSingleIndex: number | null;
   onCreatePreviewNavigate: (outfit: DisplayOutfit) => Promise<void>;
 };
@@ -35,6 +36,7 @@ export function HomeRecommendationGrid({
   onToggleSelect,
   onSkip,
   onSaveSingle,
+  onWorn,
   savingSingleIndex,
   onCreatePreviewNavigate,
 }: HomeRecommendationGridProps) {
@@ -97,6 +99,11 @@ export function HomeRecommendationGrid({
                     onSave={
                       isSelectMode ? undefined : () => onSaveSingle(index)
                     }
+                    onWorn={
+                      isSelectMode || !onWorn ? undefined : () => onWorn(index)
+                    }
+                    whyContributors={outfit.topContributors}
+                    feedTotalActions={outfit.feedTotalActions}
                     isSaving={savingSingleIndex === index}
                     onNavigateToDetail={
                       isSelectMode

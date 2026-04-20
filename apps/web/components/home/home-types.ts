@@ -29,4 +29,7 @@ export interface DisplayOutfit {
   contextWeather?: WeatherCondition;
   contextTemperature?: number;
   scoreBreakdown?: ScoreBreakdown;
+  topContributors?: Array<{ dim: string; value: string; contribution: number }>;
+  feedTotalActions?: number;
+  pickMode?: "exploit" | "explore";
 }

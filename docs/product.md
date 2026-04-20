@@ -57,7 +57,7 @@ Key paths
 
 - `apps/web/app/page.tsx`: authenticated home and primary recommendation surface
 - `apps/web/app/closet`, `add`, `archive`, `profile`, `onboarding`, `plan`, `calendar`, `packing`
-- `server/services/outfitRecommendationService.ts`
+- `convex/recommendationRank.ts` — ranked outfit recommendations (personalization + exploration)
 - `server/services/styleInsightsService.ts`
 
 Related docs

@@ -1,7 +1,24 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { getAuthUser } from "./auth";
-import type { Id } from "./_generated/dataModel";
+import type { Doc, Id } from "./_generated/dataModel";
+import type { PreferenceSignal } from "./personalization/signals";
+import { applySignalsToLearnedWeights } from "./personalization/preferenceStore";
+import { TASTE_NUDGE_SAVE_THRESHOLDS } from "./personalization/constants";
+
+const signalDim = v.union(
+  v.literal("color"),
+  v.literal("style"),
+  v.literal("tag"),
+  v.literal("occasion"),
+  v.literal("category")
+);
+
+const signalValidator = v.object({
+  dim: signalDim,
+  value: v.string(),
+  delta: v.number(),
+});
 
 const OUTFIT_SAMPLE_CAP = 500;
 
@@ -82,6 +99,8 @@ export const get = query({
     return {
       explicit: explicit ?? null,
       learned,
+      stats: explicit?.stats ?? null,
+      learnedWeights: explicit?.learnedWeights ?? null,
     };
   },
 });
@@ -115,5 +134,108 @@ export const save = mutation({
       userId: user._id,
       ...args,
     });
+  },
+});
+
+export const updatePreferenceWeights = mutation({
+  args: {
+    signals: v.array(signalValidator),
+  },
+  handler: async (ctx, { signals }) => {
+    const user = await getAuthUser(ctx);
+    if (!user) throw new Error("Unauthorized");
+    await applySignalsToLearnedWeights(
+      ctx,
+      user._id,
+      signals as PreferenceSignal[]
+    );
+  },
+});
+
+function topEntryFromMaps(
+  learned: Doc<"userPreferences">["learnedWeights"] | undefined
+): { dim: string; value: string; weight: number } | null {
+  if (!learned) return null;
+  let best: { dim: string; value: string; weight: number } | null = null;
+  const dims: (keyof typeof learned)[] = [
+    "color",
+    "style",
+    "tag",
+    "occasion",
+    "category",
+  ];
+  for (const dim of dims) {
+    const rec = learned[dim];
+    if (!rec) continue;
+    for (const [value, weight] of Object.entries(rec)) {
+      if (!best || Math.abs(weight) > Math.abs(best.weight)) {
+        best = { dim, value, weight };
+      }
+    }
+  }
+  return best;
+}
+
+export const getTopLearnedAttribute = query({
+  args: {},
+  handler: async (ctx) => {
+    const user = await getAuthUser(ctx);
+    if (!user) return null;
+    const row = await ctx.db
+      .query("userPreferences")
+      .withIndex("by_userId", (q) => q.eq("userId", user._id))
+      .unique();
+    if (!row?.learnedWeights) return null;
+    return topEntryFromMaps(row.learnedWeights);
+  },
+});
+
+export const acknowledgeTasteNudge = mutation({
+  args: { threshold: v.number() },
+  handler: async (ctx, { threshold }) => {
+    const user = await getAuthUser(ctx);
+    if (!user) throw new Error("Unauthorized");
+    const row = await ctx.db
+      .query("userPreferences")
+      .withIndex("by_userId", (q) => q.eq("userId", user._id))
+      .unique();
+    const prev = row?.stats?.tasteNudgesFired ?? [];
+    if (prev.includes(threshold)) return;
+    const next = [...prev, threshold].sort((a, b) => a - b);
+    if (row) {
+      await ctx.db.patch(row._id, {
+        stats: { ...row.stats, tasteNudgesFired: next },
+      });
+    } else {
+      await ctx.db.insert("userPreferences", {
+        userId: user._id,
+        stats: { tasteNudgesFired: next },
+      });
+    }
+  },
+});
+
+export const pendingTasteNudges = query({
+  args: {},
+  handler: async (ctx) => {
+    const user = await getAuthUser(ctx);
+    if (!user) return [];
+    const row = await ctx.db
+      .query("userPreferences")
+      .withIndex("by_userId", (q) => q.eq("userId", user._id))
+      .unique();
+    const saved = row?.stats?.savedCount ?? 0;
+    const fired = new Set(row?.stats?.tasteNudgesFired ?? []);
+    const top = topEntryFromMaps(row?.learnedWeights);
+    const pending: { threshold: number; label: string }[] = [];
+    for (const t of TASTE_NUDGE_SAVE_THRESHOLDS) {
+      if (saved >= t && !fired.has(t) && top) {
+        pending.push({
+          threshold: t,
+          label: `${top.dim} “${top.value}”`,
+        });
+      }
+    }
+    return pending;
   },
 });

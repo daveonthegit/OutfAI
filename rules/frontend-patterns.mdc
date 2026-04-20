@@ -15,7 +15,7 @@ Purpose: Consistent UI patterns for the OutfAI web app using **Next.js 15 App Ro
 
 - **Framework:** Next.js 15 App Router under `apps/web/app/**`
 - **Data (primary):** Convex — `useQuery(api.*)` and `useMutation(api.*)` from `convex/react`; `api` from `@convex/_generated/api`
-- **Data (secondary):** Next.js API routes — e.g. `fetch("/api/recommendations")` for the recommendation engine; no tRPC client usage for main flows
+- **Data (secondary):** Next.js API routes for style insights, weather, image analysis, etc.; outfit recommendations use **Convex** (`api.recommendationRank.getRankedRecommendations` or `useOutfitRecommendations`); no tRPC client usage for main flows
 - **Auth:** Better Auth (client in `lib/auth-client.ts`); route protection via `useRequireAuth` and middleware (session cookie check)
 - **Styling:** Tailwind CSS 4, Radix-based UI in `components/ui/`, design system “cybersigilism” (see `docs/design-system.md`)
 
@@ -63,7 +63,7 @@ Purpose: Consistent UI patterns for the OutfAI web app using **Next.js 15 App Ro
 - **Convex loading:** `useQuery` returns `undefined` while loading. Treat `data === undefined` as loading; do not treat `[]` as loading.
 - **Loading UI:** Show a short, consistent message (e.g. “Loading…”) or a small skeleton; avoid full-page spinners without context. Prefer `components/ui/skeleton` or inline text like existing closet/archive pages.
 - **Empty:** When `data !== undefined` and `data.length === 0` (or equivalent), show a clear empty state and one primary CTA (e.g. “Add your first piece” → `/add`, “Create your first look” → `/`).
-- **Error:** For Convex, errors surface via query/mutation failure; show a user-visible message and, where possible, a retry or navigation. For `fetch` (e.g. recommendations), use hook-level error state and display it in the UI.
+- **Error:** For Convex, errors surface via query/mutation failure; show a user-visible message and, where possible, a retry or navigation. For other `fetch` calls (non-Convex routes), use hook-level error state and display it in the UI.
 - **Success:** Keep the main content path obvious; avoid cluttering the happy path.
 
 ### Forms and validation
@@ -77,7 +77,7 @@ Purpose: Consistent UI patterns for the OutfAI web app using **Next.js 15 App Ro
 
 - **Convex:** Use `useQuery(api.<module>.<name>)` and `useMutation(api.<module>.<name>)` with `api` from `@convex/_generated/api`; type IDs with `Id<"tableName">` from `@convex/_generated/dataModel`
 - **Auth:** `useRequireAuth("/login")` for redirect-if-unauthenticated; `useConvexAuth()` for `isLoading` / `isAuthenticated`; `useQuery(api.auth.getCurrentUser)` when you need the user document
-- **Recommendations:** `useOutfitRecommendations({ userId, ... })` — it uses `fetch("/api/recommendations")` internally; expose `outfits`, `loading`, `error`, `explanation`, `generate`, `reset`
+- **Recommendations:** `useOutfitRecommendations({ userId, ... })` wraps `useQuery(api.recommendationRank.getRankedRecommendations)` (call `generate()` to load); exposes `outfits`, `loading`, `error`, `explanation`, `generate`, `reset`. Home may call the same query directly.
 - **Naming:** `use-<thing>.ts` (kebab-case file), hook name `useThing` (camelCase)
 
 ## Styling

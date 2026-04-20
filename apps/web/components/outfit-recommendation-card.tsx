@@ -7,6 +7,11 @@ import { motion } from "framer-motion";
 import type { Id } from "@convex/_generated/dataModel";
 import { getCardHoverMotionProps } from "@/lib/animations";
 import type { ScoreBreakdown } from "@shared/types";
+import { OutfitActionButtons } from "@/components/outfit/OutfitActionButtons";
+import {
+  WhyThisOutfit,
+  type WhyContributor,
+} from "@/components/outfit/WhyThisOutfit";
 
 interface Garment {
   id?: Id<"garments">;
@@ -60,8 +65,14 @@ interface OutfitRecommendationCardProps {
   onSkip?: () => void;
   /** When provided (and not in select mode), show a Save button; on click caller saves this outfit. */
   onSave?: () => void;
+  /** Mark outfit as worn (feeds personalization). */
+  onWorn?: () => void;
   /** When true, Save was just used for this card (e.g. show "Saved" state). */
   isSaving?: boolean;
+  /** Top score contributors for “why this outfit” chips. */
+  whyContributors?: WhyContributor[];
+  /** Total feedback actions (for hiding chips until enough data). */
+  feedTotalActions?: number;
   /** When set, called instead of pushing JSON in the URL (stable preview id flow). */
   onNavigateToDetail?: () => void | Promise<void>;
 }
@@ -79,7 +90,10 @@ export function OutfitRecommendationCard({
   onToggleSelect,
   onSkip,
   onSave,
+  onWorn,
   isSaving = false,
+  whyContributors,
+  feedTotalActions = 0,
   onNavigateToDetail,
 }: OutfitRecommendationCardProps) {
   const router = useRouter();
@@ -102,22 +116,22 @@ export function OutfitRecommendationCard({
         e.preventDefault();
         onSkip?.();
       }
+      if (e.key === "w" || e.key === "W") {
+        e.preventDefault();
+        onWorn?.();
+      }
     };
     el.addEventListener("keydown", onKeyDown);
     return () => el.removeEventListener("keydown", onKeyDown);
-  }, [onSave, onSkip]);
+  }, [onSave, onSkip, onWorn]);
 
   if (garments.length === 0) return null;
 
-  const handleSave = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const handleSave = () => {
     onSave?.();
   };
 
-  const handleSkip = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const handleSkip = () => {
     onSkip?.();
   };
 
@@ -199,30 +213,13 @@ export function OutfitRecommendationCard({
       </button>
 
       {/* Skip + Save - when not in select mode (outside main button to avoid nested buttons) */}
-      {!isSelectMode && (onSkip || onSave) && (
-        <div className="absolute top-2 left-2 right-2 z-10 flex justify-between gap-2">
-          {onSkip && (
-            <button
-              type="button"
-              onClick={handleSkip}
-              className="p-1.5 glass-bar border-border hover:border-foreground hover:text-foreground transition-colors text-[9px] uppercase tracking-widest focus-visible:ring-2 focus-visible:ring-signal-orange focus-visible:ring-offset-1 focus-visible:outline-none rounded-sm"
-              aria-label="Skip this outfit"
-            >
-              Skip
-            </button>
-          )}
-          {onSave && (
-            <button
-              type="button"
-              onClick={handleSave}
-              disabled={isSaving}
-              className="p-1.5 glass-bar border-signal-orange/60 text-signal-orange hover:bg-signal-orange/10 transition-colors text-[9px] uppercase tracking-widest disabled:opacity-60 focus-visible:ring-2 focus-visible:ring-signal-orange focus-visible:ring-offset-1 focus-visible:outline-none ml-auto rounded-sm"
-              aria-label={isSaving ? "Saving…" : "Save this outfit"}
-            >
-              {isSaving ? "Saving…" : "Save"}
-            </button>
-          )}
-        </div>
+      {!isSelectMode && (onSkip || onSave || onWorn) && (
+        <OutfitActionButtons
+          onSkip={onSkip ? handleSkip : undefined}
+          onSave={onSave ? handleSave : undefined}
+          onWorn={onWorn}
+          isSaving={isSaving}
+        />
       )}
 
       {/* Selection checkbox overlay - same as closet */}
@@ -266,6 +263,10 @@ export function OutfitRecommendationCard({
           <p className="text-[9px] uppercase tracking-widest text-muted-foreground mb-3">
             {garments.length} pieces
           </p>
+          <WhyThisOutfit
+            contributors={whyContributors ?? []}
+            totalActions={feedTotalActions}
+          />
         </div>
         {isSelectMode ? (
           <span className="text-[10px] uppercase tracking-[0.2em] text-signal-orange pointer-events-none">

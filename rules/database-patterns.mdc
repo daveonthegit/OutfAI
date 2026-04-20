@@ -18,7 +18,7 @@ Purpose: This repo uses **Convex** as the only database. There is **no Prisma**,
 ## Data access
 
 - **Only in Convex:** All reads and writes go through Convex query/mutation handlers in `convex/*.ts`. Use `ctx.db.get(id)`, `ctx.db.query("tableName").withIndex("indexName", q => q.eq("field", value)).collect()`, `ctx.db.insert()`, `ctx.db.patch()`, `ctx.db.delete()`.
-- **No direct DB from Next.js or server services:** Server services (e.g. `OutfitRecommendationService`) receive data as arguments (e.g. garments array from the client or from a Convex query run elsewhere). They do not import Convex or a DB client.
+- **No direct DB from Next.js or server services:** Server services (e.g. `garmentImageAnalysisService`) receive data as arguments (e.g. image buffer, user-provided fields). They do not import Convex or a DB client. Outfit recommendation logic runs in Convex, not in `server/services`.
 - **File storage:** Use `ctx.storage.generateUploadUrl()` and `ctx.storage.getUrl(storageId)` inside Convex mutations; store `storageId` or the resulting URL in table fields as needed.
 
 ## Validation

@@ -10,13 +10,13 @@ alwaysApply: true
 
 # Backend Patterns — OutfAI
 
-Purpose: Define how server-side behavior is structured in OutfAI. The repo uses **Convex** as the primary backend (database, queries, mutations, auth, file storage) and **Next.js API routes** that call **server services** for heavier workflows (recommendations, image analysis). There is **no Prisma** and **no server/actions** layer.
+Purpose: Define how server-side behavior is structured in OutfAI. The repo uses **Convex** as the primary backend (database, queries, mutations, auth, file storage) and **Next.js API routes** that call **server services** for heavier workflows (image analysis, style insights, product recommendations). Outfit recommendations are implemented in Convex (`convex/recommendationRank.ts`), not server services. There is **no Prisma** and **no server/actions** layer.
 
 ## Tech context
 
 - **Convex:** All persistent data (garments, outfits, userPreferences, recommendationLogs) and auth (Better Auth via `@convex-dev/better-auth`). Queries/mutations live in `convex/*.ts`.
-- **Server services:** `server/services/*.ts` — pure business logic (e.g. `OutfitRecommendationService`, `garmentImageAnalysisService`). No DB or HTTP; they receive input and return results.
-- **API surface:** Next.js route handlers in `apps/web/app/api/*/route.ts` call server services and return JSON. A tRPC app router exists at `server/api/routers/` and is mounted at `/api/trpc`, but the main app uses Convex + direct API routes (e.g. `/api/recommendations`, `/api/analyze-garment-image`).
+- **Server services:** `server/services/*.ts` — pure business logic (e.g. `garmentImageAnalysisService`, `productRecommendationService`). No DB or HTTP; they receive input and return results.
+- **API surface:** Next.js route handlers in `apps/web/app/api/*/route.ts` call server services and return JSON. A tRPC app router exists at `server/api/routers/` and is mounted at `/api/trpc`, but the main app uses Convex + direct API routes (e.g. `/api/analyze-garment-image`).
 
 ## Convex layer
 
@@ -48,7 +48,7 @@ Purpose: Define how server-side behavior is structured in OutfAI. The repo uses 
 
 ## Server services layer
 
-- **Location:** `server/services/<name>Service.ts` (e.g. `outfitRecommendationService.ts`, `garmentImageAnalysisService.ts`).
+- **Location:** `server/services/<name>Service.ts` (e.g. `garmentImageAnalysisService.ts`, `productRecommendationService.ts`).
 - **Responsibility:** Pure business logic — input in, result out. No Convex/DB imports, no HTTP. Callable from Next.js API routes or (in theory) tRPC.
 - **Testing:** Prefer unit tests next to the service (`server/services/<name>.test.ts`) or in `tests/services/`; cover happy path, empty input, and edge cases.
 - **External APIs:** If a service needs external calls (e.g. Google Vision), keep them inside the service and pass credentials via env; do not put HTTP calls in Convex handlers.
@@ -56,16 +56,16 @@ Purpose: Define how server-side behavior is structured in OutfAI. The repo uses 
 ## API routes (Next.js)
 
 - **Location:** `apps/web/app/api/<name>/route.ts`.
-- **When to use:** For workflows that need to call server services with data the client already has (e.g. garments from Convex passed to the recommendation engine), or when the client must not call Convex directly (e.g. image analysis that uses server-only secrets).
+- **When to use:** For workflows that need server-only secrets or non-Convex orchestration (e.g. image analysis, external APIs), or when passing large payloads through a controlled boundary. Outfit recommendations use Convex queries instead.
 - **Pattern:** Parse request body, validate required fields, call server service, return `NextResponse.json(result)` or appropriate error status and JSON.
 - **Errors:** Catch service errors; return 400 for bad input, 500 for unexpected errors; log server-side; do not leak internals to the client.
-- **Auth:** Recommendations and other authenticated flows should receive a userId (or session) from the client; the API route can validate session via Better Auth helpers if needed. Currently `/api/recommendations` and `/api/analyze-garment-image` do not enforce auth in the route (rely on middleware protecting pages and Convex for data access).
+- **Auth:** Recommendations and other authenticated flows should receive a userId (or session) from the client; the API route can validate session via Better Auth helpers if needed. Some routes (e.g. `/api/analyze-garment-image`) may not enforce auth inside the handler; rely on middleware and Convex where appropriate.
 
 ## tRPC (existing but secondary)
 
 - **Location:** `server/api/routers/*.ts`, `server/api/trpc.ts`, `server/api/routers/_app.ts`; handler at `apps/web/app/api/trpc/[trpc]/route.ts`.
-- **Context:** `createContext` is `() => ({})` — no auth in tRPC context. Used for `garments.analyzeGarmentImage` and `recommendations.generate`; the frontend currently uses **Next.js API routes** for recommendations and analyze-garment-image, not the tRPC client.
-- **Preference for new work:** Prefer Convex for data and Next.js API routes for server-service calls (e.g. recommendations, image analysis). If you add a new tRPC procedure, document why it is preferred over an API route.
+- **Context:** `createContext` is `() => ({})` — no auth in tRPC context. If present, procedures mirror patterns also exposed via API routes; the main app uses Convex + Next.js API routes for server workflows.
+- **Preference for new work:** Prefer Convex for data and Next.js API routes for server-service calls (e.g. image analysis). If you add a new tRPC procedure, document why it is preferred over an API route.
 
 ## Error handling
 

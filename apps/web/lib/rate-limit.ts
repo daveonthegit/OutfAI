@@ -5,7 +5,6 @@ import { NextResponse } from "next/server";
 
 /** Route-specific limits (per IP + route key). */
 export const RATE_LIMIT_POLICIES = {
-  recommendations: { max: 40, windowMs: 60_000 },
   "product-recommendations": { max: 40, windowMs: 60_000 },
   "style-insights": { max: 30, windowMs: 60_000 },
   "analyze-garment-image": { max: 20, windowMs: 60_000 },
