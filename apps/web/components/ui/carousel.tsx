@@ -7,7 +7,7 @@ import useEmblaCarousel, {
 import { ArrowLeft, ArrowRight } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
+import { BrutalistButton } from "@/components/brutalist-button";
 
 type CarouselApi = UseEmblaCarouselType[1];
 type UseCarouselParameters = Parameters<typeof useEmblaCarousel>;
@@ -176,16 +176,18 @@ function CarouselPrevious({
   variant = "outline",
   size = "icon",
   ...props
-}: React.ComponentProps<typeof Button>) {
+}: Omit<React.ComponentProps<typeof BrutalistButton>, "size"> & {
+  size?: "icon" | "sm" | "md" | "lg";
+}) {
   const { orientation, scrollPrev, canScrollPrev } = useCarousel();
 
   return (
-    <Button
+    <BrutalistButton
       data-slot="carousel-previous"
       variant={variant}
       size={size}
       className={cn(
-        "absolute size-8 rounded-full",
+        "absolute size-8 rounded-none",
         orientation === "horizontal"
           ? "top-1/2 -left-12 -translate-y-1/2"
           : "-top-12 left-1/2 -translate-x-1/2 rotate-90",
@@ -197,7 +199,7 @@ function CarouselPrevious({
     >
       <ArrowLeft />
       <span className="sr-only">Previous slide</span>
-    </Button>
+    </BrutalistButton>
   );
 }
 
@@ -206,16 +208,18 @@ function CarouselNext({
   variant = "outline",
   size = "icon",
   ...props
-}: React.ComponentProps<typeof Button>) {
+}: Omit<React.ComponentProps<typeof BrutalistButton>, "size"> & {
+  size?: "icon" | "sm" | "md" | "lg";
+}) {
   const { orientation, scrollNext, canScrollNext } = useCarousel();
 
   return (
-    <Button
+    <BrutalistButton
       data-slot="carousel-next"
       variant={variant}
       size={size}
       className={cn(
-        "absolute size-8 rounded-full",
+        "absolute size-8 rounded-none",
         orientation === "horizontal"
           ? "top-1/2 -right-12 -translate-y-1/2"
           : "-bottom-12 left-1/2 -translate-x-1/2 rotate-90",
@@ -227,7 +231,7 @@ function CarouselNext({
     >
       <ArrowRight />
       <span className="sr-only">Next slide</span>
-    </Button>
+    </BrutalistButton>
   );
 }
 

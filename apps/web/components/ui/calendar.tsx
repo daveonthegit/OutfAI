@@ -9,7 +9,10 @@ import {
 import { DayButton, DayPicker, getDefaultClassNames } from "react-day-picker";
 
 import { cn } from "@/lib/utils";
-import { Button, buttonVariants } from "@/components/ui/button";
+import {
+  BrutalistButton,
+  brutalistButtonVariants,
+} from "@/components/brutalist-button";
 
 function Calendar({
   className,
@@ -21,7 +24,7 @@ function Calendar({
   components,
   ...props
 }: React.ComponentProps<typeof DayPicker> & {
-  buttonVariant?: React.ComponentProps<typeof Button>["variant"];
+  buttonVariant?: "solid" | "outline" | "ghost" | "destructive";
 }) {
   const defaultClassNames = getDefaultClassNames();
 
@@ -52,12 +55,12 @@ function Calendar({
           defaultClassNames.nav
         ),
         button_previous: cn(
-          buttonVariants({ variant: buttonVariant }),
+          brutalistButtonVariants({ variant: buttonVariant, size: "icon" }),
           "size-(--cell-size) aria-disabled:opacity-50 p-0 select-none",
           defaultClassNames.button_previous
         ),
         button_next: cn(
-          buttonVariants({ variant: buttonVariant }),
+          brutalistButtonVariants({ variant: buttonVariant, size: "icon" }),
           "size-(--cell-size) aria-disabled:opacity-50 p-0 select-none",
           defaultClassNames.button_next
         ),
@@ -186,7 +189,7 @@ function CalendarDayButton({
   }, [modifiers.focused]);
 
   return (
-    <Button
+    <BrutalistButton
       ref={ref}
       variant="ghost"
       size="icon"

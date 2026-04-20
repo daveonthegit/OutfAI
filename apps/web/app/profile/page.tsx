@@ -8,6 +8,8 @@ import { api } from "@convex/_generated/api";
 import type { Id } from "@convex/_generated/dataModel";
 import { useRequireAuth } from "@/hooks/use-require-auth";
 import { PageContainer } from "@/components/layout/page-container";
+import { GlassBar } from "@/components/layout/glass";
+import { LoadingState } from "@/components/loading-state";
 import { UserAvatar } from "@/components/user-avatar";
 import { authClient } from "@/lib/auth-client";
 import { BrutalistAvatar } from "@/components/brutalist-avatar";
@@ -273,7 +275,10 @@ export default function ProfilePage() {
 
   return (
     <main className="min-h-screen bg-background text-foreground selection:bg-signal-orange selection:text-background">
-      <header className="fixed top-0 left-0 right-0 z-50 glass-bar rounded-none border-x-0 border-t-0 border-b border-border">
+      <GlassBar
+        role="banner"
+        className="fixed top-0 left-0 right-0 z-50 border-x-0 border-t-0 border-b border-border"
+      >
         <div className="flex items-center justify-between px-4 py-5 md:px-8 lg:px-10 xl:px-12">
           <Link
             href="/"
@@ -294,7 +299,7 @@ export default function ProfilePage() {
             <UserAvatar />
           </div>
         </div>
-      </header>
+      </GlassBar>
 
       <div className="pt-20 sm:pt-24 md:pt-28 lg:pt-32 pb-24 md:pb-28">
         <PageContainer narrow className="max-w-xl">
@@ -457,10 +462,7 @@ export default function ProfilePage() {
                     </form>
                   )
                 ) : (
-                  <div className="space-y-2">
-                    <div className="h-4 w-32 bg-muted-foreground/10 animate-pulse rounded" />
-                    <div className="h-3 w-48 bg-muted-foreground/10 animate-pulse rounded" />
-                  </div>
+                  <LoadingState mode="spinner" className="py-1" />
                 )}
               </div>
             </div>

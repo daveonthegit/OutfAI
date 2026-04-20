@@ -1,9 +1,10 @@
 "use client";
 
+import * as React from "react";
 import { cva, type VariantProps } from "class-variance-authority";
 
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
+import { BrutalistButton } from "@/components/brutalist-button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -102,13 +103,21 @@ function InputGroupButton({
   variant = "ghost",
   size = "xs",
   ...props
-}: Omit<React.ComponentProps<typeof Button>, "size"> &
+}: Omit<React.ComponentProps<typeof BrutalistButton>, "size"> &
   VariantProps<typeof inputGroupButtonVariants>) {
+  const bruteSize =
+    size === "icon-xs" || size === "icon-sm"
+      ? "icon"
+      : size === "sm"
+        ? "md"
+        : "sm";
+
   return (
-    <Button
+    <BrutalistButton
       type={type}
       data-size={size}
       variant={variant}
+      size={bruteSize}
       className={cn(inputGroupButtonVariants({ size }), className)}
       {...props}
     />

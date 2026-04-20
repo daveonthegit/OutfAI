@@ -17,6 +17,7 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { toast } from "sonner";
+import { GlassBar } from "@/components/layout/glass";
 
 const DELETE_CONFIRM_TEXT = "DELETE";
 
@@ -180,7 +181,10 @@ export default function ProfileSettingsPage() {
 
   return (
     <main className="min-h-screen bg-background text-foreground selection:bg-signal-orange selection:text-background">
-      <header className="fixed top-0 left-0 right-0 z-50 glass-bar rounded-none border-x-0 border-t-0 border-b border-border">
+      <GlassBar
+        role="banner"
+        className="fixed top-0 left-0 right-0 z-50 border-x-0 border-t-0 border-b border-border"
+      >
         <div className="flex items-center justify-between px-4 py-5 md:px-8 lg:px-10 xl:px-12">
           <Link
             href="/"
@@ -195,7 +199,7 @@ export default function ProfileSettingsPage() {
             Profile
           </Link>
         </div>
-      </header>
+      </GlassBar>
 
       <div className="pt-24 md:pt-32 px-4 md:px-8 lg:px-12 pb-28 max-w-xl">
         <Breadcrumb className="mb-6">

@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { BrutalistBadge } from "@/components/brutalist-badge";
 
 const OUTFIT = {
   garments: [
@@ -123,7 +124,9 @@ export default function ExplainPage() {
             {/* Weather alignment */}
             <div>
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-1.5 h-1.5 bg-electric-blue" />
+                <span className="shrink-0">
+                  <BrutalistBadge variant="blue">Weather</BrutalistBadge>
+                </span>
                 <h3 className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
                   Weather Alignment
                 </h3>
@@ -136,7 +139,9 @@ export default function ExplainPage() {
             {/* Mood alignment */}
             <div>
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-1.5 h-1.5 bg-signal-orange" />
+                <span className="shrink-0">
+                  <BrutalistBadge variant="orange">Mood</BrutalistBadge>
+                </span>
                 <h3 className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
                   Mood Alignment
                 </h3>
@@ -149,7 +154,9 @@ export default function ExplainPage() {
             {/* Styling logic */}
             <div>
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-1.5 h-1.5 bg-acid-lime" />
+                <span className="shrink-0">
+                  <BrutalistBadge variant="lime">Style</BrutalistBadge>
+                </span>
                 <h3 className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
                   Styling Logic
                 </h3>

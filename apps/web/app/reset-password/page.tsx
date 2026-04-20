@@ -13,6 +13,7 @@ import {
   authStandalonePrimaryButtonClass,
 } from "@/components/marketing/auth-standalone-layout";
 import { authInputClassName } from "@/components/marketing/form-panel";
+import { LoadingState } from "@/components/loading-state";
 
 function cardWrap(content: React.ReactNode) {
   return (
@@ -215,7 +216,7 @@ export default function ResetPasswordPage() {
     <Suspense
       fallback={
         <main className="flex min-h-screen items-center justify-center bg-background px-4">
-          <div className="text-sm text-muted-foreground">Loading…</div>
+          <LoadingState mode="spinner" />
         </main>
       }
     >

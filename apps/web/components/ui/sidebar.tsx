@@ -7,7 +7,7 @@ import { PanelLeftIcon } from "lucide-react";
 
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
+import { BrutalistButton } from "@/components/brutalist-button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -257,16 +257,16 @@ function SidebarTrigger({
   className,
   onClick,
   ...props
-}: React.ComponentProps<typeof Button>) {
+}: React.ComponentProps<typeof BrutalistButton>) {
   const { toggleSidebar } = useSidebar();
 
   return (
-    <Button
+    <BrutalistButton
       data-sidebar="trigger"
       data-slot="sidebar-trigger"
       variant="ghost"
       size="icon"
-      className={cn("size-7", className)}
+      className={cn("size-7 min-h-7 min-w-7 p-0", className)}
       onClick={(event) => {
         onClick?.(event);
         toggleSidebar();
@@ -275,7 +275,7 @@ function SidebarTrigger({
     >
       <PanelLeftIcon />
       <span className="sr-only">Toggle Sidebar</span>
-    </Button>
+    </BrutalistButton>
   );
 }
 

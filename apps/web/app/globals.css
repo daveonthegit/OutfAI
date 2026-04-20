@@ -221,6 +221,26 @@
 
 /* Focus-visible ring for keyboard users (UI/UX audit) */
 @layer utilities {
+  /**
+   * Frozen typography tiers (UI/UX audit) — app pages use these only.
+   * style doc page may show additional examples.
+   */
+  .text-display-xl {
+    @apply font-serif italic text-5xl md:text-7xl leading-[0.95] tracking-tight;
+  }
+  .text-display-lg {
+    @apply font-serif italic text-3xl md:text-4xl leading-tight;
+  }
+  .text-display-md {
+    @apply font-serif italic text-2xl leading-tight;
+  }
+  .text-body {
+    @apply font-sans text-sm leading-relaxed;
+  }
+  .text-label {
+    @apply font-sans text-xs uppercase tracking-[0.2em];
+  }
+
   .focus-visible-ring {
     @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-signal-orange focus-visible:ring-offset-2 focus-visible:ring-offset-background;
   }

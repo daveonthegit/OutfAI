@@ -13,6 +13,7 @@ import { BrutalistButton } from "@/components/brutalist-button";
 import { OutfitRecommendationCard } from "@/components/outfit-recommendation-card";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { GlassBar, GlassPanel } from "@/components/layout/glass";
 
 const chipBase =
   "min-h-9 rounded-sm border px-3 py-2 text-[11px] uppercase tracking-[0.16em] transition-colors duration-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background";
@@ -156,7 +157,7 @@ export default function OnboardingPage() {
         aria-hidden
         className="glass-veil pointer-events-none absolute inset-0 z-[1]"
       />
-      <header className="glass-bar fixed left-0 right-0 top-0 z-50 rounded-none border-x-0 border-t-0 border-b border-border pt-[env(safe-area-inset-top)]">
+      <GlassBar className="fixed left-0 right-0 top-0 z-50 border-x-0 border-t-0 border-b border-border pt-[env(safe-area-inset-top)]">
         <div className="flex items-center justify-between px-4 py-4 md:px-8 md:py-5">
           <Link
             href="/"
@@ -178,7 +179,7 @@ export default function OnboardingPage() {
             Skip for now
           </button>
         </div>
-      </header>
+      </GlassBar>
 
       <p className="sr-only">
         Onboarding step {stepIndex + 1} of {STEPS.length}: {step.title}
@@ -220,14 +221,14 @@ export default function OnboardingPage() {
               Add at least {MIN_GARMENTS_SUGGESTED} items to get better
               recommendations. You can add more anytime.
             </p>
-            <div className="glass-panel rounded-sm px-5 py-4">
+            <GlassPanel className="px-5 py-4">
               <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
                 Your closet
               </p>
               <p className="mt-1 text-2xl font-light tabular-nums tracking-tight text-foreground">
                 {garments.length} item{garments.length !== 1 ? "s" : ""}
               </p>
-            </div>
+            </GlassPanel>
             <BrutalistButton variant="outline" asChild>
               <Link href="/add">Add garment</Link>
             </BrutalistButton>
@@ -348,7 +349,7 @@ export default function OnboardingPage() {
             </p>
 
             {garments.length === 0 ? (
-              <div className="glass-panel rounded-sm px-5 py-4 text-sm leading-relaxed text-muted-foreground">
+              <GlassPanel className="px-5 py-4 text-sm leading-relaxed text-muted-foreground">
                 Add at least one garment first.{" "}
                 <Link
                   href="/add"
@@ -356,7 +357,7 @@ export default function OnboardingPage() {
                 >
                   Add garment
                 </Link>
-              </div>
+              </GlassPanel>
             ) : (
               <>
                 <div className="space-y-2">
@@ -412,7 +413,7 @@ export default function OnboardingPage() {
                         type: g.category,
                       }));
                     return (
-                      <div className="glass-panel rounded-sm p-4 sm:p-5">
+                      <GlassPanel className="p-4 sm:p-5">
                         <p className="mb-3 text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
                           Suggested outfit
                         </p>
@@ -424,7 +425,7 @@ export default function OnboardingPage() {
                           contextWeather={first.contextWeather}
                           scoreBreakdown={first.scoreBreakdown}
                         />
-                      </div>
+                      </GlassPanel>
                     );
                   })()}
               </>

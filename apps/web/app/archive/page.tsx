@@ -16,6 +16,8 @@ import type { Id } from "@convex/_generated/dataModel";
 import { formatDistanceToNow, isThisWeek, isThisMonth } from "date-fns";
 import { useRequireAuth } from "@/hooks/use-require-auth";
 import { UserAvatar } from "@/components/user-avatar";
+import { LoadingState } from "@/components/loading-state";
+import { EmptyState, EmptyStateActionLink } from "@/components/empty-state";
 
 const GARMENT_CATEGORY_ORDER = [
   "top",
@@ -221,32 +223,17 @@ export default function ArchivePage() {
           <SectionHeader title="archive" subtitle="Your saved looks" />
 
           {outfits === undefined ? (
-            <p className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
-              Loading…
-            </p>
+            <LoadingState mode="skeleton" skeletonCount={6} />
           ) : outfits.length === 0 ? (
-            <section className="text-center py-20">
-              <p className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground mb-4">
-                No saved looks yet
-              </p>
-              <Link
-                href="/"
-                className="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.2em] text-foreground hover:text-signal-orange transition-colors duration-100"
-              >
-                Create your first look
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                >
-                  <line x1="5" y1="12" x2="19" y2="12" />
-                  <polyline points="12 5 19 12 12 19" />
-                </svg>
-              </Link>
-            </section>
+            <EmptyState
+              title="No saved looks yet"
+              description="Save an outfit from recommendations to see it here."
+              action={
+                <EmptyStateActionLink href="/">
+                  Create your first look
+                </EmptyStateActionLink>
+              }
+            />
           ) : (
             <>
               {/* Toolbar — FilterBar (UI/UX audit) */}
@@ -281,11 +268,10 @@ export default function ArchivePage() {
               />
 
               {filteredAndSorted.length === 0 ? (
-                <section className="text-center py-12">
-                  <p className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
-                    No looks match your search or filters. Try changing them.
-                  </p>
-                </section>
+                <EmptyState
+                  title="No matches"
+                  description="No looks match your search or filters. Try changing them."
+                />
               ) : (
                 <motion.div
                   ref={gridRef}

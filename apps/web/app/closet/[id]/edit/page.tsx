@@ -21,6 +21,7 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { toast } from "sonner";
+import { LoadingState } from "@/components/loading-state";
 
 type Category = "top" | "bottom" | "shoes" | "outerwear" | "accessory";
 
@@ -157,9 +158,7 @@ export default function EditGarmentPage() {
     return (
       <main className="min-h-screen bg-background text-foreground">
         <PageContainer>
-          <p className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
-            Loading…
-          </p>
+          <LoadingState mode="spinner" />
         </PageContainer>
       </main>
     );

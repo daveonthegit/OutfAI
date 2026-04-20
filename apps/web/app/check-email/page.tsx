@@ -9,6 +9,7 @@ import {
   authStandaloneCardClass,
   authStandalonePrimaryButtonClass,
 } from "@/components/marketing/auth-standalone-layout";
+import { LoadingState } from "@/components/loading-state";
 
 function CheckEmailContent() {
   const searchParams = useSearchParams();
@@ -81,11 +82,7 @@ export default function CheckEmailPage() {
       fallback={
         <main className="flex min-h-screen items-center justify-center bg-background px-4">
           <div className="flex flex-col items-center gap-3">
-            <span
-              className="h-8 w-8 animate-spin rounded-full border-2 border-muted-foreground/30 border-t-foreground motion-reduce:animate-none"
-              aria-hidden
-            />
-            <span className="text-sm text-muted-foreground">Loading…</span>
+            <LoadingState mode="spinner" className="[&_svg]:size-8" />
           </div>
         </main>
       }

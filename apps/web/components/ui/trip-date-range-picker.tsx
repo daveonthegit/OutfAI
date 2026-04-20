@@ -6,7 +6,7 @@ import { format } from "date-fns";
 import type { DateRange } from "react-day-picker";
 
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
+import { BrutalistButton } from "@/components/brutalist-button";
 import { Calendar } from "@/components/ui/calendar";
 import { Label } from "@/components/ui/label";
 import {
@@ -76,19 +76,20 @@ export function TripDateRangePicker({
       {label && (
         <Label
           htmlFor={id}
-          className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground font-medium"
+          className="text-label text-muted-foreground font-medium"
         >
           {label}
         </Label>
       )}
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
-          <Button
+          <BrutalistButton
             id={id}
             variant="outline"
+            size="md"
             disabled={disabled}
             className={cn(
-              "w-full justify-between font-normal text-left",
+              "w-full justify-between font-normal normal-case tracking-normal text-left",
               "border-border bg-background hover:bg-secondary/50",
               "focus-visible:ring-signal-orange focus-visible:ring-offset-background",
               !range?.from && "text-muted-foreground"
@@ -96,14 +97,14 @@ export function TripDateRangePicker({
             aria-label={label}
             aria-expanded={open}
           >
-            <span className="text-[11px] uppercase tracking-[0.15em] truncate">
+            <span className="text-label truncate normal-case">
               {displayText}
             </span>
             <ChevronDownIcon
               className={cn("size-4 shrink-0 opacity-70", open && "rotate-180")}
               aria-hidden
             />
-          </Button>
+          </BrutalistButton>
         </PopoverTrigger>
         <PopoverContent
           className="w-auto overflow-hidden p-0 border-border bg-card"

@@ -28,8 +28,8 @@ describe("codeToWeatherLabel", () => {
 });
 
 describe("weatherLabelToDisplay", () => {
-  it("returns Loading for null", () => {
-    expect(weatherLabelToDisplay(null)).toBe("Loading…");
+  it("returns empty string for null (loading is rendered in UI)", () => {
+    expect(weatherLabelToDisplay(null)).toBe("");
   });
 
   it("maps known labels", () => {

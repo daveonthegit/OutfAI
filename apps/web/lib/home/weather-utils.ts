@@ -27,7 +27,7 @@ import type { WeatherCondition } from "@shared/types";
 export function weatherLabelToDisplay(
   weather: WeatherCondition | null
 ): string {
-  if (weather === null) return "Loading…";
+  if (weather === null) return "";
   const map: Record<WeatherCondition, string> = {
     sunny: "Sunny",
     cloudy: "Cloudy",

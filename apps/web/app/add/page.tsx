@@ -22,6 +22,7 @@ import { AddGarmentUploadPanel } from "@/components/add/add-garment-upload-panel
 import { AddGarmentFormFields } from "@/components/add/add-garment-form-fields";
 import { AddGarmentSaveBar } from "@/components/add/add-garment-save-bar";
 import type { AddCategory } from "@/components/add/add-garment-constants";
+import { BrutalistProgress } from "@/components/brutalist-progress";
 export default function AddGarmentPage() {
   useRequireAuth("/add");
   const router = useRouter();
@@ -50,6 +51,7 @@ export default function AddGarmentPage() {
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const autoAnalyzedFileRef = useRef<File | null>(null);
 
   useEffect(() => {
     if (selectedCategory && selectedColor) {
@@ -92,6 +94,16 @@ export default function AddGarmentPage() {
       setAnalyzeLoading(false);
     }
   }, [selectedFile]);
+
+  useEffect(() => {
+    if (!selectedFile) {
+      autoAnalyzedFileRef.current = null;
+      return;
+    }
+    if (autoAnalyzedFileRef.current === selectedFile) return;
+    autoAnalyzedFileRef.current = selectedFile;
+    void handleAnalyzeImage();
+  }, [selectedFile, handleAnalyzeImage]);
 
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
@@ -230,6 +242,17 @@ export default function AddGarmentPage() {
       <div className="pt-20 sm:pt-24 md:pt-28 lg:pt-32 pb-24 md:pb-28">
         <PageContainer>
           <SectionHeader title="add garment" subtitle="Expand your archive" />
+
+          {analyzeLoading && (
+            <div className="mb-6 max-w-md">
+              <BrutalistProgress
+                value={68}
+                variant="orange"
+                label="Analyzing image"
+                showValue={false}
+              />
+            </div>
+          )}
 
           <SplitPane leftFraction="2/5">
             <AddGarmentUploadPanel

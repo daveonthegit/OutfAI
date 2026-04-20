@@ -60,13 +60,6 @@ export default function Home() {
     }
   }, [searchParams]);
 
-  useEffect(() => {
-    const openMood = searchParams.get("openMood");
-    if (openMood === "1" || openMood === "true") {
-      setMoodModalOpen(true);
-    }
-  }, [searchParams]);
-
   const [allRecommendedOutfits, setAllRecommendedOutfits] = useState<
     DisplayOutfit[]
   >([]);

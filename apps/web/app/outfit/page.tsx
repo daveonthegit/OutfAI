@@ -10,6 +10,15 @@ import type { Id } from "@convex/_generated/dataModel";
 import { PageContainer } from "@/components/layout/page-container";
 import { ContentGrid } from "@/components/layout/content-grid";
 import { SectionHeader } from "@/components/layout/section-header";
+import { LoadingState } from "@/components/loading-state";
+import { EmptyState, EmptyStateActionLink } from "@/components/empty-state";
+import { BrutalistButton } from "@/components/brutalist-button";
+import {
+  BrutalistDialog,
+  BrutalistDialogContent,
+  BrutalistDialogFooter,
+  BrutalistDialogTitle,
+} from "@/components/brutalist-dialog";
 import { formatDistanceToNow } from "date-fns";
 
 const GARMENT_CATEGORY_ORDER = [
@@ -211,7 +220,7 @@ function OutfitContent() {
         </header>
         <div className="pt-20 sm:pt-24 md:pt-28 lg:pt-32 pb-24 md:pb-28">
           <PageContainer>
-            <p className="text-muted-foreground">Loading…</p>
+            <LoadingState mode="shimmer" className="min-h-[40vh]" />
           </PageContainer>
         </div>
       </main>
@@ -233,10 +242,15 @@ function OutfitContent() {
         </header>
         <div className="pt-20 sm:pt-24 md:pt-28 lg:pt-32 pb-24 md:pb-28">
           <PageContainer>
-            <p className="text-muted-foreground">No outfit selected</p>
-            <Link href="/" className="text-signal-orange hover:underline">
-              Back to recommendations
-            </Link>
+            <EmptyState
+              title="No outfit selected"
+              description="Open a saved look or a preview from home to view it here."
+              action={
+                <EmptyStateActionLink href="/">
+                  Back to recommendations
+                </EmptyStateActionLink>
+              }
+            />
           </PageContainer>
         </div>
       </main>
@@ -286,9 +300,14 @@ function OutfitContent() {
           <section className="mb-16">
             <ContentGrid variant="tiles">
               {outfit.garments.map((garment, index) => (
-                <div
+                <button
                   key={garment.id ?? index}
-                  className="relative border border-border bg-card transition-all duration-100 cursor-pointer"
+                  type="button"
+                  className={`relative border bg-card transition-all duration-100 text-left w-full ring-inset ring-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal-orange focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
+                    hoveredId === index
+                      ? "border-signal-orange ring-1 ring-signal-orange/40"
+                      : "border-border"
+                  }`}
                   style={{
                     opacity:
                       hoveredId !== null && hoveredId !== index ? 0.5 : 1,
@@ -324,100 +343,109 @@ function OutfitContent() {
                       </span>
                     </div>
                   </div>
-
-                  <div
-                    className="absolute top-0 left-0 w-0.5 h-full transition-colors duration-100"
-                    style={{
-                      backgroundColor:
-                        hoveredId === index
-                          ? "var(--signal-orange)"
-                          : "transparent",
-                    }}
-                  />
-                </div>
+                </button>
               ))}
             </ContentGrid>
           </section>
 
-          {selectedGarment && (
-            <div
-              className="fixed inset-0 z-50 flex items-center justify-center bg-[#050505]/50"
-              onClick={() => setSelectedGarment(null)}
+          <BrutalistDialog
+            open={selectedGarment !== null}
+            onOpenChange={(open) => {
+              if (!open) setSelectedGarment(null);
+            }}
+          >
+            <BrutalistDialogContent
+              size="lg"
+              className="gap-0 p-0 max-h-[90vh] overflow-y-auto"
             >
-              <div
-                className="bg-background border border-border max-w-md w-full p-6 rounded shadow-lg"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <div className="relative w-full aspect-square bg-secondary mb-4">
-                  <Image
-                    src={selectedGarment.src || "/placeholder.svg"}
-                    alt={selectedGarment.name}
-                    fill
-                    className="object-cover"
-                  />
-                </div>
-                <h3 className="text-lg font-medium mb-2">
-                  {selectedGarment.name}
-                </h3>
-                <p className="text-[11px] text-muted-foreground mb-2">
-                  Type: {selectedGarment.type}
-                </p>
-                {selectedGarment.color && (
-                  <p className="text-[11px] text-muted-foreground mb-3">
-                    Color: {selectedGarment.color}
-                  </p>
-                )}
-                {selectedGarment.traits && (
-                  <div className="mb-4">
-                    <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground mb-2">
-                      Traits
-                    </p>
-                    <ul className="text-[11px]">
-                      <li>
-                        <strong>Style:</strong>{" "}
-                        {Array.isArray(selectedGarment.traits.style)
-                          ? selectedGarment.traits.style.join(", ")
-                          : selectedGarment.traits.style}
-                      </li>
-                      <li>
-                        <strong>Fit:</strong> {selectedGarment.traits.fit}
-                      </li>
-                      <li>
-                        <strong>Occasion:</strong>{" "}
-                        {Array.isArray(selectedGarment.traits.occasion)
-                          ? selectedGarment.traits.occasion.join(", ")
-                          : selectedGarment.traits.occasion}
-                      </li>
-                      <li>
-                        <strong>Versatility:</strong>{" "}
-                        {selectedGarment.traits.versatility}
-                      </li>
-                      <li>
-                        <strong>Vibrancy:</strong>{" "}
-                        {selectedGarment.traits.vibrancy}
-                      </li>
-                    </ul>
+              {selectedGarment && (
+                <>
+                  <div className="relative w-full aspect-square bg-secondary border-b border-border">
+                    <Image
+                      src={selectedGarment.src || "/placeholder.svg"}
+                      alt={selectedGarment.name}
+                      fill
+                      className="object-cover"
+                    />
                   </div>
-                )}
-                <div className="flex justify-end">
-                  <button
-                    type="button"
-                    onClick={() => setSelectedGarment(null)}
-                    className="px-3 py-2 text-[11px] uppercase tracking-[0.2em] border border-border hover:bg-secondary transition-colors"
-                  >
-                    Close
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
+                  <div className="p-6 space-y-4">
+                    <BrutalistDialogTitle className="text-left">
+                      {selectedGarment.name}
+                    </BrutalistDialogTitle>
+                    <p className="text-body text-muted-foreground">
+                      Type: {selectedGarment.type}
+                    </p>
+                    {selectedGarment.color && (
+                      <p className="text-body text-muted-foreground">
+                        Color: {selectedGarment.color}
+                      </p>
+                    )}
+                    {selectedGarment.traits && (
+                      <div>
+                        <p className="text-label text-muted-foreground mb-2">
+                          Traits
+                        </p>
+                        <ul className="text-body space-y-1">
+                          <li>
+                            <span className="text-muted-foreground">
+                              Style:{" "}
+                            </span>
+                            {Array.isArray(selectedGarment.traits.style)
+                              ? selectedGarment.traits.style.join(", ")
+                              : selectedGarment.traits.style}
+                          </li>
+                          <li>
+                            <span className="text-muted-foreground">Fit: </span>
+                            {selectedGarment.traits.fit}
+                          </li>
+                          <li>
+                            <span className="text-muted-foreground">
+                              Occasion:{" "}
+                            </span>
+                            {Array.isArray(selectedGarment.traits.occasion)
+                              ? selectedGarment.traits.occasion.join(", ")
+                              : selectedGarment.traits.occasion}
+                          </li>
+                          <li>
+                            <span className="text-muted-foreground">
+                              Versatility:{" "}
+                            </span>
+                            {selectedGarment.traits.versatility}
+                          </li>
+                          <li>
+                            <span className="text-muted-foreground">
+                              Vibrancy:{" "}
+                            </span>
+                            {selectedGarment.traits.vibrancy}
+                          </li>
+                        </ul>
+                      </div>
+                    )}
+                    <BrutalistDialogFooter className="sm:justify-end pt-2">
+                      <BrutalistButton
+                        variant="outline"
+                        size="md"
+                        type="button"
+                        onClick={() => setSelectedGarment(null)}
+                      >
+                        Close
+                      </BrutalistButton>
+                    </BrutalistDialogFooter>
+                  </div>
+                </>
+              )}
+            </BrutalistDialogContent>
+          </BrutalistDialog>
 
           <section className="border-t border-border pt-10">
             {saveError && (
               <p className="text-[11px] text-destructive mb-2">{saveError}</p>
             )}
-            <button
+            <BrutalistButton
+              variant="solid"
+              size="md"
               type="button"
+              disabled={!!savedOutfitId}
               onClick={async () => {
                 const garmentIds = outfit.garmentIds;
                 if (!garmentIds || garmentIds.length === 0) {
@@ -442,8 +470,7 @@ function OutfitContent() {
                   );
                 }
               }}
-              disabled={!!savedOutfitId}
-              className="text-[11px] uppercase tracking-[0.25em] text-foreground hover:text-signal-orange transition-colors duration-100 group flex items-center gap-2 disabled:opacity-60 disabled:cursor-default"
+              className="gap-2"
             >
               <svg
                 width="12"
@@ -453,11 +480,12 @@ function OutfitContent() {
                 stroke="currentColor"
                 strokeWidth="1.5"
                 className="shrink-0"
+                aria-hidden
               >
                 <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
               </svg>
-              {savedOutfitId ? "Saved!" : "Save Look"}
-            </button>
+              {savedOutfitId ? "Saved" : "Save look"}
+            </BrutalistButton>
           </section>
         </PageContainer>
       </div>
@@ -467,7 +495,15 @@ function OutfitContent() {
 
 export default function OutfitPage() {
   return (
-    <Suspense fallback={null}>
+    <Suspense
+      fallback={
+        <main className="min-h-screen bg-background">
+          <div className="pt-28 px-4">
+            <LoadingState mode="shimmer" className="min-h-[40vh]" />
+          </div>
+        </main>
+      }
+    >
       <OutfitContent />
     </Suspense>
   );

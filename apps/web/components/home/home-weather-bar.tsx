@@ -2,6 +2,7 @@
 
 import type { WeatherCondition } from "@shared/types";
 import { weatherLabelToDisplay } from "@/lib/home/weather-utils";
+import { LoadingState } from "@/components/loading-state";
 
 const OCCASION_TAGS = [
   "Work",
@@ -109,9 +110,18 @@ export function HomeWeatherBar({
             {displayTemp === null ? "--" : displayTemp}°{tempUnit}
           </span>
           <span className="opacity-40">·</span>
-          <span className="text-foreground/80">
-            {weatherLabelToDisplay(weather)}
-          </span>
+          {weather === null ? (
+            <LoadingState
+              mode="spinner"
+              showLabel={false}
+              label="Loading weather"
+              className="text-foreground/80 [&_svg]:size-3"
+            />
+          ) : (
+            <span className="text-foreground/80">
+              {weatherLabelToDisplay(weather)}
+            </span>
+          )}
           {lastFetched && (
             <>
               <span className="opacity-40">·</span>

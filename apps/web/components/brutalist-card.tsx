@@ -1,21 +1,27 @@
 import React from "react";
 import { cn } from "@/lib/utils";
 
+export type BrutalistCardDensity = "compact" | "default";
+
 interface BrutalistCardProps {
   children: React.ReactNode;
   className?: string;
   variant?: "default" | "elevated" | "outlined";
+  /** `compact` = p-4 for dense tiles; `default` = p-6 */
+  density?: BrutalistCardDensity;
 }
 
 export function BrutalistCard({
   children,
   className,
   variant = "default",
+  density = "default",
 }: BrutalistCardProps) {
   return (
     <div
       className={cn(
-        "bg-card p-6 transition-all duration-100",
+        "bg-card transition-all duration-100",
+        density === "compact" ? "p-4" : "p-6",
         variant === "default" && "border border-border",
         variant === "elevated" &&
           "border border-border shadow-[4px_4px_0_0_var(--foreground)]",
@@ -50,9 +56,7 @@ export function BrutalistCardTitle({
   className?: string;
 }) {
   return (
-    <h3
-      className={cn("text-sm uppercase tracking-widest font-medium", className)}
-    >
+    <h3 className={cn("text-label font-medium text-foreground", className)}>
       {children}
     </h3>
   );
@@ -66,7 +70,7 @@ export function BrutalistCardContent({
   className?: string;
 }) {
   return (
-    <div className={cn("text-sm text-muted-foreground", className)}>
+    <div className={cn("text-body text-muted-foreground", className)}>
       {children}
     </div>
   );

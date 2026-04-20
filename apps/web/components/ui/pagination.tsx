@@ -6,7 +6,7 @@ import {
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { brutalistButtonVariants } from "@/components/brutalist-button";
 
 function Pagination({ className, ...props }: React.ComponentProps<"nav">) {
   return (
@@ -39,8 +39,9 @@ function PaginationItem({ ...props }: React.ComponentProps<"li">) {
 
 type PaginationLinkProps = {
   isActive?: boolean;
-} & Pick<React.ComponentProps<typeof Button>, "size"> &
-  React.ComponentProps<"a">;
+} & {
+  size?: "icon" | "md";
+} & React.ComponentProps<"a">;
 
 function PaginationLink({
   className,
@@ -54,9 +55,9 @@ function PaginationLink({
       data-slot="pagination-link"
       data-active={isActive}
       className={cn(
-        buttonVariants({
+        brutalistButtonVariants({
           variant: isActive ? "outline" : "ghost",
-          size,
+          size: size === "icon" ? "icon" : "md",
         }),
         className
       )}
@@ -72,7 +73,7 @@ function PaginationPrevious({
   return (
     <PaginationLink
       aria-label="Go to previous page"
-      size="default"
+      size="md"
       className={cn("gap-1 px-2.5 sm:pl-2.5", className)}
       {...props}
     >
@@ -89,7 +90,7 @@ function PaginationNext({
   return (
     <PaginationLink
       aria-label="Go to next page"
-      size="default"
+      size="md"
       className={cn("gap-1 px-2.5 sm:pr-2.5", className)}
       {...props}
     >

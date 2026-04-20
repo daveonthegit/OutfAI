@@ -14,8 +14,14 @@ import { api } from "@convex/_generated/api";
 import type { Id } from "@convex/_generated/dataModel";
 import { useRequireAuth } from "@/hooks/use-require-auth";
 import { UserAvatar } from "@/components/user-avatar";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { LoadingState } from "@/components/loading-state";
+import { EmptyState, EmptyStateActionLink } from "@/components/empty-state";
+import { BrutalistButton } from "@/components/brutalist-button";
+import {
+  BrutalistDialog,
+  BrutalistDialogContent,
+  BrutalistDialogTitle,
+} from "@/components/brutalist-dialog";
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -309,57 +315,37 @@ export default function ClosetPage() {
           {/* Garment Grid */}
           <section className="mb-16">
             {garmentsRaw === undefined ? (
-              <ContentGrid variant="tiles">
-                {Array.from({ length: 8 }).map((_, i) => (
-                  <Skeleton
-                    key={i}
-                    className="aspect-square w-full rounded-none border border-border"
-                  />
-                ))}
-              </ContentGrid>
+              <LoadingState mode="skeleton" skeletonCount={8} />
             ) : filteredItems.length === 0 ? (
-              <div className="py-16 text-center">
-                {debouncedSearch ? (
-                  <>
-                    <p className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground mb-2">
-                      No garments match &quot;{debouncedSearch}&quot;
-                    </p>
-                    <button
+              debouncedSearch ? (
+                <EmptyState
+                  title={`No garments match “${debouncedSearch}”`}
+                  description="Try a different search or clear filters."
+                  action={
+                    <BrutalistButton
+                      variant="outline"
+                      size="md"
                       type="button"
                       onClick={() => {
                         setSearchInput("");
                         setDebouncedSearch("");
                       }}
-                      className="text-[11px] uppercase tracking-[0.2em] text-foreground hover:text-signal-orange transition-colors duration-100 underline underline-offset-2"
                     >
                       Clear search
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <p className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground mb-4">
-                      No garments yet
-                    </p>
-                    <Link
-                      href="/add"
-                      className="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.2em] text-foreground hover:text-signal-orange transition-colors duration-100"
-                    >
+                    </BrutalistButton>
+                  }
+                />
+              ) : (
+                <EmptyState
+                  title="No garments yet"
+                  description="Add pieces to build outfits and recommendations."
+                  action={
+                    <EmptyStateActionLink href="/add">
                       Add your first piece
-                      <svg
-                        width="14"
-                        height="14"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="1.5"
-                      >
-                        <line x1="5" y1="12" x2="19" y2="12" />
-                        <polyline points="12 5 19 12 12 19" />
-                      </svg>
-                    </Link>
-                  </>
-                )}
-              </div>
+                    </EmptyStateActionLink>
+                  }
+                />
+              )
             ) : (
               <motion.div
                 ref={gridRef}
@@ -375,10 +361,11 @@ export default function ClosetPage() {
                       !isSelectMode && hoveredId !== null && !isHovered;
 
                     return (
-                      <motion.div
+                      <motion.button
+                        type="button"
                         key={item._id}
                         variants={staggerVariants.item}
-                        className="relative border border-border bg-card transition-all duration-100 cursor-pointer"
+                        className="relative border border-border bg-card transition-all duration-100 cursor-pointer text-left w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal-orange focus-visible:ring-offset-2"
                         style={{ opacity: dimmed ? 0.5 : 1 }}
                         onMouseEnter={() =>
                           !isSelectMode && setHoveredId(item._id)
@@ -475,19 +462,7 @@ export default function ClosetPage() {
                             </span>
                           </div>
                         )}
-
-                        {/* Accent line (non-select mode hover) */}
-                        {!isSelectMode && (
-                          <div
-                            className="absolute top-0 left-0 w-0.5 h-full transition-colors duration-100"
-                            style={{
-                              backgroundColor: isHovered
-                                ? "var(--signal-orange)"
-                                : "transparent",
-                            }}
-                          />
-                        )}
-                      </motion.div>
+                      </motion.button>
                     );
                   })}
                 </ContentGrid>
@@ -530,20 +505,21 @@ export default function ClosetPage() {
         </PageContainer>
       </div>
 
-      {/* Garment detail — Radix Dialog (focus trap, Escape) */}
-      <Dialog
+      {/* Garment detail */}
+      <BrutalistDialog
         open={!!selectedGarment}
         onOpenChange={(open) => !open && setSelectedGarment(null)}
       >
-        <DialogContent
-          className="max-w-md w-full mx-4 p-0 gap-0 rounded-none border-border"
+        <BrutalistDialogContent
+          size="lg"
+          className="max-w-md w-full mx-4 p-0 gap-0"
           showCloseButton={true}
         >
           {selectedGarment && (
             <>
-              <DialogTitle className="sr-only">
+              <BrutalistDialogTitle className="sr-only">
                 {selectedGarment.name}
-              </DialogTitle>
+              </BrutalistDialogTitle>
               <div className="relative w-full aspect-square bg-secondary">
                 {selectedGarment.imageUrl ? (
                   <Image
@@ -660,7 +636,7 @@ export default function ClosetPage() {
                 <div className="flex items-center justify-between gap-3 border-t border-border pt-4 flex-wrap">
                   <Link
                     href={`/closet/${selectedGarment._id}/edit`}
-                    className="flex items-center gap-2 text-[10px] uppercase tracking-[0.2em] text-foreground hover:text-signal-orange transition-colors duration-100 focus-visible:ring-2 focus-visible:ring-signal-orange focus-visible:ring-offset-2 focus-visible:outline-none"
+                    className="flex items-center gap-2 text-label text-foreground hover:text-signal-orange transition-colors duration-100 focus-visible:ring-2 focus-visible:ring-signal-orange focus-visible:ring-offset-2 focus-visible:outline-none"
                   >
                     <svg
                       width="12"
@@ -695,19 +671,20 @@ export default function ClosetPage() {
                     </svg>
                     Delete
                   </button>
-                  <button
+                  <BrutalistButton
                     type="button"
+                    variant="outline"
+                    size="md"
                     onClick={() => setSelectedGarment(null)}
-                    className="px-4 py-2 text-[10px] uppercase tracking-[0.2em] border border-border hover:bg-secondary transition-colors duration-100 focus-visible:ring-2 focus-visible:ring-signal-orange focus-visible:ring-offset-2 focus-visible:outline-none"
                   >
                     Close
-                  </button>
+                  </BrutalistButton>
                 </div>
               </div>
             </>
           )}
-        </DialogContent>
-      </Dialog>
+        </BrutalistDialogContent>
+      </BrutalistDialog>
 
       {/* Delete confirmation — Radix AlertDialog (focus trap, Escape) */}
       <AlertDialog
