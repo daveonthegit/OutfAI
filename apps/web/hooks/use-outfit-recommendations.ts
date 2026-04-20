@@ -3,7 +3,6 @@ import {
   Mood,
   WeatherCondition,
   Outfit,
-  Garment,
   UserStylePreferences,
 } from "@shared/types";
 
@@ -12,6 +11,7 @@ import {
  *
  * Custom React hook for generating outfit recommendations.
  * Manages loading state, error handling, and caching.
+ * Garments are loaded server-side; optional `garmentIds` filters the closet subset.
  */
 
 interface UseOutfitRecommendationsOptions {
@@ -31,7 +31,8 @@ interface UseOutfitRecommendationsReturn {
   explanation: string;
   generate: (
     options: Partial<UseOutfitRecommendationsOptions> & {
-      garments?: Garment[];
+      /** Subset of closet garment IDs; omit to use the full closet. */
+      garmentIds?: string[];
     }
   ) => Promise<void>;
   reset: () => void;
@@ -49,7 +50,7 @@ export function useOutfitRecommendations(
   const generate = useCallback(
     async (
       overrides: Partial<UseOutfitRecommendationsOptions> & {
-        garments?: Garment[];
+        garmentIds?: string[];
       } = {}
     ) => {
       setLoading(true);
@@ -57,16 +58,6 @@ export function useOutfitRecommendations(
 
       try {
         const options = { ...initialOptions, ...overrides };
-
-        // Convert garments to JSON-serializable format
-        const garments =
-          overrides.garments?.map((g) => ({
-            ...g,
-            createdAt:
-              g.createdAt instanceof Date
-                ? g.createdAt.toISOString()
-                : g.createdAt,
-          })) || [];
 
         const response = await fetch("/api/recommendations", {
           method: "POST",
@@ -80,7 +71,7 @@ export function useOutfitRecommendations(
             limitCount: options.limitCount,
             preferences: options.preferences,
             recentGarmentIds,
-            garments,
+            garmentIds: overrides.garmentIds,
           }),
         });
 
@@ -93,14 +84,12 @@ export function useOutfitRecommendations(
         setOutfits(nextOutfits);
         setExplanation(data.explanation || "");
 
-        // Keep a short rolling history of recently used garment IDs
         const nextRecent = nextOutfits
           .flatMap((o) => o.garmentIds ?? [])
           .filter(Boolean);
         if (nextRecent.length > 0) {
           setRecentGarmentIds((prev) => {
             const merged = [...nextRecent, ...prev];
-            // de-dupe while preserving order
             const seen = new Set<string>();
             const unique = merged.filter((id) => {
               if (seen.has(id)) return false;

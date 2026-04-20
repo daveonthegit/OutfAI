@@ -57,7 +57,7 @@
 | `label` | `string` | yes |
 | `garmentIds` | `array<id<garments>>` | yes |
 | `explanation` | `string` | no |
-| `scoreBreakdown` | `any` | no |
+| `scoreBreakdown` | `scoreBreakdownValidator` | no |
 | `contextMood` | `string` | no |
 | `contextWeather` | `string` | no |
 | `contextTemperature` | `number` | no |
@@ -162,7 +162,6 @@
 | `productUrl` | `string` | yes |
 | `affiliateUrl` | `string` | no |
 | `availability` | `string` | no |
-| `metadata` | `any` | no |
 | `createdAt` | `number` | yes |
 | `updatedAt` | `number` | yes |
 

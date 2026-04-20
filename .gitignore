@@ -155,6 +155,9 @@ vite.config.ts.timestamp-*
 # Dev script runtime files
 .dev-pids
 
+# Git worktrees (isolated workspaces; never commit)
+.worktrees/
+
 # Local agent / IDE tooling (optional)
 .agents/
 .claude/

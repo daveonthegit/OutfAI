@@ -127,37 +127,12 @@ export default function OnboardingPage() {
       return;
     }
     resetRecs();
-    const garmentList = garments.map((g: Doc<"garments">) => ({
-      id: g._id,
-      userId: g.userId,
-      name: g.name,
-      category: g.category as
-        | "top"
-        | "bottom"
-        | "shoes"
-        | "outerwear"
-        | "accessory",
-      primaryColor: g.primaryColor,
-      secondaryColor: undefined,
-      material: g.material,
-      season:
-        (g.season as "spring" | "summer" | "fall" | "winter" | "all-season") ??
-        undefined,
-      tags: g.tags,
-      style: g.style,
-      fit: g.fit,
-      occasion: g.occasion,
-      versatility: (g.versatility as "high" | "medium" | "low") ?? undefined,
-      vibrancy: (g.vibrancy as "muted" | "balanced" | "vibrant") ?? undefined,
-      imageOriginalUrl: g.imageUrl,
-      createdAt: new Date((g as { _creationTime: number })._creationTime),
-    }));
     await generate({
-      garments: garmentList,
       mood: selectedMood,
       weather: "cloudy",
       temperature: 15,
       limitCount: 3,
+      garmentIds: garments.map((g) => String(g._id)),
     });
   }, [garments, selectedMood, generate, resetRecs]);
 

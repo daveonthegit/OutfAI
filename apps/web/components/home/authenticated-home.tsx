@@ -140,38 +140,7 @@ export default function Home() {
     if (convexGarmentsRaw === undefined) return;
 
     const generateRecommendations = async () => {
-      const garments = convexGarments.map((g: Doc<"garments">) => ({
-        id: g._id,
-        userId,
-        name: g.name,
-        category: g.category as
-          | "top"
-          | "bottom"
-          | "shoes"
-          | "outerwear"
-          | "accessory",
-        primaryColor: g.primaryColor,
-        secondaryColor: undefined,
-        material: g.material,
-        season: g.season as
-          | "spring"
-          | "summer"
-          | "fall"
-          | "winter"
-          | "all-season"
-          | undefined,
-        tags: g.tags,
-        style: g.style,
-        fit: g.fit,
-        occasion: g.occasion,
-        versatility: g.versatility as "high" | "medium" | "low" | undefined,
-        vibrancy: g.vibrancy as "muted" | "balanced" | "vibrant" | undefined,
-        imageUrl: g.imageUrl,
-        createdAt: new Date(g._creationTime),
-      }));
-
       await generate({
-        garments,
         mood,
         weather: weather.weather ?? "cloudy",
         temperature: weather.temperatureCelsius ?? 15,

@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useQuery, useMutation } from "convex/react";
+import { useQuery } from "convex/react";
 import { api } from "@convex/_generated/api";
 import { useRequireAuth } from "@/hooks/use-require-auth";
 import { authClient } from "@/lib/auth-client";
@@ -24,8 +24,6 @@ export default function ProfileSettingsPage() {
   const router = useRouter();
   const currentUser = useRequireAuth("/profile/settings");
   const exportData = useQuery(api.account.getExportData);
-  const deleteAllUserData = useMutation(api.account.deleteAllUserData);
-
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -144,21 +142,30 @@ export default function ProfileSettingsPage() {
     }
     setDeleteLoading(true);
     try {
-      await deleteAllUserData();
-      const base = process.env.NEXT_PUBLIC_SITE_URL ?? "";
-      const authRes = await fetch(`${base}/api/auth/delete-user`, {
+      const base = typeof window !== "undefined" ? window.location.origin : "";
+      const res = await fetch(`${base}/api/account/delete`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ password: deletePassword }),
       });
-      if (!authRes.ok) {
-        const errBody = await authRes.json().catch(() => null);
+      const data = (await res.json().catch(() => null)) as {
+        ok?: boolean;
+        message?: string;
+        step?: string;
+        partial?: boolean;
+      } | null;
+      if (!res.ok || !data?.ok) {
         const msg =
-          errBody && typeof errBody === "object" && "message" in errBody
-            ? String((errBody as { message?: string }).message)
-            : "Could not remove login. Contact support.";
+          data && typeof data.message === "string"
+            ? data.message
+            : "Could not delete account. Try again.";
         toast.error(msg);
+        if (data?.partial) {
+          toast.message(
+            "Your app data was cleared. Try deleting again to remove your login, or contact support if it keeps failing."
+          );
+        }
         return;
       }
       toast.success("Account deleted. Signing out.");

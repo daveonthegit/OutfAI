@@ -24,6 +24,7 @@ import type * as recommendationLogs from "../recommendationLogs.js";
 import type * as seed from "../seed.js";
 import type * as storageImage from "../storageImage.js";
 import type * as userPreferences from "../userPreferences.js";
+import type * as validators from "../validators.js";
 
 import type {
   ApiFromModules,
@@ -48,6 +49,7 @@ declare const fullApi: ApiFromModules<{
   seed: typeof seed;
   storageImage: typeof storageImage;
   userPreferences: typeof userPreferences;
+  validators: typeof validators;
 }>;
 
 /**

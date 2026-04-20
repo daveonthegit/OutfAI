@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useState } from "react";
 import type {
-  Garment,
   StyleInsight,
   StyleInsightsOutput,
   Mood,
@@ -10,7 +9,9 @@ import type {
 } from "@shared/types";
 
 interface UseStyleInsightsOptions {
-  garments: Garment[];
+  garmentsLength: number;
+  /** Closet garment IDs to include (full closet when empty). */
+  garmentIds?: string[];
   outfitGarmentIds?: string[];
   mood?: Mood;
   weather?: WeatherCondition;
@@ -34,10 +35,11 @@ export function useStyleInsights(
   options: UseStyleInsightsOptions
 ): UseStyleInsightsReturn {
   const {
-    garments,
+    garmentsLength,
+    garmentIds,
     outfitGarmentIds,
     mood,
-    weather,
+    weather: _weather,
     temperature,
     occasion,
     enabled = true,
@@ -52,7 +54,7 @@ export function useStyleInsights(
   const [error, setError] = useState<string | null>(null);
 
   const refetch = useCallback(async () => {
-    if (!enabled || !garments?.length) {
+    if (!enabled || garmentsLength === 0) {
       setData({ gaps: [], completeTheLook: [], styleTips: [] });
       return;
     }
@@ -65,13 +67,7 @@ export function useStyleInsights(
         credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          garments: garments.map((g) => ({
-            ...g,
-            createdAt:
-              g.createdAt instanceof Date
-                ? g.createdAt.toISOString()
-                : g.createdAt,
-          })),
+          garmentIds: garmentIds?.length ? garmentIds : undefined,
           outfitGarmentIds: outfitGarmentIds ?? [],
           mood,
           occasion: occasion ?? (mood ? String(mood) : undefined),
@@ -95,13 +91,21 @@ export function useStyleInsights(
     } finally {
       setLoading(false);
     }
-  }, [enabled, garments, outfitGarmentIds, mood, occasion, temperature]);
+  }, [
+    enabled,
+    garmentsLength,
+    garmentIds,
+    outfitGarmentIds,
+    mood,
+    occasion,
+    temperature,
+  ]);
 
   useEffect(() => {
-    if (enabled && garments.length > 0) {
+    if (enabled && garmentsLength > 0) {
       refetch();
     }
-  }, [enabled, garments.length, refetch]);
+  }, [enabled, garmentsLength, refetch]);
 
   return {
     gaps: data.gaps,

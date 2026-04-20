@@ -16,33 +16,6 @@ export async function requireConvexUser(): Promise<
   return user;
 }
 
-export function rateLimitKey(request: NextRequest, route: string): string {
-  const ip =
-    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-    request.headers.get("x-real-ip") ||
-    "unknown";
-  return `${ip}:${route}`;
-}
-
-const buckets = new Map<string, { count: number; resetAt: number }>();
-
-/** Returns true if allowed, false if over limit. */
-export function checkRateLimit(
-  key: string,
-  max: number,
-  windowMs: number
-): boolean {
-  const now = Date.now();
-  const b = buckets.get(key);
-  if (!b || now > b.resetAt) {
-    buckets.set(key, { count: 1, resetAt: now + windowMs });
-    return true;
-  }
-  if (b.count >= max) return false;
-  b.count += 1;
-  return true;
-}
-
 export function rejectIfBodyTooLarge(
   request: NextRequest,
   maxBytes: number
@@ -57,12 +30,4 @@ export function rejectIfBodyTooLarge(
     );
   }
   return null;
-}
-
-/** Ensures wardrobe payloads cannot reference another user's garments. */
-export function assertGarmentsBelongToUser(
-  garments: Array<{ userId?: string }>,
-  userId: string
-): boolean {
-  return garments.every((g) => String(g.userId ?? "") === userId);
 }

@@ -11,12 +11,7 @@ import { useRequireAuth } from "@/hooks/use-require-auth";
 import { PageContainer } from "@/components/layout/page-container";
 import { BrutalistButton } from "@/components/brutalist-button";
 import { useOutfitRecommendations } from "@/hooks/use-outfit-recommendations";
-import type {
-  Mood,
-  WeatherCondition,
-  GarmentCategory,
-  Garment,
-} from "@shared/types";
+import type { Mood, WeatherCondition } from "@shared/types";
 import type {
   DisplayOutfit,
   DisplayGarment,
@@ -28,41 +23,6 @@ import { AddFromClosetPanel } from "@/components/packing/add-from-closet-panel";
 import { PackedGarmentsGrid } from "@/components/packing/packed-garments-grid";
 import { TripPageHeader } from "@/components/packing/trip-page-header";
 import { OutfitIdeasTripSection } from "@/components/packing/outfit-ideas-trip-section";
-
-/** Map Convex garment doc to API Garment shape for recommendations */
-function convexGarmentToApi(g: Doc<"garments"> & { _creationTime?: number }): {
-  id: string;
-  userId: string;
-  name: string;
-  category: GarmentCategory;
-  primaryColor: string;
-  tags: string[];
-  style?: string[];
-  fit?: string;
-  occasion?: string[];
-  versatility?: string;
-  vibrancy?: string;
-  imageUrl?: string;
-  createdAt: Date;
-} {
-  return {
-    id: g._id,
-    userId: g.userId,
-    name: g.name,
-    category: g.category as GarmentCategory,
-    primaryColor: g.primaryColor,
-    tags: g.tags ?? [],
-    style: g.style,
-    fit: g.fit,
-    occasion: g.occasion,
-    versatility: g.versatility,
-    vibrancy: g.vibrancy,
-    imageUrl: g.imageUrl,
-    createdAt: new Date(
-      (g as { _creationTime?: number })._creationTime ?? Date.now()
-    ),
-  };
-}
 
 export default function PlanPackingTripPage() {
   const params = useParams();
@@ -130,11 +90,11 @@ export default function PlanPackingTripPage() {
       label: format(d, "EEE, MMM d"),
     }));
   }, [trip]);
-  const packedForApi = useMemo(
-    (): Garment[] =>
-      packedGarments.map((g) =>
-        convexGarmentToApi(g as Doc<"garments"> & { _creationTime?: number })
-      ) as Garment[],
+  const packedGarmentIds = useMemo(
+    () =>
+      packedGarments
+        .filter((g): g is Doc<"garments"> => g != null)
+        .map((g) => String(g._id)),
     [packedGarments]
   );
 
@@ -178,12 +138,12 @@ export default function PlanPackingTripPage() {
   };
 
   const handleGenerate = () => {
-    if (packedForApi.length === 0) {
+    if (packedGarmentIds.length === 0) {
       toast.error("Add at least one garment to the trip first.");
       return;
     }
     generate({
-      garments: packedForApi,
+      garmentIds: packedGarmentIds,
       mood,
       weather: "cloudy",
       temperature: 15,
@@ -334,7 +294,7 @@ export default function PlanPackingTripPage() {
           tripDates={tripDates}
           onSaveLook={handleSaveLook}
           onAssignToDay={handleAssignToDay}
-          generateDisabled={packedForApi.length === 0}
+          generateDisabled={packedGarmentIds.length === 0}
         />
       </PageContainer>
 

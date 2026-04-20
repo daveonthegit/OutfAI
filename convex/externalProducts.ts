@@ -1,6 +1,7 @@
 import { internalMutation, mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { getAuthUser } from "./auth";
+import { externalProductMetadataValidator } from "./validators";
 
 /** List external products for recommendation. Optional limit for performance. */
 export const list = query({
@@ -51,7 +52,7 @@ export const upsert = internalMutation({
     productUrl: v.string(),
     affiliateUrl: v.optional(v.string()),
     availability: v.optional(v.string()),
-    metadata: v.optional(v.any()),
+    metadata: externalProductMetadataValidator,
   },
   handler: async (ctx, args) => {
     const existing = await ctx.db

@@ -1,25 +1,20 @@
 import { analyzeGarmentImage } from "@/../../server/services/garmentImageAnalysisService";
 import { GeminiGarmentImageAnalysisService } from "@/../../server/services/geminiGarmentImageAnalysisService";
 import {
-  checkRateLimit,
-  rateLimitKey,
   rejectIfBodyTooLarge,
   requireConvexUser,
 } from "@/lib/api-route-helpers";
+import { enforceRateLimit } from "@/lib/rate-limit";
 import { NextRequest, NextResponse } from "next/server";
 
 const MAX_BODY_BYTES = 6 * 1024 * 1024;
-const RATE_MAX = 20;
-const RATE_WINDOW_MS = 60_000;
 
 export async function POST(request: NextRequest) {
   const userOr401 = await requireConvexUser();
   if (userOr401 instanceof NextResponse) return userOr401;
 
-  const key = rateLimitKey(request, "analyze-garment-image");
-  if (!checkRateLimit(key, RATE_MAX, RATE_WINDOW_MS)) {
-    return NextResponse.json({ error: "Too many requests" }, { status: 429 });
-  }
+  const rateLimited = await enforceRateLimit(request, "analyze-garment-image");
+  if (rateLimited) return rateLimited;
 
   const tooLarge = rejectIfBodyTooLarge(request, MAX_BODY_BYTES);
   if (tooLarge) return tooLarge;

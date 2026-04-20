@@ -2,13 +2,14 @@ import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { getAuthUser } from "./auth";
 import { assertGarmentsOwnedByUser } from "./garmentGuards";
+import { scoreBreakdownValidator } from "./validators";
 
 export const create = mutation({
   args: {
     label: v.string(),
     garmentIds: v.array(v.id("garments")),
     explanation: v.optional(v.string()),
-    scoreBreakdown: v.optional(v.any()),
+    scoreBreakdown: v.optional(scoreBreakdownValidator),
     contextMood: v.optional(v.string()),
     contextWeather: v.optional(v.string()),
     contextTemperature: v.optional(v.number()),

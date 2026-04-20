@@ -1,5 +1,9 @@
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
+import {
+  externalProductMetadataValidator,
+  scoreBreakdownValidator,
+} from "./validators";
 
 export default defineSchema({
   // Individual clothing items owned by a user.
@@ -28,7 +32,7 @@ export default defineSchema({
     label: v.string(),
     garmentIds: v.array(v.id("garments")),
     explanation: v.optional(v.string()),
-    scoreBreakdown: v.optional(v.any()),
+    scoreBreakdown: v.optional(scoreBreakdownValidator),
     contextMood: v.optional(v.string()),
     contextWeather: v.optional(v.string()),
     contextTemperature: v.optional(v.number()),
@@ -118,7 +122,7 @@ export default defineSchema({
     productUrl: v.string(),
     affiliateUrl: v.optional(v.string()),
     availability: v.optional(v.string()),
-    metadata: v.optional(v.any()),
+    metadata: externalProductMetadataValidator,
     createdAt: v.number(),
     updatedAt: v.number(),
   })

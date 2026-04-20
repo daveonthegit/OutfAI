@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import type { Doc } from "@convex/_generated/dataModel";
-import type { Garment, Mood, WeatherCondition } from "@shared/types";
+import type { Mood, WeatherCondition } from "@shared/types";
 import { useStyleInsights } from "@/hooks/use-style-insights";
 import { StyleInsightsModal } from "@/components/style-insights-modal";
 
@@ -17,26 +17,6 @@ interface StyleInsightsSectionProps {
   showWhenHasOutfits: boolean;
 }
 
-function mapConvexGarmentToGarment(g: Doc<"garments">): Garment {
-  return {
-    id: g._id,
-    userId: g.userId,
-    name: g.name,
-    category: g.category as Garment["category"],
-    primaryColor: g.primaryColor,
-    tags: g.tags,
-    style: g.style,
-    fit: g.fit,
-    occasion: g.occasion,
-    versatility: g.versatility as Garment["versatility"],
-    vibrancy: g.vibrancy as Garment["vibrancy"],
-    material: g.material,
-    season: g.season as Garment["season"],
-    imageUrl: g.imageUrl,
-    createdAt: new Date(g._creationTime),
-  };
-}
-
 export function StyleInsightsSection({
   userId: _userId,
   garments,
@@ -47,8 +27,8 @@ export function StyleInsightsSection({
   showWhenHasOutfits,
 }: StyleInsightsSectionProps) {
   const [modalOpen, setModalOpen] = useState(false);
-  const garmentList = useMemo(
-    () => garments.map(mapConvexGarmentToGarment),
+  const garmentIds = useMemo(
+    () => garments.map((g) => String(g._id)),
     [garments]
   );
   const outfitGarmentIdsStable = useMemo(
@@ -58,18 +38,19 @@ export function StyleInsightsSection({
 
   const { gaps, completeTheLook, styleTips, loading, error } = useStyleInsights(
     {
-      garments: garmentList,
+      garmentsLength: garments.length,
+      garmentIds,
       outfitGarmentIds: outfitGarmentIdsStable,
       mood,
       weather,
       temperature,
       occasion: mood,
-      enabled: showWhenHasOutfits && garmentList.length > 0,
+      enabled: showWhenHasOutfits && garments.length > 0,
     }
   );
 
   if (!showWhenHasOutfits) return null;
-  if (garmentList.length === 0) return null;
+  if (garments.length === 0) return null;
 
   const hasAny =
     gaps.length > 0 || completeTheLook.length > 0 || styleTips.length > 0;
