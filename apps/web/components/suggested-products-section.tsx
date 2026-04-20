@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useMutation } from "convex/react";
 import { api } from "@convex/_generated/api";
 import type { Doc } from "@convex/_generated/dataModel";
@@ -58,6 +58,9 @@ export function SuggestedProductsSection({
     [outfitGarmentIds]
   );
   const seedDevProducts = useMutation(api.externalProducts.seedDevProducts);
+  const [seedingProducts, setSeedingProducts] = useState(false);
+  const devSeedProductsEnabled =
+    process.env.NEXT_PUBLIC_DEV_SEED_PRODUCTS === "true";
 
   const { recommendations, loading, error, refetch } =
     useProductRecommendations({
@@ -71,19 +74,17 @@ export function SuggestedProductsSection({
       enabled: showWhenHasOutfits && garmentList.length > 0,
     });
 
-  // When section becomes visible and we have garments, ensure external products exist (dev seed) and fetch recommendations
-  useEffect(() => {
-    if (!showWhenHasOutfits || garmentList.length === 0) return;
-    seedDevProducts().catch(() => {
-      // Ignore if already seeded or unauthorized
-    });
-  }, [showWhenHasOutfits, garmentList.length, seedDevProducts]);
-
-  useEffect(() => {
-    if (showWhenHasOutfits && garmentList.length > 0) {
-      refetch();
+  const handleSeedDevProducts = async () => {
+    setSeedingProducts(true);
+    try {
+      await seedDevProducts();
+      await refetch();
+    } catch {
+      // Dev seed is optional and should never block the page.
+    } finally {
+      setSeedingProducts(false);
     }
-  }, [showWhenHasOutfits, garmentList.length, refetch]);
+  };
 
   if (!showWhenHasOutfits) return null;
   if (garmentList.length === 0) return null;
@@ -97,6 +98,22 @@ export function SuggestedProductsSection({
         External products that complement what you own. Each suggestion opens in
         a new tab.
       </p>
+
+      {devSeedProductsEnabled && recommendations.length === 0 && !loading && (
+        <div className="mb-6 flex items-center gap-3">
+          <button
+            type="button"
+            onClick={handleSeedDevProducts}
+            disabled={seedingProducts}
+            className="text-[10px] uppercase tracking-[0.2em] text-signal-orange hover:underline disabled:opacity-60"
+          >
+            {seedingProducts ? "Seeding demo catalog…" : "Seed demo products"}
+          </button>
+          <span className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
+            Dev-only helper
+          </span>
+        </div>
+      )}
 
       {loading && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
@@ -120,8 +137,8 @@ export function SuggestedProductsSection({
       {!loading && !error && recommendations.length === 0 && (
         <div className="py-8 text-center">
           <p className="text-[11px] text-muted-foreground">
-            No product suggestions right now. Add more items to your closet to
-            get tailored ideas.
+            No product suggestions right now. Add more items to your closet or
+            connect a live product source to get tailored ideas.
           </p>
         </div>
       )}
