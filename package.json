@@ -77,7 +77,6 @@
     "react-hook-form": "^7.60.0",
     "react-resizable-panels": "^2.1.7",
     "recharts": "2.15.4",
-    "request": "^2.88.2",
     "sonner": "^1.7.4",
     "tailwind-merge": "^3.3.1",
     "tailwindcss-animate": "^1.0.7",
@@ -103,5 +102,9 @@
     "typescript-eslint": "^8.56.0",
     "vitest": "^4.0.18",
     "@playwright/test": "^1.49.0"
+  },
+  "overrides": {
+    "crypto-js": ">=4.2.0",
+    "protobufjs": ">=7.5.5"
   }
 }

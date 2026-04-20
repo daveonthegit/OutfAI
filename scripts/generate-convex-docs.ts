@@ -225,7 +225,6 @@ function parseTables(src: string): TableDef[] {
 // ──────────────────────────────────────────────────────────────
 
 function generateMarkdown(tables: TableDef[]): string {
-  const now = new Date().toISOString().split("T")[0];
   const lines: string[] = [];
 
   lines.push(`<!--`);
@@ -241,9 +240,9 @@ function generateMarkdown(tables: TableDef[]): string {
   lines.push(``);
   lines.push(
     `> Auto-generated from [\`convex/schema.ts\`](../../convex/schema.ts) by ` +
-      `[\`scripts/generate-convex-docs.ts\`](../../scripts/generate-convex-docs.ts).`
+      `[\`scripts/generate-convex-docs.ts\`](../../scripts/generate-convex-docs.ts). ` +
+      `Run \`npm run db:doc\` after schema changes and commit the result.`
   );
-  lines.push(`> Last generated: ${now}`);
   lines.push(``);
   lines.push(`---`);
   lines.push(``);

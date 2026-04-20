@@ -127,8 +127,7 @@ export default function PlanPackingPage() {
       ) : tripList.length === 0 ? (
         <div className="border border-border bg-card p-8 text-center space-y-4">
           <p className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
-            No trips yet. Create one to build a capsule wardrobe for your
-            dates.
+            No trips yet. Create one to build a capsule wardrobe for your dates.
           </p>
           <BrutalistButton type="button" onClick={() => setSheetOpen(true)}>
             Create your first trip

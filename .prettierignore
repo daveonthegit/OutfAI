@@ -8,3 +8,4 @@ package-lock.json
 pnpm-lock.yaml
 docs/supabase-structure.md
 docs/convex-schema.md
+docs/reference/convex-schema.md
