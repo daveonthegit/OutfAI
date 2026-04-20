@@ -10,7 +10,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import type { DisplayOutfit } from "@/components/home/authenticated-home";
+import type { DisplayOutfit } from "@/components/home/home-types";
 import type { Mood } from "@shared/types";
 
 export function OutfitIdeasTripSection({

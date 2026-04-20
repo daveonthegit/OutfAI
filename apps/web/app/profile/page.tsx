@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@convex/_generated/api";
-import type { Doc, Id } from "@convex/_generated/dataModel";
+import type { Id } from "@convex/_generated/dataModel";
 import { useRequireAuth } from "@/hooks/use-require-auth";
 import { PageContainer } from "@/components/layout/page-container";
 import { UserAvatar } from "@/components/user-avatar";
@@ -18,22 +18,17 @@ import {
   USERNAME_MAX_LENGTH,
 } from "@shared/validation/username";
 import { BIO_MAX_LENGTH } from "@shared/validation/profile";
-import type { Mood } from "@shared/types";
-
-const DISPLAY_NAME_MAX_LENGTH = 100;
-const AVATAR_MAX_BYTES = 2 * 1024 * 1024; // 2MB
-const AVATAR_ACCEPT = "image/jpeg,image/png,image/webp";
-const STYLE_GOAL_MAX_LENGTH = 200;
-
-const MOODS: Mood[] = [
-  "casual",
-  "formal",
-  "adventurous",
-  "cozy",
-  "energetic",
-  "minimalist",
-  "bold",
-];
+import {
+  AVATAR_ACCEPT,
+  AVATAR_MAX_BYTES,
+  DISPLAY_NAME_MAX_LENGTH,
+} from "@/components/profile/profile-constants";
+import {
+  ProfileWardrobeStatsSection,
+  ProfileActivitySection,
+} from "@/components/profile/profile-metrics-sections";
+import { ProfileStylePreferencesSection } from "@/components/profile/profile-style-preferences-section";
+import { ProfileAccountSection } from "@/components/profile/profile-account-section";
 
 function initials(name: string): string {
   return name
@@ -101,18 +96,6 @@ export default function ProfilePage() {
       setEditBio(profileData?.bio ?? "");
     }
   }, [currentUser, profileData?.bio, editing]);
-
-  const toggleInList = (
-    value: string,
-    list: string[],
-    setter: (next: string[]) => void
-  ) => {
-    if (list.includes(value)) {
-      setter(list.filter((v) => v !== value));
-    } else {
-      setter([...list, value]);
-    }
-  };
 
   const handleSavePreferences = async () => {
     setPreferencesSuccess("");
@@ -484,281 +467,26 @@ export default function ProfilePage() {
             <div className="border-t border-border" />
           </section>
 
-          {/* Stats */}
-          <section className="mb-12">
-            <p className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground mb-4">
-              Wardrobe
-            </p>
-            <div className="grid grid-cols-2 gap-px border border-border bg-border">
-              <div className="bg-background px-5 py-4">
-                <p className="text-3xl font-light tabular-nums">
-                  {garments.length}
-                </p>
-                <p className="text-[9px] uppercase tracking-[0.2em] text-muted-foreground mt-1">
-                  Items
-                </p>
-              </div>
-              <div className="bg-background px-5 py-4">
-                <p className="text-3xl font-light tabular-nums">
-                  {
-                    new Set(garments.map((g: Doc<"garments">) => g.category))
-                      .size
-                  }
-                </p>
-                <p className="text-[9px] uppercase tracking-[0.2em] text-muted-foreground mt-1">
-                  Categories
-                </p>
-              </div>
-            </div>
-          </section>
+          <ProfileWardrobeStatsSection garments={garments} />
 
-          {/* Your activity */}
-          <section className="mb-12" aria-labelledby="activity-heading">
-            <p
-              id="activity-heading"
-              className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground mb-4"
-            >
-              Your activity
-            </p>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-px border border-border bg-border">
-              <div className="bg-background px-4 py-4">
-                <p className="text-2xl font-light tabular-nums">
-                  {activityStats?.outfitCount ?? "—"}
-                </p>
-                <p className="text-[9px] uppercase tracking-[0.2em] text-muted-foreground mt-1">
-                  Outfits saved
-                </p>
-              </div>
-              <div className="bg-background px-4 py-4">
-                <p className="text-2xl font-light tabular-nums">
-                  {activityStats?.outfitsSavedThisWeek ?? "—"}
-                </p>
-                <p className="text-[9px] uppercase tracking-[0.2em] text-muted-foreground mt-1">
-                  Saved this week
-                </p>
-              </div>
-              <div className="bg-background px-4 py-4">
-                <p className="text-2xl font-light tabular-nums">
-                  {activityStats?.wornCount ?? "—"}
-                </p>
-                <p className="text-[9px] uppercase tracking-[0.2em] text-muted-foreground mt-1">
-                  Marked worn
-                </p>
-              </div>
-            </div>
-          </section>
+          <ProfileActivitySection activityStats={activityStats} />
 
-          {/* Style Preferences */}
-          <section className="mb-12">
-            <p className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground mb-4">
-              Style Preferences
-            </p>
+          <ProfileStylePreferencesSection
+            favoriteMoods={favoriteMoods}
+            setFavoriteMoods={setFavoriteMoods}
+            styleGoal={styleGoal}
+            setStyleGoal={setStyleGoal}
+            preferredStyles={preferredStyles}
+            setPreferredStyles={setPreferredStyles}
+            preferredColors={preferredColors}
+            setPreferredColors={setPreferredColors}
+            avoidedColors={avoidedColors}
+            setAvoidedColors={setAvoidedColors}
+            preferencesSuccess={preferencesSuccess}
+            onSavePreferences={() => void handleSavePreferences()}
+          />
 
-            <div className="mb-6">
-              <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-2">
-                Favorite moods
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {MOODS.map((mood) => {
-                  const active = favoriteMoods.includes(mood);
-                  return (
-                    <button
-                      key={mood}
-                      type="button"
-                      onClick={() =>
-                        toggleInList(mood, favoriteMoods, setFavoriteMoods)
-                      }
-                      className={`px-3 py-1 text-[11px] uppercase tracking-[0.16em] border transition-colors duration-100 ${
-                        active
-                          ? "border-foreground bg-foreground text-background"
-                          : "border-border text-muted-foreground hover:border-foreground"
-                      }`}
-                    >
-                      {mood}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div className="mb-6">
-              <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-2">
-                Style goal
-              </p>
-              <input
-                type="text"
-                value={styleGoal}
-                onChange={(e) => setStyleGoal(e.target.value)}
-                maxLength={STYLE_GOAL_MAX_LENGTH}
-                placeholder="e.g. Minimalist with a pop of color"
-                className="w-full bg-secondary border border-border px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-foreground"
-              />
-              <p className="text-[10px] text-muted-foreground mt-1">
-                {styleGoal.length}/{STYLE_GOAL_MAX_LENGTH}
-              </p>
-            </div>
-
-            <div className="mb-6">
-              <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-2">
-                Preferred styles
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {["minimalist", "bold", "classic", "trendy", "cozy"].map(
-                  (style) => {
-                    const active = preferredStyles.includes(style);
-                    return (
-                      <button
-                        key={style}
-                        type="button"
-                        onClick={() =>
-                          toggleInList(
-                            style,
-                            preferredStyles,
-                            setPreferredStyles
-                          )
-                        }
-                        className={`px-3 py-1 text-[11px] uppercase tracking-[0.16em] border transition-colors duration-100 ${
-                          active
-                            ? "border-foreground bg-foreground text-background"
-                            : "border-border text-muted-foreground hover:border-foreground"
-                        }`}
-                      >
-                        {style}
-                      </button>
-                    );
-                  }
-                )}
-              </div>
-            </div>
-
-            <div className="mb-6">
-              <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-2">
-                Preferred colors
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {["black", "white", "gray", "navy", "beige", "red", "blue"].map(
-                  (color) => {
-                    const active = preferredColors.includes(color);
-                    return (
-                      <button
-                        key={color}
-                        type="button"
-                        onClick={() =>
-                          toggleInList(
-                            color,
-                            preferredColors,
-                            setPreferredColors
-                          )
-                        }
-                        className={`px-3 py-1 text-[11px] uppercase tracking-[0.16em] border transition-colors duration-100 ${
-                          active
-                            ? "border-foreground bg-foreground text-background"
-                            : "border-border text-muted-foreground hover:border-foreground"
-                        }`}
-                      >
-                        {color}
-                      </button>
-                    );
-                  }
-                )}
-              </div>
-            </div>
-
-            <div className="mb-6">
-              <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-2">
-                Colors to avoid
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {["black", "white", "gray", "navy", "beige", "red", "blue"].map(
-                  (color) => {
-                    const active = avoidedColors.includes(color);
-                    return (
-                      <button
-                        key={color}
-                        type="button"
-                        onClick={() =>
-                          toggleInList(color, avoidedColors, setAvoidedColors)
-                        }
-                        className={`px-3 py-1 text-[11px] uppercase tracking-[0.16em] border transition-colors duration-100 ${
-                          active
-                            ? "border-destructive bg-destructive text-background"
-                            : "border-border text-muted-foreground hover:border-destructive"
-                        }`}
-                      >
-                        {color}
-                      </button>
-                    );
-                  }
-                )}
-              </div>
-            </div>
-
-            {preferencesSuccess && (
-              <p className="text-xs uppercase tracking-wider text-foreground mb-2">
-                {preferencesSuccess}
-              </p>
-            )}
-            <button
-              type="button"
-              onClick={handleSavePreferences}
-              className="mt-2 flex items-center justify-between w-full border border-border px-5 py-4 text-[11px] uppercase tracking-[0.2em] text-foreground hover:border-foreground transition-colors duration-100"
-            >
-              <span>Save Preferences</span>
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.5"
-              >
-                <polyline points="9 18 15 12 9 6" />
-              </svg>
-            </button>
-          </section>
-
-          {/* Actions */}
-          <section className="space-y-3">
-            <p className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground mb-4">
-              Account
-            </p>
-
-            <Link
-              href="/closet"
-              className="flex items-center justify-between w-full border border-border px-5 py-4 text-[11px] uppercase tracking-[0.2em] text-foreground hover:border-foreground transition-colors duration-100"
-            >
-              <span>My Closet</span>
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.5"
-              >
-                <polyline points="9 18 15 12 9 6" />
-              </svg>
-            </Link>
-
-            <button
-              onClick={handleSignOut}
-              className="flex items-center justify-between w-full border border-border px-5 py-4 text-[11px] uppercase tracking-[0.2em] text-muted-foreground hover:border-destructive hover:text-destructive transition-colors duration-100"
-            >
-              <span>Sign Out</span>
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.5"
-              >
-                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                <polyline points="16 17 21 12 16 7" />
-                <line x1="21" y1="12" x2="9" y2="12" />
-              </svg>
-            </button>
-          </section>
+          <ProfileAccountSection onSignOut={() => void handleSignOut()} />
         </PageContainer>
       </div>
     </main>

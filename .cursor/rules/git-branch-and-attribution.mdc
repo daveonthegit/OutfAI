@@ -1,0 +1,16 @@
+---
+description: Ban cursor-prefixed branches and AI attribution in project metadata
+alwaysApply: true
+---
+
+# Git branches and attribution
+
+## Branches
+
+- Do **not** use `cursor/` as a branch name or as a branch prefix (e.g. avoid `cursor/feature-foo`, `cursor/fix-bar`).
+- Prefer conventional prefixes such as `feat/`, `fix/`, `chore/`, `docs/`, or team conventions already used in the repo.
+
+## Attribution
+
+- Do **not** attribute changes, commits, PRs, changelogs, release notes, comments, or docs to Cursor, ChatGPT, Claude, Copilot, or any other AI tool or agent.
+- Write messages as a human contributor would: describe *what* changed and *why*, without naming tools.
