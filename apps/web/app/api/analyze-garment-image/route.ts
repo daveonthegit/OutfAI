@@ -1,4 +1,5 @@
 import { analyzeGarmentImage } from "@/../../server/services/garmentImageAnalysisService";
+import { GeminiGarmentImageAnalysisService } from "@/../../server/services/geminiGarmentImageAnalysisService";
 import {
   checkRateLimit,
   rateLimitKey,
@@ -32,8 +33,18 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-    const result = await analyzeGarmentImage(imageBase64);
-    return NextResponse.json(result);
+    try {
+      const result = await analyzeGarmentImage(imageBase64);
+      return NextResponse.json(result);
+    } catch (visionError) {
+      if (!GeminiGarmentImageAnalysisService.isEnabled()) {
+        throw visionError;
+      }
+
+      const geminiResult =
+        await GeminiGarmentImageAnalysisService.analyze(imageBase64);
+      return NextResponse.json(geminiResult);
+    }
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Image analysis failed";
