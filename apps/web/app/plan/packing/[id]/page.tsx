@@ -20,7 +20,7 @@ import type {
 import type {
   DisplayOutfit,
   DisplayGarment,
-} from "@/components/home/authenticated-home";
+} from "@/components/home/home-types";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { ResponsivePlanModal } from "@/components/plan-hub/responsive-plan-modal";
