@@ -142,6 +142,97 @@ export class OutfitRecommendationService {
   }
 
   /**
+   * Build recommendations from externally-suggested garment ID sets
+   * while applying all existing scoring, filtering, and safety constraints.
+   */
+  static generateFromGarmentSets(
+    garments: Garment[],
+    input: RecommendationInput,
+    outfitGarmentSets: string[][]
+  ): RecommendationOutput {
+    if (!garments || garments.length === 0 || outfitGarmentSets.length === 0) {
+      return {
+        outfits: [],
+        explanation: "No garments available to build AI outfit suggestions.",
+        totalGenerated: 0,
+        gaps: this.getClosetGaps(garments ?? [], input),
+      };
+    }
+
+    const filteredGarments = this.filterByContext(garments, input);
+    const allowedIds = new Set(filteredGarments.map((g) => g.id));
+    const garmentById = new Map(filteredGarments.map((g) => [g.id, g]));
+
+    const candidates: OutfitCandidate[] = [];
+    for (const rawSet of outfitGarmentSets) {
+      const deduped = [...new Set(rawSet)].filter((id) => allowedIds.has(id));
+      if (deduped.length < 2) continue;
+
+      const pieces = deduped
+        .map((id) => garmentById.get(id))
+        .filter(Boolean) as Garment[];
+      if (pieces.length < 2) continue;
+
+      const hasTop = pieces.some((g) => g.category === "top");
+      const hasBottom = pieces.some((g) => g.category === "bottom");
+      if (!hasTop || !hasBottom) continue;
+
+      const { score, breakdown } = this.scoreOutfitWithBreakdown(
+        pieces,
+        input.mood || "casual",
+        input.preferences,
+        input.recentGarmentIds,
+        input.occasion
+      );
+      const reasons = this.generateReasons(
+        pieces,
+        input.mood || "casual",
+        input.occasion
+      );
+      candidates.push({
+        garmentIds: pieces.map((g) => g.id),
+        score,
+        reasons,
+        scoreBreakdown: breakdown,
+      });
+    }
+
+    const dedupedCandidates = this.dedupeCandidates(candidates).sort(
+      (a, b) => b.score - a.score
+    );
+    if (dedupedCandidates.length === 0) {
+      return {
+        outfits: [],
+        explanation:
+          "AI suggestions did not pass safety checks. Falling back to rule-based recommendations is recommended.",
+        totalGenerated: 0,
+        gaps: this.getClosetGaps(filteredGarments, input),
+      };
+    }
+
+    const selected = dedupedCandidates.slice(0, input.limitCount ?? 8);
+    const outfits = selected.map((candidate, index) => ({
+      id: `outfit-ai-${Date.now()}-${index}`,
+      userId: input.userId,
+      garmentIds: candidate.garmentIds,
+      contextWeather: input.weather,
+      contextMood: input.mood,
+      explanation: candidate.reasons.join(" • "),
+      score: candidate.score,
+      scoreBreakdown: candidate.scoreBreakdown,
+      createdAt: new Date(),
+    }));
+
+    return {
+      outfits,
+      explanation:
+        "AI-generated outfit combinations validated with rule-based safety checks.",
+      totalGenerated: outfits.length,
+      gaps: undefined,
+    };
+  }
+
+  /**
    * Closet gap fallback: when we can't generate strong outfits, return a simple
    * "what you're missing" hint using existing ClosetGap types.
    */

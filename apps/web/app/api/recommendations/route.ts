@@ -1,5 +1,5 @@
 import { OutfitRecommendationService } from "@/../../server/services/outfitRecommendationService";
-import { GeminiOutfitNarrativeService } from "@/../../server/services/geminiOutfitNarrativeService";
+import { GeminiOutfitGenerationService } from "@/../../server/services/geminiOutfitGenerationService";
 import type {
   Garment,
   RecommendationInput,
@@ -102,18 +102,21 @@ export async function POST(request: NextRequest) {
         : undefined,
     };
 
+    const aiGenerated = await GeminiOutfitGenerationService.generateGeminiFirst(
+      processedGarments,
+      recommendationInput
+    );
+
+    if (aiGenerated) {
+      return NextResponse.json(aiGenerated);
+    }
+
     const result = await OutfitRecommendationService.generateOutfits(
       processedGarments,
       recommendationInput
     );
 
-    const enhancedResult = await GeminiOutfitNarrativeService.enhanceNarratives(
-      processedGarments,
-      recommendationInput,
-      result
-    );
-
-    return NextResponse.json(enhancedResult);
+    return NextResponse.json(result);
   } catch (error) {
     console.error("Recommendations error:", error);
     return NextResponse.json(
