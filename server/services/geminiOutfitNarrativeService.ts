@@ -20,7 +20,10 @@ type GeminiNarrativeResponse = {
  */
 export class GeminiOutfitNarrativeService {
   static isEnabled(): boolean {
-    return Boolean(process.env.GEMINI_API_KEY);
+    return (
+      Boolean(process.env.GEMINI_API_KEY) &&
+      process.env.GEMINI_NARRATIVE_ENABLED === "true"
+    );
   }
 
   static async enhanceNarratives(
