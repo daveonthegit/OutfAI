@@ -9,7 +9,6 @@ import type { Id } from "@convex/_generated/dataModel";
 import { useRequireAuth } from "@/hooks/use-require-auth";
 import { PageContainer } from "@/components/layout/page-container";
 import { SectionHeader } from "@/components/layout/section-header";
-import { UserAvatar } from "@/components/user-avatar";
 import {
   CalendarOutfitPanel,
   type CalendarPlanPreview,
@@ -27,8 +26,8 @@ import {
 } from "@/components/ui/breadcrumb";
 import { toast } from "sonner";
 
-export default function CalendarPage() {
-  useRequireAuth("/calendar");
+export default function PlanCalendarPage() {
+  useRequireAuth("/plan/calendar");
   const [viewMonth, setViewMonth] = useState(() => new Date());
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [selectedReadOnly, setSelectedReadOnly] = useState(false);
@@ -134,61 +133,36 @@ export default function CalendarPage() {
   const panelOpen = selectedDate !== null;
 
   return (
-    <main className="min-h-screen bg-background text-foreground selection:bg-signal-orange selection:text-background">
-      <header className="fixed top-0 left-0 right-0 z-50 glass-bar rounded-none border-x-0 border-t-0 border-b border-border">
-        <div className="flex items-center justify-between px-4 py-5 md:px-8 lg:px-10 xl:px-12">
-          <Link
-            href="/plan"
-            className="text-[10px] md:text-xs uppercase tracking-[0.3em] font-medium hover:text-signal-orange transition-colors duration-100 cursor-pointer"
-          >
-            Plan
-          </Link>
-          <div className="flex items-center gap-6">
-            <Link
-              href="/archive"
-              className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground hover:text-foreground transition-colors duration-100 cursor-pointer"
-            >
-              Archive
-            </Link>
-            <span className="text-[10px] uppercase tracking-[0.2em] text-foreground">
-              Calendar
-            </span>
-            <UserAvatar />
-          </div>
-        </div>
-      </header>
+    <>
+      <PageContainer>
+        <Breadcrumb className="mb-6">
+          <BreadcrumbList className="text-[10px] uppercase tracking-[0.2em]">
+            <BreadcrumbItem>
+              <BreadcrumbLink asChild>
+                <Link href="/plan">Hub</Link>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage>Calendar</BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+        <SectionHeader
+          title="outfit calendar"
+          subtitle="Plan what to wear on upcoming days. Packing trips can assign looks here too."
+        />
 
-      <div className="pt-20 sm:pt-24 md:pt-28 lg:pt-32 pb-24 md:pb-28">
-        <PageContainer>
-          <Breadcrumb className="mb-6">
-            <BreadcrumbList className="text-[10px] uppercase tracking-[0.2em]">
-              <BreadcrumbItem>
-                <BreadcrumbLink asChild>
-                  <Link href="/plan">Plan</Link>
-                </BreadcrumbLink>
-              </BreadcrumbItem>
-              <BreadcrumbSeparator />
-              <BreadcrumbItem>
-                <BreadcrumbPage>Calendar</BreadcrumbPage>
-              </BreadcrumbItem>
-            </BreadcrumbList>
-          </Breadcrumb>
-          <SectionHeader
-            title="outfit calendar"
-            subtitle="Plan what to wear on upcoming days"
-          />
-
-          <OutfitCalendarMonth
-            viewMonth={viewMonth}
-            onViewMonthChange={setViewMonth}
-            days={days}
-            getGarmentPreviewsForDate={getGarmentPreviewsForDate}
-            onDaySelect={handleOpenDay}
-            plannedCount={plannedCount}
-            isLoading={isLoading}
-          />
-        </PageContainer>
-      </div>
+        <OutfitCalendarMonth
+          viewMonth={viewMonth}
+          onViewMonthChange={setViewMonth}
+          days={days}
+          getGarmentPreviewsForDate={getGarmentPreviewsForDate}
+          onDaySelect={handleOpenDay}
+          plannedCount={plannedCount}
+          isLoading={isLoading}
+        />
+      </PageContainer>
 
       <CalendarOutfitPanel
         open={panelOpen}
@@ -202,6 +176,6 @@ export default function CalendarPage() {
         onAssign={handleAssign}
         onClear={handleRemove}
       />
-    </main>
+    </>
   );
 }

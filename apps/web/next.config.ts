@@ -6,6 +6,17 @@ import type { NextConfig } from "next";
  * (it can leak server-only keys into client bundles via `nextConfig.env`).
  */
 const nextConfig: NextConfig = {
+  async redirects() {
+    return [
+      { source: "/calendar", destination: "/plan/calendar", permanent: true },
+      { source: "/packing", destination: "/plan/packing", permanent: true },
+      {
+        source: "/packing/:id",
+        destination: "/plan/packing/:id",
+        permanent: true,
+      },
+    ];
+  },
   images: {
     remotePatterns: [
       {

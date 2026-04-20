@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { OutfitRecommendationCard } from "@/components/outfit-recommendation-card";
 import { BrutalistButton } from "@/components/brutalist-button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -63,7 +64,14 @@ export function OutfitIdeasTripSection({
         </select>
         <p className="mt-2 text-[10px] uppercase tracking-[0.2em] text-muted-foreground max-w-xl">
           Ideas use sample weather for now: cloudy, 15°C. This keeps suggestions
-          consistent until we tie in your forecast.
+          consistent until we tie in your forecast. Assignments show on the{" "}
+          <Link
+            href="/plan/calendar"
+            className="text-foreground underline underline-offset-2 hover:text-signal-orange transition-colors"
+          >
+            outfit calendar
+          </Link>
+          .
         </p>
         <BrutalistButton
           className="mt-4 cursor-pointer"

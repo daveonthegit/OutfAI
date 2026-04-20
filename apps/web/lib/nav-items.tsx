@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 
 /**
  * Single source of truth for main app nav items (sidebar + bottom nav).
- * Use isPlanActive(pathname) for Plan item active state (includes /plan, /calendar, /packing/*).
+ * Use isPlanActive(pathname) for Plan item active state (all routes under /plan/*).
  */
 export const NAV_ITEMS: {
   href: string;
@@ -122,11 +122,7 @@ export const NAV_ITEMS: {
 
 /** True when pathname is under Plan (plan, calendar, packing). */
 export function isPlanActive(pathname: string): boolean {
-  return (
-    pathname === "/plan" ||
-    pathname === "/calendar" ||
-    pathname.startsWith("/packing")
-  );
+  return pathname === "/plan" || pathname.startsWith("/plan/");
 }
 
 /** True when this nav item is active for the given pathname. */

@@ -26,13 +26,13 @@ export function TripPageHeader({
         <BreadcrumbList className="text-[10px] uppercase tracking-[0.2em]">
           <BreadcrumbItem>
             <BreadcrumbLink asChild>
-              <Link href="/plan">Plan</Link>
+              <Link href="/plan">Hub</Link>
             </BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
             <BreadcrumbLink asChild>
-              <Link href="/packing">Packing</Link>
+              <Link href="/plan/packing">Packing</Link>
             </BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
