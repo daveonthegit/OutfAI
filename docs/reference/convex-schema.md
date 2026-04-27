@@ -90,7 +90,7 @@
 | `action` | `string` | yes |
 | `mood` | `string` | no |
 | `weather` | `string` | no |
-| `pickMode` | `` | no |
+| `pickMode` | `v.literal("exploit` | no |
 | `loggedAt` | `number` | yes |
 
 ---
