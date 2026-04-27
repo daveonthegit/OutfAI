@@ -28,18 +28,23 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-    try {
-      const result = await analyzeGarmentImage(imageBase64);
-      return NextResponse.json(result);
-    } catch (visionError) {
-      if (!GeminiGarmentImageAnalysisService.isEnabled()) {
-        throw visionError;
+    if (GeminiGarmentImageAnalysisService.isEnabled()) {
+      try {
+        const geminiResult =
+          await GeminiGarmentImageAnalysisService.analyze(imageBase64);
+        console.log("[analyze-garment-image] served by gemini");
+        return NextResponse.json(geminiResult);
+      } catch (geminiError) {
+        console.warn(
+          "[analyze-garment-image] gemini failed, falling back to vision:",
+          geminiError instanceof Error ? geminiError.message : geminiError
+        );
       }
-
-      const geminiResult =
-        await GeminiGarmentImageAnalysisService.analyze(imageBase64);
-      return NextResponse.json(geminiResult);
     }
+
+    const result = await analyzeGarmentImage(imageBase64);
+    console.log("[analyze-garment-image] served by vision");
+    return NextResponse.json(result);
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Image analysis failed";
