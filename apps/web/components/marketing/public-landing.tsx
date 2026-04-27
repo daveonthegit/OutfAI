@@ -31,6 +31,98 @@ const GALLERY_IMAGES: { src: string; alt: string }[] = [
   },
 ];
 
+const HOW_IT_WORKS = [
+  {
+    k: "01",
+    title: "Upload your wardrobe",
+    text: "Start with a few favorite pieces or build your closet over time.",
+  },
+  {
+    k: "02",
+    title: "Let OutfAI organize it",
+    text: "Your pieces become easier to browse, plan, and reuse with intention.",
+  },
+  {
+    k: "03",
+    title: "Build sharper outfits",
+    text: "Create polished combinations from clothes you already own.",
+  },
+] as const;
+
+const BENEFIT_CARDS = [
+  {
+    k: "Decide faster",
+    d: "Cut the morning guesswork and move from closet to outfit with less friction.",
+  },
+  {
+    k: "Wear more of what you own",
+    d: "Rediscover pieces that already fit your style instead of defaulting to the same few looks.",
+  },
+  {
+    k: "Repeat with intention",
+    d: "Save combinations that work, refine them, and bring them back when the moment fits.",
+  },
+  {
+    k: "Shop less randomly",
+    d: "See what your wardrobe is missing before adding more noise to your closet.",
+  },
+] as const;
+
+const PREVIEW_CARDS = [
+  {
+    label: "Digital closet",
+    title: "Every piece, easier to see.",
+    rows: ["Outerwear", "Tops", "Bottoms", "Shoes", "Accessories"],
+  },
+  {
+    label: "Outfit builder",
+    title: "Pair what works together.",
+    rows: [
+      "Neutral blazer",
+      "Ribbed tank",
+      "Tailored trouser",
+      "Leather slingback",
+    ],
+  },
+  {
+    label: "Saved looks",
+    title: "Keep your best outfits close.",
+    rows: ["Work polish", "Dinner edit", "Travel capsule", "Weekend clean"],
+  },
+] as const;
+
+const USE_CASES = [
+  "Busy mornings",
+  "Work outfits",
+  "Travel packing",
+  "Capsule wardrobes",
+  "Event styling",
+  "Everyday repeats",
+] as const;
+
+const FAQ_ITEMS = [
+  {
+    q: "Do I need to upload my whole closet?",
+    a: "No. You can begin with a few pieces and add more whenever you want your digital closet to feel more complete.",
+  },
+  {
+    q: "Does OutfAI only suggest new clothes to buy?",
+    a: "No. OutfAI is centered on helping you style what you already own first, so your existing wardrobe becomes more useful.",
+  },
+  {
+    q: "Can I save outfits?",
+    a: "Yes. Saved looks help you repeat, refine, and plan outfits without rebuilding the same idea every time.",
+  },
+  {
+    q: "Is this for a specific style?",
+    a: "OutfAI is designed around your wardrobe, so the experience can adapt to polished, casual, minimal, expressive, or capsule-based closets.",
+  },
+  {
+    q: "How long does setup take?",
+    a: "You can start in minutes by adding a few wardrobe pieces, then continue building your closet as you go.",
+  },
+] as const;
+
 const SLIDE_MS = 4000;
 
 export function PublicLanding() {
@@ -55,7 +147,7 @@ export function PublicLanding() {
   };
 
   return (
-    <main className="relative h-[100dvh] max-h-[100dvh] overflow-hidden bg-background text-foreground dark:bg-[var(--marketing-void)] dark:text-[#f4f3ef]">
+    <main className="relative min-h-[100dvh] overflow-x-hidden bg-background text-foreground dark:bg-[var(--marketing-void)] dark:text-[#f4f3ef]">
       <div className="dark:hidden">
         <EditorialBackdrop />
       </div>
@@ -69,7 +161,7 @@ export function PublicLanding() {
         className="glass-veil pointer-events-none absolute inset-0 z-[1]"
       />
 
-      <div className="relative z-10 mx-auto flex h-full min-h-0 w-full max-w-[min(96vw,90rem)] flex-col px-3 py-2 sm:px-5 sm:py-3 md:px-8">
+      <section className="relative z-10 mx-auto flex h-[100dvh] max-h-[100dvh] min-h-0 w-full max-w-[min(96vw,90rem)] flex-col overflow-hidden px-3 py-2 sm:px-5 sm:py-3 md:px-8">
         <MarketingHeader
           variant="landing"
           dense
@@ -274,7 +366,268 @@ export function PublicLanding() {
             </p>
           </motion.div>
         </motion.div>
-      </div>
+      </section>
+
+      <MarketingExpansionSections reduceMotion={reduceMotion} />
     </main>
+  );
+}
+
+function MarketingExpansionSections({
+  reduceMotion,
+}: {
+  reduceMotion: boolean;
+}) {
+  return (
+    <motion.div
+      className="relative z-10 mx-auto w-full max-w-[min(96vw,90rem)] px-3 pb-8 sm:px-5 sm:pb-12 md:px-8 lg:pb-16"
+      initial={reduceMotion ? false : "hidden"}
+      whileInView={reduceMotion ? undefined : "show"}
+      viewport={{ once: true, amount: 0.12 }}
+      variants={marketingContainerVariants}
+    >
+      <motion.section
+        variants={marketingItemVariants}
+        className="border-t border-[#0a0a0a]/[0.08] py-8 dark:border-[#f4f3ef]/10 sm:py-10 lg:py-14"
+      >
+        <div className="grid gap-5 lg:grid-cols-[minmax(0,0.7fr)_minmax(0,1.3fr)] lg:gap-8">
+          <div>
+            <p className="font-sans text-[10px] uppercase tracking-[0.28em] text-[#5a5a5a] dark:text-[#9a9a9a] sm:text-[11px]">
+              How it works
+            </p>
+            <h2 className="mt-2 max-w-[12ch] font-serif text-[clamp(1.6rem,2.5vw+0.8rem,3.1rem)] font-normal leading-[1.05] tracking-[-0.02em] text-[#0a0a0a] dark:text-[#f4f3ef]">
+              From closet noise to outfit clarity.
+            </h2>
+          </div>
+
+          <div className="grid gap-2 sm:grid-cols-3 sm:gap-3">
+            {HOW_IT_WORKS.map((step) => (
+              <article
+                key={step.k}
+                className="glass-panel rounded-sm border-[#0a0a0a]/[0.08] p-4 shadow-none dark:border-[#f4f3ef]/12 sm:p-5"
+              >
+                <p className="font-sans text-[10px] uppercase tracking-[0.22em] text-[#ff4d00] dark:text-[#c6a564]">
+                  {step.k}
+                </p>
+                <h3 className="mt-4 font-serif text-xl font-normal leading-tight text-[#0a0a0a] dark:text-[#f4f3ef] sm:text-2xl">
+                  {step.title}
+                </h3>
+                <p className="mt-2 font-sans text-xs leading-relaxed text-[#5a5a5a] dark:text-[#b8b6b0] sm:text-sm">
+                  {step.text}
+                </p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </motion.section>
+
+      <motion.section
+        variants={marketingItemVariants}
+        className="border-t border-[#0a0a0a]/[0.08] py-8 dark:border-[#f4f3ef]/10 sm:py-10 lg:py-14"
+      >
+        <div className="mb-5 flex flex-col justify-between gap-3 sm:mb-6 lg:flex-row lg:items-end">
+          <div>
+            <p className="font-sans text-[10px] uppercase tracking-[0.28em] text-[#5a5a5a] dark:text-[#9a9a9a] sm:text-[11px]">
+              Product preview
+            </p>
+            <h2 className="mt-2 max-w-[16ch] font-serif text-[clamp(1.6rem,2.5vw+0.8rem,3.1rem)] font-normal leading-[1.05] tracking-[-0.02em] text-[#0a0a0a] dark:text-[#f4f3ef]">
+              A wardrobe system that feels quiet.
+            </h2>
+          </div>
+          <p className="max-w-[42ch] font-sans text-sm leading-relaxed text-[#5a5a5a] dark:text-[#b8b6b0]">
+            Simple views for organizing pieces, building outfits, and returning
+            to the looks that already work.
+          </p>
+        </div>
+
+        <div className="grid gap-3 lg:grid-cols-3">
+          {PREVIEW_CARDS.map((card) => (
+            <article
+              key={card.label}
+              className="overflow-hidden rounded-sm border border-[#0a0a0a]/[0.08] bg-[var(--marketing-canvas-apple)]/70 dark:border-[#f4f3ef]/10 dark:bg-[#111111]/75"
+            >
+              <div className="border-b border-[#0a0a0a]/[0.08] px-4 py-3 dark:border-[#f4f3ef]/10 sm:px-5">
+                <p className="font-sans text-[10px] uppercase tracking-[0.22em] text-[#ff4d00] dark:text-[#c6a564]">
+                  {card.label}
+                </p>
+                <p className="mt-1 font-serif text-lg italic leading-snug text-[#0a0a0a] dark:text-[#f4f3ef]">
+                  {card.title}
+                </p>
+              </div>
+              <div className="grid gap-2 p-4 sm:p-5">
+                {card.rows.map((row, index) => (
+                  <div
+                    key={row}
+                    className="flex items-center justify-between gap-3 border border-[#0a0a0a]/[0.06] bg-background/40 px-3 py-2 dark:border-[#f4f3ef]/[0.08] dark:bg-[#0a0a0a]/35"
+                  >
+                    <span className="font-sans text-xs text-[#3d3d3d] dark:text-[#d2d0ca]">
+                      {row}
+                    </span>
+                    <span className="font-sans text-[10px] tabular-nums text-[#7a7a7a] dark:text-[#8a8a86]">
+                      0{index + 1}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </article>
+          ))}
+        </div>
+      </motion.section>
+
+      <motion.section
+        variants={marketingItemVariants}
+        className="border-t border-[#0a0a0a]/[0.08] py-8 dark:border-[#f4f3ef]/10 sm:py-10 lg:py-14"
+      >
+        <div className="grid gap-5 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] lg:gap-8 lg:items-start">
+          <div>
+            <p className="font-sans text-[10px] uppercase tracking-[0.28em] text-[#5a5a5a] dark:text-[#9a9a9a] sm:text-[11px]">
+              Why OutfAI
+            </p>
+            <h2 className="mt-2 max-w-[15ch] font-serif text-[clamp(1.6rem,2.5vw+0.8rem,3.1rem)] font-normal leading-[1.05] tracking-[-0.02em] text-[#0a0a0a] dark:text-[#f4f3ef]">
+              Designed for getting dressed, not overthinking.
+            </h2>
+            <p className="mt-3 max-w-[46ch] font-sans text-sm leading-relaxed text-[#5a5a5a] dark:text-[#b8b6b0]">
+              OutfAI helps turn your existing wardrobe into a calmer planning
+              tool, so better outfits feel easier to repeat.
+            </p>
+          </div>
+
+          <div className="grid gap-2 sm:grid-cols-2 sm:gap-3">
+            {BENEFIT_CARDS.map((item) => (
+              <article
+                key={item.k}
+                className="glass-panel rounded-sm border-[#0a0a0a]/[0.08] p-4 shadow-none dark:border-[#f4f3ef]/12 sm:p-5"
+              >
+                <h3 className="font-serif text-xl font-normal leading-tight text-[#0a0a0a] dark:text-[#f4f3ef]">
+                  {item.k}
+                </h3>
+                <p className="mt-2 font-sans text-xs leading-relaxed text-[#5a5a5a] dark:text-[#b8b6b0] sm:text-sm">
+                  {item.d}
+                </p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </motion.section>
+
+      <motion.section
+        variants={marketingItemVariants}
+        className="border-t border-[#0a0a0a]/[0.08] py-8 dark:border-[#f4f3ef]/10 sm:py-10 lg:py-14"
+      >
+        <div className="grid gap-5 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:items-center lg:gap-8">
+          <div className="glass-panel rounded-sm border-[#0a0a0a]/[0.08] p-5 shadow-none dark:border-[#f4f3ef]/12 sm:p-6 lg:p-8">
+            <p className="font-sans text-[10px] uppercase tracking-[0.28em] text-[#5a5a5a] dark:text-[#9a9a9a] sm:text-[11px]">
+              Designed for
+            </p>
+            <div className="mt-4 flex flex-wrap gap-2">
+              {USE_CASES.map((item) => (
+                <span
+                  key={item}
+                  className="border border-[#0a0a0a]/[0.08] bg-background/40 px-3 py-2 font-sans text-[10px] uppercase tracking-[0.18em] text-[#3d3d3d] dark:border-[#f4f3ef]/[0.1] dark:bg-[#0a0a0a]/30 dark:text-[#d2d0ca]"
+                >
+                  {item}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <p className="font-sans text-[10px] uppercase tracking-[0.28em] text-[#5a5a5a] dark:text-[#9a9a9a] sm:text-[11px]">
+              Privacy-minded
+            </p>
+            <h2 className="mt-2 font-serif text-[clamp(1.6rem,2.5vw+0.8rem,3.1rem)] font-normal leading-[1.05] tracking-[-0.02em] text-[#0a0a0a] dark:text-[#f4f3ef]">
+              Your closet stays yours.
+            </h2>
+            <p className="mt-3 max-w-[46ch] font-sans text-sm leading-relaxed text-[#5a5a5a] dark:text-[#b8b6b0]">
+              OutfAI is built around your personal wardrobe experience. The
+              clothes you add are there to help organize your closet and style
+              your own looks with more clarity.
+            </p>
+          </div>
+        </div>
+      </motion.section>
+
+      <motion.section
+        variants={marketingItemVariants}
+        className="border-t border-[#0a0a0a]/[0.08] py-8 dark:border-[#f4f3ef]/10 sm:py-10 lg:py-14"
+      >
+        <div className="grid gap-5 lg:grid-cols-[minmax(0,0.75fr)_minmax(0,1.25fr)] lg:gap-8">
+          <div>
+            <p className="font-sans text-[10px] uppercase tracking-[0.28em] text-[#5a5a5a] dark:text-[#9a9a9a] sm:text-[11px]">
+              FAQ
+            </p>
+            <h2 className="mt-2 max-w-[12ch] font-serif text-[clamp(1.6rem,2.5vw+0.8rem,3.1rem)] font-normal leading-[1.05] tracking-[-0.02em] text-[#0a0a0a] dark:text-[#f4f3ef]">
+              Good to know before you start.
+            </h2>
+          </div>
+
+          <div className="border-y border-[#0a0a0a]/[0.08] dark:border-[#f4f3ef]/10">
+            {FAQ_ITEMS.map((item) => (
+              <details
+                key={item.q}
+                className="group border-b border-[#0a0a0a]/[0.08] last:border-b-0 dark:border-[#f4f3ef]/10"
+              >
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 py-4 font-sans text-sm text-[#0a0a0a] outline-none transition-colors duration-150 hover:text-[#ff4d00] focus-visible:ring-2 focus-visible:ring-[var(--marketing-focus-bmw)] dark:text-[#f4f3ef] dark:hover:text-[#c6a564] sm:py-5 [&::-webkit-details-marker]:hidden">
+                  <span>{item.q}</span>
+                  <span
+                    className="shrink-0 text-lg leading-none text-[#ff4d00] transition-transform duration-200 group-open:rotate-45 dark:text-[#c6a564]"
+                    aria-hidden
+                  >
+                    +
+                  </span>
+                </summary>
+                <p className="max-w-[65ch] pb-4 font-sans text-sm leading-relaxed text-[#5a5a5a] dark:text-[#b8b6b0] sm:pb-5">
+                  {item.a}
+                </p>
+              </details>
+            ))}
+          </div>
+        </div>
+      </motion.section>
+
+      <motion.section
+        variants={marketingItemVariants}
+        className="border-t border-[#0a0a0a]/[0.08] py-8 dark:border-[#f4f3ef]/10 sm:py-10 lg:py-14"
+      >
+        <div className="glass-panel rounded-sm border-[#0a0a0a]/[0.08] p-5 text-center shadow-none dark:border-[#f4f3ef]/12 sm:p-8 lg:p-10">
+          <p className="font-sans text-[10px] uppercase tracking-[0.28em] text-[#5a5a5a] dark:text-[#9a9a9a] sm:text-[11px]">
+            Ready when you are
+          </p>
+          <h2 className="mx-auto mt-2 max-w-[16ch] font-serif text-[clamp(1.7rem,2.8vw+0.8rem,3.3rem)] font-normal leading-[1.05] tracking-[-0.02em] text-[#0a0a0a] dark:text-[#f4f3ef]">
+            Build your first better outfit.
+          </h2>
+          <p className="mx-auto mt-3 max-w-[46ch] font-sans text-sm leading-relaxed text-[#5a5a5a] dark:text-[#b8b6b0]">
+            Start with what you already own and let OutfAI help you plan with
+            more intention.
+          </p>
+          <div className="mt-5 flex flex-wrap items-center justify-center gap-2 sm:gap-3">
+            <Link
+              href="/signup"
+              className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center gap-2 rounded-[var(--marketing-radius-apple)] bg-[#0a0a0a] px-4 py-2.5 text-[11px] font-medium uppercase tracking-[0.2em] text-[#f4f3ef] transition-colors duration-150 hover:bg-[#1a1a1a] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--marketing-focus-bmw)] focus-visible:ring-offset-2 focus-visible:ring-offset-background dark:bg-[#f4f3ef] dark:text-[#0a0a0a] dark:hover:bg-[#e8e6e0] dark:focus-visible:ring-offset-[var(--marketing-void)] sm:px-5 sm:text-xs"
+            >
+              Create account
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                aria-hidden
+              >
+                <line x1="5" y1="12" x2="19" y2="12" />
+                <polyline points="12 5 19 12 12 19" />
+              </svg>
+            </Link>
+            <Link
+              href="/login"
+              className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-[var(--marketing-radius-apple)] border border-[#0a0a0a]/18 bg-transparent px-4 py-2.5 text-[11px] font-medium uppercase tracking-[0.2em] text-[#0a0a0a] transition-colors duration-150 hover:border-[#0a0a0a]/35 hover:bg-[#0a0a0a]/[0.03] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--marketing-focus-bmw)] focus-visible:ring-offset-2 focus-visible:ring-offset-background dark:border-[#f4f3ef]/25 dark:text-[#f4f3ef] dark:hover:border-[#f4f3ef]/45 dark:hover:bg-[#f4f3ef]/[0.06] dark:focus-visible:ring-offset-[var(--marketing-void)] sm:px-5 sm:text-xs"
+            >
+              Sign in
+            </Link>
+          </div>
+        </div>
+      </motion.section>
+    </motion.div>
   );
 }
