@@ -397,15 +397,58 @@ export default function Home() {
     });
   };
 
+  const fetchGeminiExplanation = async (
+    outfit: DisplayOutfit,
+    garmentIds: Id<"garments">[]
+  ): Promise<string | undefined> => {
+    try {
+      const tempId = "preview";
+      const res = await fetch("/api/outfit-narratives", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          context: {
+            mood: outfit.contextMood ?? null,
+            weather: outfit.contextWeather ?? null,
+            temperature: outfit.contextTemperature ?? null,
+            occasion: occasion.trim() || null,
+          },
+          outfits: [
+            {
+              outfitId: tempId,
+              garmentIds: garmentIds.map(String),
+              currentExplanation: outfit.explanation ?? "",
+              score: 0,
+            },
+          ],
+        }),
+      });
+      if (!res.ok) return undefined;
+      const data = (await res.json()) as {
+        enhanced?: boolean;
+        outfitNarratives?: Array<{ outfitId: string; explanation: string }>;
+      };
+      if (!data.enhanced) return undefined;
+      const match = data.outfitNarratives?.find((n) => n.outfitId === tempId);
+      return match?.explanation;
+    } catch {
+      return undefined;
+    }
+  };
+
   const navigateToOutfitPreview = async (outfit: DisplayOutfit) => {
     const garmentIds = outfit.garments
       .map((g) => g.id)
       .filter((id): id is Id<"garments"> => Boolean(id));
     if (garmentIds.length === 0) return;
+
+    const rewritten = await fetchGeminiExplanation(outfit, garmentIds);
+    const explanation = rewritten ?? outfit.explanation;
+
     const previewId = await createOutfitPreview({
       label: outfit.label,
       garmentIds,
-      explanation: outfit.explanation,
+      explanation,
       scoreBreakdown: outfit.scoreBreakdown,
       contextMood: outfit.contextMood,
       contextWeather: outfit.contextWeather,

@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "convex/react";
 import { api } from "@convex/_generated/api";
 import type { Mood, WeatherCondition, Outfit } from "@shared/types";
@@ -83,6 +83,11 @@ export function useOutfitRecommendations(
 ): UseOutfitRecommendationsReturn {
   const [active, setActive] = useState<ActiveRequest | null>(null);
   const stableOutfitsRef = useRef<Outfit[]>([]);
+  const [narratives, setNarratives] = useState<{
+    nonce: number;
+    byId: Map<string, string>;
+    overall?: string;
+  } | null>(null);
 
   const ranked = useQuery(
     api.recommendationRank.getRankedRecommendations,
@@ -101,7 +106,7 @@ export function useOutfitRecommendations(
 
   const loading = active !== null && ranked === undefined;
 
-  const outfits = useMemo(() => {
+  const baseOutfits = useMemo(() => {
     if (active === null) {
       stableOutfitsRef.current = [];
       return [];
@@ -135,10 +140,86 @@ export function useOutfitRecommendations(
     initialOptions.weather,
   ]);
 
+  // Fire-and-merge: ask Gemini to rewrite explanations once a fresh rank arrives.
+  // Server returns originals (no-op) when GEMINI_NARRATIVE_ENABLED is not set.
+  useEffect(() => {
+    if (active === null || baseOutfits.length === 0) return;
+    if (narratives && narratives.nonce === active.nonce) return;
+
+    const nonce = active.nonce;
+    const controller = new AbortController();
+
+    const run = async () => {
+      try {
+        const res = await fetch("/api/outfit-narratives", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          signal: controller.signal,
+          body: JSON.stringify({
+            context: {
+              mood: active.mood ?? null,
+              weather: active.weather ?? null,
+              temperature: active.temperature ?? null,
+              occasion: active.occasion ?? null,
+            },
+            outfits: baseOutfits.map((o) => ({
+              outfitId: o.id,
+              garmentIds: o.garmentIds,
+              currentExplanation: o.explanation,
+              score: o.score,
+            })),
+          }),
+        });
+        if (!res.ok) return;
+        const data = (await res.json()) as {
+          enhanced?: boolean;
+          overallExplanation?: string;
+          outfitNarratives?: Array<{ outfitId: string; explanation: string }>;
+        };
+        if (!data.enhanced || !Array.isArray(data.outfitNarratives)) return;
+        const byId = new Map(
+          data.outfitNarratives
+            .filter((n) => n?.outfitId && n?.explanation)
+            .map((n) => [n.outfitId, n.explanation])
+        );
+        if (byId.size === 0) return;
+        setNarratives({ nonce, byId, overall: data.overallExplanation });
+      } catch {
+        // best-effort enhancer
+      }
+    };
+
+    void run();
+    return () => controller.abort();
+  }, [active, baseOutfits, narratives]);
+
+  const outfits = useMemo(() => {
+    if (
+      !narratives ||
+      active === null ||
+      narratives.nonce !== active.nonce ||
+      narratives.byId.size === 0
+    ) {
+      return baseOutfits;
+    }
+    return baseOutfits.map((o) => {
+      const rewritten = narratives.byId.get(o.id);
+      return rewritten ? { ...o, explanation: rewritten } : o;
+    });
+  }, [baseOutfits, narratives, active]);
+
   const explanation = useMemo(() => {
+    if (
+      narratives &&
+      active !== null &&
+      narratives.nonce === active.nonce &&
+      narratives.overall
+    ) {
+      return narratives.overall;
+    }
     if (!outfits.length) return "";
     return outfits[0]?.explanation ?? "";
-  }, [outfits]);
+  }, [outfits, narratives, active]);
 
   const generate = useCallback(
     async (
@@ -163,6 +244,7 @@ export function useOutfitRecommendations(
   const reset = useCallback(() => {
     setActive(null);
     stableOutfitsRef.current = [];
+    setNarratives(null);
   }, []);
 
   return {
