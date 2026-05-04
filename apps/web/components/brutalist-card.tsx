@@ -20,12 +20,12 @@ export function BrutalistCard({
   return (
     <div
       className={cn(
-        "bg-card transition-all duration-100",
+        "rounded-[var(--marketing-radius-apple)] bg-card transition-all duration-150",
         density === "compact" ? "p-4" : "p-6",
-        variant === "default" && "border border-border",
+        variant === "default" && "border border-border/80",
         variant === "elevated" &&
-          "border border-border shadow-[4px_4px_0_0_var(--foreground)]",
-        variant === "outlined" && "border-2 border-foreground",
+          "border border-border/80 shadow-[0_24px_80px_-48px_rgba(10,10,10,0.42)] dark:shadow-[0_24px_80px_-48px_rgba(0,0,0,0.72)]",
+        variant === "outlined" && "border border-foreground/40",
         className
       )}
     >
@@ -42,7 +42,7 @@ export function BrutalistCardHeader({
   className?: string;
 }) {
   return (
-    <div className={cn("border-b border-border pb-4 mb-4", className)}>
+    <div className={cn("mb-4 border-b border-border/80 pb-4", className)}>
       {children}
     </div>
   );

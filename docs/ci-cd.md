@@ -24,10 +24,10 @@ npm run format:check
 npm run lint
 npm run typecheck
 npm run test
-npm run build
+npm run build:ci
 ```
 
-Schema docs are also checked for drift through `npm run gen:db-docs`.
+`npm run build:ci` seeds placeholder Convex URLs before running the production build, so it works on Windows, macOS, Linux, and GitHub Actions. Schema docs are checked for drift through `npm run db:doc:check`; regenerate them with `npm run gen:db-docs` after schema changes.
 
 Deploy model
 
@@ -45,6 +45,7 @@ Maintenance rules
 
 - If you add a new required quality gate, wire it into CI and document it here.
 - If you change the Convex schema, regenerate the schema reference and commit it.
+- Keep repo-level scripts cross-platform; avoid shell-specific env assignment in `package.json`.
 - Keep this file concise; detailed incident notes or migration history belong in `docs/archive/`.
 
 Related docs

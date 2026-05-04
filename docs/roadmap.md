@@ -11,18 +11,20 @@ Read this when
 
 Current state
 
-Core wardrobe, recommendation, account, and planning flows are already implemented. Remaining work is mostly refinement, intelligence, and expansion.
+Core wardrobe, personalized recommendation, account, and planning flows are already implemented. Remaining work is mostly release hardening, accessibility, UX consolidation, and product expansion.
 
 Backlog themes
 
 ## Recommendation quality
 
-- Build a learning pipeline from recommendation logs
+- Validate personalization quality with real or seeded wardrobes
+- Expand evaluation coverage for exploration, learned weights, and score explanations
 - Turn garment image analysis into a complete auto-tagging flow
 - Surface default tag suggestions in add/edit garment forms
 
 ## Reliability and UX
 
+- Finish the UI/UX consolidation plan in `docs/ui-ux-audit-plan.md`
 - Complete the accessibility follow-up
 - Expand E2E coverage around core user flows
 - Improve operational monitoring, rate limiting, and structured logging
@@ -48,4 +50,5 @@ Related docs
 
 - [product.md](product.md)
 - [features/recommendation-engine.md](features/recommendation-engine.md)
+- [ui-ux-audit-plan.md](ui-ux-audit-plan.md)
 - [archive/README.md](archive/README.md)

@@ -40,7 +40,7 @@ Shipped capabilities
 
 Current limitations
 
-- The learning pipeline is not built yet; recommendations are still rule-based.
+- Personalization is implemented, but still needs real-world tuning, evaluation, and stronger E2E coverage.
 - AI image auto-tagging exists only as an optional analysis path, not a complete user flow.
 - Sessions/2FA, social features, and mobile app work remain backlog.
 - Accessibility follow-up still exists even though core UI quality has improved.

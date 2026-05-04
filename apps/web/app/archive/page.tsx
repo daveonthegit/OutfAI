@@ -18,6 +18,12 @@ import { useRequireAuth } from "@/hooks/use-require-auth";
 import { UserAvatar } from "@/components/user-avatar";
 import { LoadingState } from "@/components/loading-state";
 import { EmptyState, EmptyStateActionLink } from "@/components/empty-state";
+import {
+  BrutalistDropdown,
+  BrutalistDropdownContent,
+  BrutalistDropdownItem,
+  BrutalistDropdownTrigger,
+} from "@/components/brutalist-dropdown";
 
 const GARMENT_CATEGORY_ORDER = [
   "top",
@@ -135,7 +141,6 @@ export default function ArchivePage() {
     const week: OutfitWithGarments[] = [];
     const month: OutfitWithGarments[] = [];
     const older: OutfitWithGarments[] = [];
-    const now = Date.now();
     filteredAndSorted.forEach((o) => {
       const t = o.savedAt;
       if (isThisWeek(t)) week.push(o);
@@ -145,9 +150,7 @@ export default function ArchivePage() {
     return { week, month, older };
   }, [filteredAndSorted]);
 
-  const handleRemove = async (id: Id<"outfits">, e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const handleRemove = async (id: Id<"outfits">) => {
     setRemoveLoadingId(id);
     try {
       await removeOutfit({ id });
@@ -156,12 +159,7 @@ export default function ArchivePage() {
     }
   };
 
-  const handleWoreThis = async (
-    outfit: OutfitWithGarments,
-    e: React.MouseEvent
-  ) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const handleWoreThis = async (outfit: OutfitWithGarments) => {
     setWoreThisLoadingId(outfit._id);
     try {
       await logRecommendation({
@@ -325,28 +323,56 @@ export default function ArchivePage() {
                                   ...(cardHoverProps.style as React.CSSProperties),
                                 }}
                               >
-                                {/* I wore this + Remove — always visible for touch / keyboard (not hover-only) */}
-                                <div className="absolute top-2 right-2 left-2 z-20 flex justify-between gap-2 pointer-events-none">
-                                  <button
-                                    type="button"
-                                    onClick={(e) => handleWoreThis(outfit, e)}
-                                    disabled={woreThisLoadingId === outfit._id}
-                                    className="pointer-events-auto p-1.5 bg-background/90 border border-border hover:border-signal-orange hover:text-signal-orange transition-colors text-[9px] uppercase tracking-widest disabled:opacity-60 focus-visible:ring-2 focus-visible:ring-signal-orange focus-visible:ring-offset-1 focus-visible:outline-none"
-                                  >
-                                    {woreThisLoadingId === outfit._id
-                                      ? "…"
-                                      : "I wore this"}
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={(e) => handleRemove(outfit._id, e)}
-                                    disabled={removeLoadingId === outfit._id}
-                                    className="pointer-events-auto p-1.5 bg-background/90 border border-border hover:border-destructive hover:text-destructive transition-colors text-[9px] uppercase tracking-widest disabled:opacity-60 focus-visible:ring-2 focus-visible:ring-signal-orange focus-visible:ring-offset-1 focus-visible:outline-none"
-                                  >
-                                    {removeLoadingId === outfit._id
-                                      ? "…"
-                                      : "Remove"}
-                                  </button>
+                                <div className="absolute top-2 right-2 z-20">
+                                  <BrutalistDropdown>
+                                    <BrutalistDropdownTrigger asChild>
+                                      <button
+                                        type="button"
+                                        className="glass-bar pointer-events-auto flex h-8 w-8 items-center justify-center border-border text-muted-foreground transition-colors hover:border-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal-orange focus-visible:ring-offset-1"
+                                        aria-label="Saved look actions"
+                                      >
+                                        <svg
+                                          viewBox="0 0 24 24"
+                                          fill="none"
+                                          stroke="currentColor"
+                                          strokeWidth="1.5"
+                                          className="h-4 w-4"
+                                          aria-hidden
+                                        >
+                                          <circle cx="12" cy="5" r="1" />
+                                          <circle cx="12" cy="12" r="1" />
+                                          <circle cx="12" cy="19" r="1" />
+                                        </svg>
+                                      </button>
+                                    </BrutalistDropdownTrigger>
+                                    <BrutalistDropdownContent align="end">
+                                      <BrutalistDropdownItem
+                                        disabled={
+                                          woreThisLoadingId === outfit._id
+                                        }
+                                        onSelect={() => {
+                                          void handleWoreThis(outfit);
+                                        }}
+                                      >
+                                        {woreThisLoadingId === outfit._id
+                                          ? "Marking worn"
+                                          : "I wore this"}
+                                      </BrutalistDropdownItem>
+                                      <BrutalistDropdownItem
+                                        disabled={
+                                          removeLoadingId === outfit._id
+                                        }
+                                        className="text-destructive focus:text-destructive"
+                                        onSelect={() => {
+                                          void handleRemove(outfit._id);
+                                        }}
+                                      >
+                                        {removeLoadingId === outfit._id
+                                          ? "Removing"
+                                          : "Remove"}
+                                      </BrutalistDropdownItem>
+                                    </BrutalistDropdownContent>
+                                  </BrutalistDropdown>
                                 </div>
 
                                 {/* Clickable area: same square layout as recommendation options */}
@@ -377,7 +403,7 @@ export default function ArchivePage() {
                                       <div className="grid grid-cols-2 w-full h-full absolute inset-0">
                                         {sortedGarments
                                           .slice(0, 4)
-                                          .map((garment, idx) => (
+                                          .map((garment) => (
                                             <div
                                               key={garment._id}
                                               className="relative bg-secondary border-l border-t border-border"

@@ -25,6 +25,6 @@ export function middleware(request: NextRequest) {
 // Skip all `/api/*` here so handlers return JSON 401/429 instead of HTML redirects.
 export const config = {
   matcher: [
-    "/((?!$|login|signup|check-email|verify-email|forgot-password|reset-password|api/|_next/static|_next/image|favicon\\.ico|icon|apple-icon|.*\\.(?:svg|png|jpg|jpeg|webp|gif|ico)$).*)",
+    "/((?!$|style|login|signup|check-email|verify-email|forgot-password|reset-password|api/|_next/static|_next/image|favicon\\.ico|icon|apple-icon|.*\\.(?:svg|png|jpg|jpeg|webp|gif|ico)$).*)",
   ],
 };

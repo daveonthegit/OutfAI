@@ -47,6 +47,9 @@
 | `imageUrl` | `string` | no |
 | `imageStorageId` | `id<_storage>` | no |
 
+**Indexes:**
+- `by_userId` on (`userId`)
+
 ---
 
 ## `outfitPreviews`
@@ -63,6 +66,9 @@
 | `contextTemperature` | `number` | no |
 | `createdAt` | `number` | yes |
 
+**Indexes:**
+- `by_userId` on (`userId`)
+
 ---
 
 ## `outfits`
@@ -77,6 +83,9 @@
 | `explanation` | `string` | no |
 | `savedAt` | `number` | yes |
 
+**Indexes:**
+- `by_userId` on (`userId`)
+
 ---
 
 ## `recommendationLogs`
@@ -90,8 +99,12 @@
 | `action` | `string` | yes |
 | `mood` | `string` | no |
 | `weather` | `string` | no |
-| `pickMode` | `` | no |
+| `pickMode` | `"exploit" | "explore"` | no |
 | `loggedAt` | `number` | yes |
+
+**Indexes:**
+- `by_userId` on (`userId`)
+- `by_userId_loggedAt` on (`userId`, `loggedAt`)
 
 ---
 
@@ -102,6 +115,10 @@
 | `userId` | `string` | yes |
 | `date` | `string` | yes |
 | `outfitId` | `id<outfits>` | yes |
+
+**Indexes:**
+- `by_userId` on (`userId`)
+- `by_userId_date` on (`userId`, `date`)
 
 ---
 
@@ -116,6 +133,9 @@
 | `garmentIds` | `array<id<garments>>` | yes |
 | `createdAt` | `number` | yes |
 | `updatedAt` | `number` | yes |
+
+**Indexes:**
+- `by_userId` on (`userId`)
 
 ---
 
@@ -133,6 +153,9 @@
 | `learnedWeights` | `learnedWeightsValidator` | no |
 | `stats` | `userPreferenceStatsValidator` | no |
 
+**Indexes:**
+- `by_userId` on (`userId`)
+
 ---
 
 ## `profiles`
@@ -144,6 +167,9 @@
 | `avatarStorageId` | `id<_storage>` | no |
 | `onboardingComplete` | `boolean` | no |
 | `updatedAt` | `number` | yes |
+
+**Indexes:**
+- `by_userId` on (`userId`)
 
 ---
 
@@ -166,8 +192,14 @@
 | `productUrl` | `string` | yes |
 | `affiliateUrl` | `string` | no |
 | `availability` | `string` | no |
+| `metadata` | `externalProductMetadataValidator` | yes |
 | `createdAt` | `number` | yes |
 | `updatedAt` | `number` | yes |
+
+**Indexes:**
+- `by_source` on (`source`)
+- `by_source_product` on (`source`, `sourceProductId`)
+- `by_category` on (`category`)
 
 ---
 
@@ -179,5 +211,8 @@
 | `productId` | `id<external_products>` | yes |
 | `action` | `string` | yes |
 | `loggedAt` | `number` | yes |
+
+**Indexes:**
+- `by_userId` on (`userId`)
 
 ---

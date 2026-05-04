@@ -26,6 +26,7 @@ Live docs
 - [roadmap.md](roadmap.md): concise backlog themes and future work
 - [contributing.md](contributing.md): contribution workflow and maintenance rules
 - [design-system.md](design-system.md): UI direction and shared styling rules
+- [ui-ux-audit-plan.md](ui-ux-audit-plan.md): active UI/UX consolidation plan and issue breakdown
 - [security.md](security.md): auth, secrets, validation, and security caveats
 - [ci-cd.md](ci-cd.md): CI pipeline and deploy workflow
 - [features/recommendation-engine.md](features/recommendation-engine.md): core recommendation system details

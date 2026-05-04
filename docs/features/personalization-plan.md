@@ -1,8 +1,8 @@
-# Personalization + Retention Pipeline Plan
+# Personalization + Retention Pipeline
 
-Implementation-ready design for a personalization loop driven by `saved` / `skipped` / `worn` feedback on recommended outfits. Grounded in the current Convex schema (`recommendationLogs`, `userPreferences`, `garments`, `outfitPreviews`).
+This document records the shipped personalization loop and the original implementation breakdown for maintenance reference. For the current high-level backlog, use [../roadmap.md](../roadmap.md).
 
-Target executor: a lower-level coding model shipping one issue at a time. No full implementation code here — only contracts, rules, and structure.
+Current state: the core loop is implemented. `logOutfitAction` writes recommendation feedback, personalization hooks update learned weights and stats, `getRankedRecommendations` scores candidates with learned preferences plus exploration, and retention UI can show training/streak/nudge signals.
 
 ---
 

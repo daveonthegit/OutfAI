@@ -76,15 +76,18 @@ export default function SignupPage() {
           <p className="mb-1 font-sans text-[10px] uppercase tracking-[0.28em] text-muted-foreground sm:text-[11px]">
             Onboarding
           </p>
-          <h1 className="font-serif text-[clamp(1.35rem,3vw+0.5rem,2.5rem)] font-normal italic leading-[0.95] tracking-[-0.02em] text-foreground">
+          <h1
+            aria-label="Claim your closet workspace."
+            className="font-serif text-[clamp(1.35rem,3vw+0.5rem,2.5rem)] font-normal italic leading-[0.95] tracking-[-0.02em] text-foreground"
+          >
             Claim your
-            <span className="block text-[#ff4d00] dark:text-[#c6a564]">
+            <span aria-hidden className="block">
               closet workspace.
             </span>
           </h1>
-          <p className="mt-2 line-clamp-3 max-w-[38ch] font-sans text-sm leading-snug text-muted-foreground">
-            Register in a minute, then catalog pieces and assemble looks with
-            intent.
+          <p className="mt-3 line-clamp-3 max-w-[42ch] font-sans text-sm leading-relaxed text-muted-foreground">
+            Create the stylist that starts with what you already own, then turns
+            your closet into daily outfit direction.
           </p>
         </>
       }

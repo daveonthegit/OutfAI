@@ -1,4 +1,8 @@
 import type { NextConfig } from "next";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 
 /**
  * Next.js loads `.env*` from `apps/web` only. Keep server secrets out of this file.
@@ -6,6 +10,13 @@ import type { NextConfig } from "next";
  * (it can leak server-only keys into client bundles via `nextConfig.env`).
  */
 const nextConfig: NextConfig = {
+  eslint: {
+    // Repo-level `npm run lint` is the CI gate; avoid duplicate Next build linting
+    // because the root flat config already owns framework rules.
+    ignoreDuringBuilds: true,
+  },
+  outputFileTracingRoot: repoRoot,
+  serverExternalPackages: ["@google-cloud/vision"],
   async redirects() {
     return [
       { source: "/calendar", destination: "/plan/calendar", permanent: true },

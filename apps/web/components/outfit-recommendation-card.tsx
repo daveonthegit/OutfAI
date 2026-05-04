@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { motion } from "framer-motion";
@@ -100,30 +100,6 @@ export function OutfitRecommendationCard({
   const [breakdownOpen, setBreakdownOpen] = useState(false);
   const [breakdownExpanded, setBreakdownExpanded] = useState(false);
   const cardMotionProps = getCardHoverMotionProps();
-  const cardRef = useRef<HTMLDivElement>(null);
-
-  // Keyboard shortcuts: S = save, X = skip (when card is focused)
-  useEffect(() => {
-    const el = cardRef.current;
-    if (!el) return;
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.target !== el && !el.contains(e.target as Node)) return;
-      if (e.key === "s" || e.key === "S") {
-        e.preventDefault();
-        onSave?.();
-      }
-      if (e.key === "x" || e.key === "X") {
-        e.preventDefault();
-        onSkip?.();
-      }
-      if (e.key === "w" || e.key === "W") {
-        e.preventDefault();
-        onWorn?.();
-      }
-    };
-    el.addEventListener("keydown", onKeyDown);
-    return () => el.removeEventListener("keydown", onKeyDown);
-  }, [onSave, onSkip, onWorn]);
 
   if (garments.length === 0) return null;
 
@@ -165,12 +141,25 @@ export function OutfitRecommendationCard({
     }
   };
 
+  const handlePrimaryKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>) => {
+    if (e.key === "s" || e.key === "S") {
+      e.preventDefault();
+      onSave?.();
+    }
+    if (e.key === "x" || e.key === "X") {
+      e.preventDefault();
+      onSkip?.();
+    }
+    if (e.key === "w" || e.key === "W") {
+      e.preventDefault();
+      onWorn?.();
+    }
+  };
+
   return (
     <motion.div
       {...cardMotionProps}
-      ref={cardRef}
-      tabIndex={0}
-      className="relative w-full aspect-square border border-[var(--glass-border-strong)] bg-card/90 shadow-[var(--glass-shadow)] backdrop-blur-[10px] hover:bg-secondary/40 transition-colors duration-100 group overflow-hidden text-left origin-center cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal-orange focus-visible:ring-offset-1"
+      className="relative w-full aspect-square border border-[var(--glass-border-strong)] bg-card/90 shadow-[var(--glass-shadow)] backdrop-blur-[10px] hover:bg-secondary/40 transition-colors duration-100 group overflow-hidden text-left origin-center"
       style={{
         transformOrigin: "center center",
         ...(cardMotionProps.style as React.CSSProperties),
@@ -179,7 +168,9 @@ export function OutfitRecommendationCard({
       <button
         type="button"
         onClick={handleClick}
-        className="absolute inset-0 w-full h-full flex flex-col text-left cursor-pointer"
+        onKeyDown={handlePrimaryKeyDown}
+        className="absolute inset-0 w-full h-full flex flex-col text-left cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal-orange focus-visible:ring-offset-1"
+        aria-label={`${isSelectMode ? "Select" : "View"} ${label}`}
       >
         {/* Overlay composition preview - show first item or grid preview */}
         <div className="w-full h-full relative flex-1 min-h-0">
@@ -274,14 +265,9 @@ export function OutfitRecommendationCard({
           </span>
         ) : (
           <div className="flex flex-wrap items-center gap-2 mt-0.5">
-            <button
-              type="button"
-              onClick={handleClick}
-              className="text-[10px] uppercase tracking-[0.2em] text-signal-orange hover:underline cursor-pointer text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-signal-orange focus-visible:ring-offset-2 focus-visible:ring-offset-background/95 rounded-sm"
-              aria-label="View this outfit"
-            >
+            <span className="text-[10px] uppercase tracking-[0.2em] text-signal-orange pointer-events-none">
               Click to view
-            </button>
+            </span>
           </div>
         )}
         {scoreBreakdown && (

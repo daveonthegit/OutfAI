@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 import { isBottomNavHiddenRoute } from "@/lib/routes";
 
 const focusRing =
-  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-md";
+  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-[var(--marketing-radius-apple)]";
 
 export function BottomNav() {
   const pathname = usePathname();
@@ -44,9 +44,9 @@ export function BottomNav() {
                 aria-current={isActive ? "page" : undefined}
                 className={cn(
                   focusRing,
-                  "flex min-h-11 min-w-11 flex-col items-center justify-center gap-1 px-2 py-2 transition-colors duration-100 md:px-4",
+                  "flex min-h-11 min-w-11 flex-col items-center justify-center gap-1 px-2 py-2 transition-colors duration-150 md:px-4",
                   isActive
-                    ? "text-[var(--signal-orange)]"
+                    ? "bg-secondary/70 text-[var(--signal-orange)]"
                     : "text-muted-foreground hover:text-foreground"
                 )}
               >
@@ -71,7 +71,7 @@ export function BottomNav() {
           onClick={toggleTheme}
           className={cn(
             focusRing,
-            "flex min-h-11 min-w-11 flex-col items-center justify-center gap-1 border-l border-border px-2 py-2 text-muted-foreground transition-colors duration-100 hover:text-foreground md:px-4"
+            "flex min-h-11 min-w-11 flex-col items-center justify-center gap-1 border-l border-border/80 px-2 py-2 text-muted-foreground transition-colors duration-150 hover:text-foreground md:px-4"
           )}
           aria-label={
             mounted
