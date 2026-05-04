@@ -26,14 +26,6 @@ export function AuthEditorialShell({
           sizes="100vw"
         />
         <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(244,243,239,0.96)_0%,rgba(244,243,239,0.82)_46%,rgba(244,243,239,0.68)_100%)] dark:bg-[linear-gradient(90deg,rgba(10,10,10,0.96)_0%,rgba(10,10,10,0.86)_46%,rgba(10,10,10,0.72)_100%)]" />
-        <div
-          className="absolute inset-0 opacity-[0.16] dark:opacity-[0.18]"
-          style={{
-            backgroundImage:
-              "linear-gradient(to right, currentColor 1px, transparent 1px), linear-gradient(to bottom, currentColor 1px, transparent 1px)",
-            backgroundSize: "64px 64px",
-          }}
-        />
       </div>
 
       <div className="relative z-10 mx-auto flex min-h-[100dvh] w-full max-w-[min(96vw,90rem)] flex-col px-3 py-2 sm:px-5 sm:py-3 md:px-8">
