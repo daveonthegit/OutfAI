@@ -2,8 +2,7 @@ import type { ReactNode } from "react";
 import Image from "next/image";
 import { MarketingHeader } from "@/components/marketing/marketing-header";
 
-const AUTH_IMAGE =
-  "https://images.unsplash.com/photo-1766934587214-86e21b3ae093?auto=format&fit=crop&w=1800&q=82";
+const AUTH_IMAGE = "/marketing/outfai-editorial-hero.jpg";
 
 export function AuthEditorialShell({
   children,

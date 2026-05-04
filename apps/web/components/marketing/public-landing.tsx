@@ -21,8 +21,7 @@ import {
   usePrefersReducedMarketingMotion,
 } from "@/components/marketing/landing-reveal";
 
-const HERO_IMAGE =
-  "https://images.unsplash.com/photo-1766934587214-86e21b3ae093?auto=format&fit=crop&w=1800&q=82";
+const HERO_IMAGE = "/marketing/outfai-editorial-hero.jpg";
 
 const productCards = [
   {
