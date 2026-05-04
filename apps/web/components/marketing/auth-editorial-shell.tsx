@@ -36,7 +36,7 @@ export function AuthEditorialShell({
         />
 
         <div className="grid flex-1 grid-cols-1 content-center gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:items-center lg:gap-8 lg:gap-y-4 xl:gap-10 [@media(max-height:720px)]:gap-3">
-          <div className="min-w-0 rounded-[var(--marketing-radius-apple)] border border-[#0a0a0a]/10 bg-[#f5f5f7]/68 p-5 backdrop-blur-md dark:border-[#f4f3ef]/12 dark:bg-[#111111]/68 sm:p-6 lg:max-w-[42rem] lg:pr-8">
+          <div className="min-w-0 border-y border-[#0a0a0a]/12 py-5 backdrop-blur-sm dark:border-[#f4f3ef]/14 sm:py-6 lg:max-w-[42rem] lg:pr-8">
             {aside}
           </div>
 

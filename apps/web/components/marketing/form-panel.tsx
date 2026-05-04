@@ -77,7 +77,7 @@ export function FormPanel({
 /** Grouped inputs with divide-y — label above each field. */
 export function FormFieldStack({ children }: { children: ReactNode }) {
   return (
-    <div className="overflow-hidden rounded-[var(--marketing-radius-apple)] border border-[#0a0a0a]/[0.12] bg-white dark:border-[#f4f3ef]/[0.12] dark:bg-[#0a0a0a]">
+    <div className="border-y border-[#0a0a0a]/[0.12] bg-transparent dark:border-[#f4f3ef]/[0.12]">
       {children}
     </div>
   );

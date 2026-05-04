@@ -139,7 +139,7 @@ export function PublicLanding() {
                   (label) => (
                     <div
                       key={label}
-                      className="rounded-[var(--marketing-radius-apple)] border border-[#f4f3ef]/18 bg-[#0a0a0a]/35 px-4 py-3 font-sans text-[10px] uppercase tracking-[0.2em] text-[#f4f3ef] backdrop-blur-md"
+                      className="border-t border-[#f4f3ef]/28 px-1 py-3 font-sans text-[10px] uppercase tracking-[0.2em] text-[#f4f3ef]"
                     >
                       {label}
                     </div>
@@ -148,8 +148,8 @@ export function PublicLanding() {
               </div>
             </div>
 
-            <div className="grid gap-3 self-end">
-              <div className="rounded-[var(--marketing-radius-apple)] border border-[#f4f3ef]/18 bg-[#0a0a0a]/58 p-4 shadow-[0_24px_80px_-40px_rgba(0,0,0,0.9)] backdrop-blur-xl">
+            <div className="grid gap-0 self-end border-y border-[#f4f3ef]/18 bg-[#0a0a0a]/38 text-[#f4f3ef] backdrop-blur-xl">
+              <div className="border-b border-[#f4f3ef]/14 p-4">
                 <p className="font-sans text-[10px] uppercase tracking-[0.24em] text-[#c6a564]">
                   The brief
                 </p>
@@ -158,7 +158,7 @@ export function PublicLanding() {
                 </p>
               </div>
 
-              <div className="rounded-[var(--marketing-radius-apple)] border border-[#f4f3ef]/18 bg-[#0a0a0a]/58 p-4 text-[#f4f3ef] shadow-[0_24px_80px_-40px_rgba(0,0,0,0.9)] backdrop-blur-xl">
+              <div className="p-4">
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <p className="font-sans text-[10px] uppercase tracking-[0.24em] text-[#c6a564]">
@@ -181,7 +181,7 @@ export function PublicLanding() {
                   {outfitPieces.map((piece) => (
                     <div
                       key={piece}
-                      className="grid grid-cols-[auto_1fr_auto] items-center gap-3 rounded-[var(--marketing-radius-apple)] border border-[#f4f3ef]/12 bg-[#f4f3ef]/8 px-3 py-2"
+                      className="grid grid-cols-[auto_1fr_auto] items-center gap-3 border-t border-[#f4f3ef]/14 px-1 py-2"
                     >
                       <Layers3 className="h-4 w-4 text-[#c6a564]" aria-hidden />
                       <span className="truncate font-sans text-xs uppercase tracking-[0.15em]">
@@ -193,7 +193,7 @@ export function PublicLanding() {
                 </div>
               </div>
 
-              <div className="rounded-[var(--marketing-radius-apple)] border border-[#f4f3ef]/18 bg-[#0a0a0a]/58 p-4 text-[#f4f3ef] backdrop-blur-xl">
+              <div className="border-t border-[#f4f3ef]/14 p-4">
                 <p className="font-sans text-[10px] uppercase tracking-[0.24em] text-[#c6a564]">
                   Why it works
                 </p>
@@ -221,7 +221,7 @@ export function PublicLanding() {
               return (
                 <article
                   key={card.title}
-                  className="min-h-[17rem] rounded-[var(--marketing-radius-apple)] border border-[#0a0a0a]/10 bg-[#f5f5f7]/68 p-5 dark:border-[#f4f3ef]/12 dark:bg-[#111111]/68"
+                  className="min-h-[15rem] border-t border-[#0a0a0a]/14 px-1 py-5 dark:border-[#f4f3ef]/16"
                 >
                   <Icon
                     className="h-5 w-5 text-[#ff4d00] dark:text-[#c6a564]"
@@ -240,8 +240,8 @@ export function PublicLanding() {
         </section>
 
         <section className="grid gap-4 border-t border-[#0a0a0a]/10 py-12 dark:border-[#f4f3ef]/12 lg:grid-cols-[1fr_1fr] lg:items-center lg:py-16">
-          <div className="rounded-[var(--marketing-radius-apple)] border border-[#0a0a0a]/10 bg-[#f5f5f7]/68 p-4 dark:border-[#f4f3ef]/12 dark:bg-[#111111]/68">
-            <div className="rounded-[var(--marketing-radius-apple)] border border-[#0a0a0a]/10 bg-white p-3 dark:border-[#f4f3ef]/10 dark:bg-[#0a0a0a]/35">
+          <div className="border-y border-[#0a0a0a]/12 py-4 dark:border-[#f4f3ef]/14">
+            <div>
               <div className="flex items-center justify-between border-b border-[#0a0a0a]/10 pb-3 dark:border-[#f4f3ef]/10">
                 <div>
                   <p className="font-sans text-[10px] uppercase tracking-[0.24em] text-[#6a6258] dark:text-[#b7ada0]">
@@ -265,7 +265,7 @@ export function PublicLanding() {
                 ].map(([label, value]) => (
                   <div
                     key={label}
-                    className="rounded-[var(--marketing-radius-apple)] border border-[#0a0a0a]/10 px-3 py-3 dark:border-[#f4f3ef]/10"
+                    className="border-t border-[#0a0a0a]/10 px-1 py-3 dark:border-[#f4f3ef]/10"
                   >
                     <p className="font-sans text-[10px] uppercase tracking-[0.2em] text-[#6a6258] dark:text-[#b7ada0]">
                       {label}
@@ -308,7 +308,7 @@ export function PublicLanding() {
               {steps.map((step, index) => (
                 <article
                   key={step}
-                  className="rounded-[var(--marketing-radius-apple)] border border-[#0a0a0a]/10 bg-[#f5f5f7]/68 p-5 dark:border-[#f4f3ef]/12 dark:bg-[#111111]/68"
+                  className="border-t border-[#0a0a0a]/14 px-1 py-5 dark:border-[#f4f3ef]/16"
                 >
                   <p className="font-serif text-4xl italic text-[#ff4d00] dark:text-[#c6a564]">
                     {index + 1}
@@ -323,7 +323,7 @@ export function PublicLanding() {
           </div>
         </section>
 
-        <section className="mb-4 rounded-[var(--marketing-radius-apple)] border border-[#0a0a0a]/10 bg-[#f5f5f7]/72 p-5 dark:border-[#f4f3ef]/12 dark:bg-[#111111]/72 sm:p-8 lg:p-10">
+        <section className="mb-4 border-y border-[#0a0a0a]/12 py-8 dark:border-[#f4f3ef]/14 sm:py-10 lg:py-12">
           <p className="font-sans text-[10px] uppercase tracking-[0.32em] text-[#6a6258] dark:text-[#b7ada0]">
             Start with your closet
           </p>
