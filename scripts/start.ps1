@@ -83,6 +83,16 @@ if (-not (Test-DockerRunning)) {
     }
 }
 
+# ── Clean up stale Docker build artifacts ─────────────────────────────────────
+Log "Cleaning old Docker build artifacts..."
+try {
+    docker builder prune --force
+    docker image prune --force --filter "dangling=true"
+    Ok "Docker build cleanup done."
+} catch {
+    Warn "Docker cleanup had errors (continuing): $_"
+}
+
 # ── Readiness poll ────────────────────────────────────────────────────────────
 function Wait-ForApp {
     param([string]$Url, [int]$MaxSeconds = 120)

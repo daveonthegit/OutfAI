@@ -2,60 +2,65 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
 import { motion } from "framer-motion";
+import {
+  ArrowRight,
+  CalendarDays,
+  Camera,
+  Check,
+  CloudSun,
+  Layers3,
+  Sparkles,
+} from "lucide-react";
 import { EditorialBackdrop } from "@/components/marketing/editorial-backdrop";
 import { ShowcaseBackdrop } from "@/components/marketing/showcase-backdrop";
 import { MarketingHeader } from "@/components/marketing/marketing-header";
-import { PhoneMockFrame } from "@/components/marketing/phone-mock-frame";
 import {
   marketingContainerVariants,
   marketingItemVariants,
   usePrefersReducedMarketingMotion,
 } from "@/components/marketing/landing-reveal";
-import { usePrefersReducedMotionMedia } from "@/components/marketing/use-prefers-reduced-motion";
 
-/** Only files that exist in /public — add outfit-1/2 when assets are available. */
-const GALLERY_IMAGES: { src: string; alt: string }[] = [
+const HERO_IMAGE =
+  "https://images.unsplash.com/photo-1766934587214-86e21b3ae093?auto=format&fit=crop&w=1800&q=82";
+
+const productCards = [
   {
-    src: "/outfit-3.jpg",
-    alt: "Minimalist neutral outfit with clean lines",
+    title: "Scan your closet",
+    copy: "Capture what you own so your stylist starts from real pieces, not generic trends.",
+    icon: Camera,
   },
   {
-    src: "/outfit-4.jpg",
-    alt: "Smart casual layered look with jacket and sneakers",
+    title: "Read your day",
+    copy: "Weather, calendar, color, comfort, and mood shape every recommendation.",
+    icon: CloudSun,
   },
   {
-    src: "/outfit-5.jpg",
-    alt: "Relaxed weekend style with comfortable layers",
+    title: "Build the look",
+    copy: "Get a complete outfit with the reasoning, then swap pieces until it feels right.",
+    icon: Sparkles,
   },
 ];
 
-const SLIDE_MS = 4000;
+const outfitPieces = [
+  "Cream knit jacket",
+  "Wide-leg black trouser",
+  "Soft blue overshirt",
+  "Low-profile sneaker",
+];
+
+const steps = [
+  "Add garments from photos",
+  "Set the occasion",
+  "Review the outfit logic",
+  "Save or schedule the look",
+];
 
 export function PublicLanding() {
-  const [activeImage, setActiveImage] = useState(0);
-  const [pauseHover, setPauseHover] = useState(false);
   const reduceMotion = usePrefersReducedMarketingMotion();
-  const prefersReducedMotion = usePrefersReducedMotionMedia();
-
-  const advance = useCallback(() => {
-    setActiveImage((c) => (c + 1) % GALLERY_IMAGES.length);
-  }, []);
-
-  useEffect(() => {
-    if (prefersReducedMotion || GALLERY_IMAGES.length <= 1) return;
-    if (pauseHover) return;
-    const id = window.setInterval(advance, SLIDE_MS);
-    return () => window.clearInterval(id);
-  }, [advance, prefersReducedMotion, pauseHover]);
-
-  const goTo = (index: number) => {
-    setActiveImage(index);
-  };
 
   return (
-    <main className="relative h-[100dvh] max-h-[100dvh] overflow-hidden bg-background text-foreground dark:bg-[var(--marketing-void)] dark:text-[#f4f3ef]">
+    <main className="relative min-h-[100dvh] overflow-hidden bg-background text-foreground dark:bg-[var(--marketing-void)] dark:text-[#f4f3ef]">
       <div className="dark:hidden">
         <EditorialBackdrop />
       </div>
@@ -63,217 +68,279 @@ export function PublicLanding() {
         <ShowcaseBackdrop />
       </div>
 
-      {/* Frosted veil: editorial (light) + noir (dark) — blurs grid/orbs beneath */}
       <div
         aria-hidden
         className="glass-veil pointer-events-none absolute inset-0 z-[1]"
       />
 
-      <div className="relative z-10 mx-auto flex h-full min-h-0 w-full max-w-[min(96vw,90rem)] flex-col px-3 py-2 sm:px-5 sm:py-3 md:px-8">
+      <div className="relative z-10 mx-auto w-full max-w-[min(96rem,96vw)] px-3 py-2 sm:px-5 sm:py-3 md:px-8">
         <MarketingHeader
           variant="landing"
           dense
           showThemeToggle
-          className="glass-bar -mx-3 rounded-sm border-black/[0.06] px-3 py-2 dark:border-white/10 sm:-mx-5 sm:px-5 md:-mx-8 md:px-8"
+          className="glass-bar -mx-3 rounded-[var(--marketing-radius-apple)] border-black/[0.06] px-3 py-2 dark:border-white/10 sm:-mx-5 sm:px-5 md:-mx-8 md:px-8"
         />
 
-        <motion.div
-          className="flex min-h-0 flex-1 flex-col gap-3 overflow-x-hidden lg:grid lg:grid-cols-[minmax(0,1.12fr)_minmax(0,0.88fr)] lg:items-center lg:gap-6 lg:overflow-visible xl:gap-10 [@media(max-height:700px)]:gap-2"
+        <motion.section
+          className="relative isolate min-h-[calc(100dvh-5.5rem)] overflow-hidden rounded-[var(--marketing-radius-apple)] border border-[#0a0a0a]/10 bg-[#0a0a0a] p-4 text-[#f4f3ef] shadow-[var(--marketing-shadow-elevated)] dark:border-[#f4f3ef]/12 sm:p-6 lg:p-8"
           initial={reduceMotion ? false : "hidden"}
           animate={reduceMotion ? false : "show"}
           variants={marketingContainerVariants}
+          aria-labelledby="landing-heading"
         >
+          <Image
+            src={HERO_IMAGE}
+            alt="Sunlit boutique clothing racks"
+            fill
+            priority
+            className="-z-20 object-cover"
+            sizes="100vw"
+          />
+          <div className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgba(10,10,10,0.82)_0%,rgba(10,10,10,0.56)_38%,rgba(10,10,10,0.18)_68%,rgba(10,10,10,0.62)_100%)]" />
+          <div className="absolute inset-x-0 bottom-0 -z-10 h-2/3 bg-gradient-to-t from-[#0a0a0a]/78 via-[#0a0a0a]/22 to-transparent" />
+
           <motion.div
             variants={marketingItemVariants}
-            className="flex min-h-0 shrink-0 flex-col justify-center overflow-x-hidden overflow-y-auto max-sm:max-h-[min(52vh,440px)] sm:max-h-none sm:overflow-visible lg:min-h-0 lg:justify-center lg:py-1 [@media(max-height:700px)]:shrink"
+            className="grid min-h-[calc(100dvh-9.5rem)] gap-6 lg:grid-cols-[minmax(0,0.95fr)_minmax(19rem,0.62fr)] lg:items-end"
           >
-            <p className="mb-1 font-sans text-[10px] uppercase tracking-[0.28em] text-[#5a5a5a] dark:text-[#9a9a9a] sm:text-[11px]">
-              Your wardrobe, refined by AI
-            </p>
-
-            <h1 className="font-serif text-[clamp(1.45rem,3.2vw+0.65rem,2.85rem)] font-normal leading-[1.05] tracking-[-0.02em] text-[#0a0a0a] dark:text-[#f4f3ef] sm:leading-[1.07] [@media(max-height:700px)]:text-[clamp(1.25rem,2.6vw,2.1rem)]">
-              <span className="italic text-[#ff4d00] dark:text-[#f4f3ef]">
-                Dress
-              </span>
-              <span> with clarity.</span>
-            </h1>
-
-            <p className="mt-2 max-w-[min(42ch,100%)] text-pretty font-sans text-sm leading-relaxed text-[var(--marketing-ink-bmw)] opacity-95 dark:text-[#b8b6b0] dark:opacity-100 max-sm:line-clamp-4 sm:line-clamp-none lg:max-w-[min(48ch,100%)] [@media(max-height:700px)]:mt-1 [@media(max-height:700px)]:text-xs">
-              OutfAI helps you organize your closet and build polished
-              outfits—so you can step out with intention, not noise.
-            </p>
-
-            <div className="mt-3 flex flex-wrap gap-2 sm:mt-4 sm:gap-3 [@media(max-height:700px)]:mt-2">
-              <Link
-                href="/signup"
-                className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center gap-2 rounded-[var(--marketing-radius-apple)] bg-[#0a0a0a] px-4 py-2.5 text-[11px] font-medium uppercase tracking-[0.2em] text-[#f4f3ef] transition-colors duration-150 hover:bg-[#1a1a1a] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--marketing-focus-bmw)] focus-visible:ring-offset-2 focus-visible:ring-offset-background dark:bg-[#f4f3ef] dark:text-[#0a0a0a] dark:hover:bg-[#e8e6e0] dark:focus-visible:ring-offset-[var(--marketing-void)] sm:px-5 sm:text-xs [@media(max-height:700px)]:py-2"
+            <div className="flex max-w-4xl flex-col justify-center self-center lg:self-end">
+              <p className="font-sans text-[10px] uppercase tracking-[0.32em] text-[#c6a564] sm:text-[11px]">
+                Personal AI stylist
+              </p>
+              <h1
+                id="landing-heading"
+                className="mt-4 max-w-[10ch] text-balance font-serif text-[clamp(4.2rem,11vw,11.5rem)] font-normal italic leading-[0.76] tracking-normal text-[#f4f3ef]"
               >
-                Create account
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  aria-hidden
+                Know what to wear
+              </h1>
+              <p className="mt-6 max-w-[43rem] text-pretty font-sans text-base leading-relaxed text-[#f1ede6] sm:text-lg">
+                OutfAI turns your actual wardrobe into a personal styling
+                system: upload your pieces, tell it your day, and get outfits
+                that feel intentional without feeling overthought.
+              </p>
+
+              <div className="mt-7 flex flex-wrap gap-3">
+                <Link
+                  href="/signup"
+                  className="inline-flex min-h-[48px] items-center justify-center gap-2 rounded-[var(--marketing-radius-apple)] bg-[#f4f3ef] px-6 py-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#0a0a0a] transition-colors hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f4f3ef] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a0a0a] sm:text-xs"
                 >
-                  <line x1="5" y1="12" x2="19" y2="12" />
-                  <polyline points="12 5 19 12 12 19" />
-                </svg>
-              </Link>
-              <Link
-                href="/login"
-                className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-[var(--marketing-radius-apple)] border border-[#0a0a0a]/18 bg-transparent px-4 py-2.5 text-[11px] font-medium uppercase tracking-[0.2em] text-[#0a0a0a] transition-colors duration-150 hover:border-[#0a0a0a]/35 hover:bg-[#0a0a0a]/[0.03] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--marketing-focus-bmw)] focus-visible:ring-offset-2 focus-visible:ring-offset-background dark:border-[#f4f3ef]/25 dark:text-[#f4f3ef] dark:hover:border-[#f4f3ef]/45 dark:hover:bg-[#f4f3ef]/[0.06] dark:focus-visible:ring-offset-[var(--marketing-void)] sm:px-5 sm:text-xs [@media(max-height:700px)]:py-2"
-              >
-                Sign in
-              </Link>
+                  Create your stylist
+                  <ArrowRight className="h-4 w-4" aria-hidden />
+                </Link>
+                <Link
+                  href="/login"
+                  className="inline-flex min-h-[48px] items-center justify-center rounded-[var(--marketing-radius-apple)] border border-[#f4f3ef]/24 bg-[#0a0a0a]/30 px-6 py-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#f4f3ef] backdrop-blur-md transition-colors hover:border-[#f4f3ef]/45 hover:bg-[#f4f3ef]/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f4f3ef] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a0a0a] sm:text-xs"
+                >
+                  Sign in
+                </Link>
+              </div>
+
+              <div className="mt-8 grid max-w-2xl gap-2 sm:grid-cols-3">
+                {["Closet-aware", "Weather-aware", "Taste-aware"].map(
+                  (label) => (
+                    <div
+                      key={label}
+                      className="rounded-[var(--marketing-radius-apple)] border border-[#f4f3ef]/18 bg-[#0a0a0a]/35 px-4 py-3 font-sans text-[10px] uppercase tracking-[0.2em] text-[#f4f3ef] backdrop-blur-md"
+                    >
+                      {label}
+                    </div>
+                  )
+                )}
+              </div>
             </div>
 
-            <p className="mt-3 hidden font-sans text-[11px] tabular-nums leading-snug text-[#7a7a7a] sm:mt-4 sm:block [@media(max-height:700px)]:mt-2 [@media(max-height:700px)]:text-[10px]">
-              <span className="text-[#ff4d00] dark:text-[#c6a564]">~4 min</span>{" "}
-              to first outfit ·{" "}
-              <span className="text-[#0a0a0a] dark:text-[#f4f3ef]">128+</span>{" "}
-              looks indexed (beta)
-            </p>
-          </motion.div>
+            <div className="grid gap-3 self-end">
+              <div className="rounded-[var(--marketing-radius-apple)] border border-[#f4f3ef]/18 bg-[#0a0a0a]/58 p-4 shadow-[0_24px_80px_-40px_rgba(0,0,0,0.9)] backdrop-blur-xl">
+                <p className="font-sans text-[10px] uppercase tracking-[0.24em] text-[#c6a564]">
+                  The brief
+                </p>
+                <p className="mt-2 max-w-[28rem] font-serif text-2xl italic leading-tight text-[#f4f3ef]">
+                  Monday meeting. Rain later. Wants polish without stiffness.
+                </p>
+              </div>
 
-          <motion.div
-            variants={marketingItemVariants}
-            className="flex min-h-0 w-full flex-1 flex-col items-center justify-center lg:max-h-[min(88dvh,780px)] lg:min-h-0"
-          >
-            <PhoneMockFrame className="max-h-[min(82dvh,720px)] w-full lg:max-h-full">
-              <div
-                className="relative flex min-h-0 w-full flex-col overflow-hidden border-x border-b border-[#0a0a0a]/12 bg-[var(--marketing-canvas-apple)] dark:border-[#f4f3ef]/10 dark:bg-[#111111]"
-                onMouseEnter={() => setPauseHover(true)}
-                onMouseLeave={() => setPauseHover(false)}
-              >
-                <div className="flex shrink-0 items-center justify-between gap-3 border-b border-[#0a0a0a]/[0.08] px-4 py-2.5 dark:border-[#f4f3ef]/10 sm:px-5 sm:py-3">
-                  <div className="min-w-0">
-                    <p className="truncate font-sans text-[10px] uppercase tracking-[0.2em] text-[#7a7a7a] dark:text-[#8a8a86] sm:text-[11px]">
-                      Featured looks
+              <div className="rounded-[var(--marketing-radius-apple)] border border-[#f4f3ef]/18 bg-[#0a0a0a]/58 p-4 text-[#f4f3ef] shadow-[0_24px_80px_-40px_rgba(0,0,0,0.9)] backdrop-blur-xl">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <p className="font-sans text-[10px] uppercase tracking-[0.24em] text-[#c6a564]">
+                      Generated look
                     </p>
-                    <p className="truncate font-serif text-[1.05rem] italic leading-snug text-[#0a0a0a] dark:text-[#f4f3ef] sm:text-lg">
-                      A calmer way to plan what you wear.
+                    <p className="mt-2 font-serif text-3xl italic leading-none">
+                      Easy structure
                     </p>
                   </div>
-                  <div
-                    className="flex h-9 w-9 shrink-0 items-center justify-center border border-[#0a0a0a]/10 dark:border-[#f4f3ef]/12"
+                  <Sparkles
+                    className="h-5 w-5 text-[#ff4d00] dark:text-[#c6a564]"
                     aria-hidden
-                  >
-                    <svg
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1.5"
-                      className="text-[#5a5a5a] dark:text-[#8a8a86]"
-                    >
-                      <path d="M6 7h12M6 12h8M6 17h10" />
-                    </svg>
-                  </div>
+                  />
                 </div>
-
-                <div className="relative aspect-[10/13] w-full shrink-0 border-b border-[#0a0a0a]/[0.08] dark:border-[#f4f3ef]/10 min-h-[12rem] sm:min-h-[14rem]">
-                  <div className="absolute inset-0">
-                    {GALLERY_IMAGES.map((item, index) => (
-                      <div
-                        key={item.src}
-                        className={`absolute inset-0 transition-opacity duration-1000 ease-out ${
-                          activeImage === index ? "opacity-100" : "opacity-0"
-                        }`}
-                        aria-hidden={activeImage !== index}
-                      >
-                        <Image
-                          src={item.src}
-                          alt={item.alt}
-                          fill
-                          priority={index === 0}
-                          className="object-cover"
-                          sizes="(max-width: 640px) 92vw, 420px"
-                        />
-                      </div>
-                    ))}
-                    <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#0a0a0a]/55 via-[#0a0a0a]/10 to-transparent dark:from-[#0a0a0a]/75 dark:via-[#0a0a0a]/15" />
-
-                    <div className="pointer-events-none absolute bottom-3 left-3 max-w-[min(100%,18rem)] rounded-sm glass-panel px-3 py-2 shadow-none dark:border-[#f4f3ef]/20 sm:bottom-4 sm:left-4 sm:px-4 sm:py-3">
-                      <p className="font-sans text-[10px] uppercase tracking-[0.22em] text-[#ff4d00] dark:text-[#c6a564]">
-                        Refined styling
-                      </p>
-                      <p className="mt-1 font-sans text-[11px] leading-snug text-[#3d3d3d] dark:text-[#f4f3ef]/92 sm:text-xs">
-                        Build sharper outfits from pieces you already own—fewer
-                        guesses, better repeats.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <div
-                  className="flex shrink-0 items-center justify-center gap-2 py-2.5 sm:gap-2.5"
-                  role="tablist"
-                  aria-label="Featured looks"
-                >
-                  {GALLERY_IMAGES.map((_, index) => (
-                    <button
-                      key={index}
-                      type="button"
-                      role="tab"
-                      aria-selected={activeImage === index}
-                      aria-label={`Slide ${index + 1} of ${GALLERY_IMAGES.length}`}
-                      className={`h-2 w-2 rounded-full transition-colors duration-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--marketing-focus-bmw)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--marketing-canvas-apple)] dark:focus-visible:ring-offset-[#111111] ${
-                        activeImage === index
-                          ? "bg-[#ff4d00] dark:bg-[#c6a564]"
-                          : "bg-[#0a0a0a]/20 dark:bg-[#f4f3ef]/20"
-                      }`}
-                      onClick={() => goTo(index)}
-                    />
-                  ))}
-                </div>
-
-                <div className="flex shrink-0 flex-col border-t border-[#0a0a0a]/[0.08] dark:border-[#f4f3ef]/10">
-                  {[
-                    { k: "Plan", d: "Build outfits faster." },
-                    { k: "Curate", d: "Organize your closet." },
-                    { k: "Refine", d: "Repeat what works." },
-                  ].map((col, i) => (
+                <p className="mt-4 text-pretty font-sans text-sm leading-relaxed text-[#ebe4d7]">
+                  A practical outfit that uses soft contrast, keeps the palette
+                  grounded, and still feels put together when the day changes.
+                </p>
+                <div className="mt-5 grid gap-2">
+                  {outfitPieces.map((piece) => (
                     <div
-                      key={col.k}
-                      className={`min-w-0 px-3 py-2.5 sm:px-4 sm:py-3 ${
-                        i > 0
-                          ? "border-t border-[#0a0a0a]/[0.06] dark:border-[#f4f3ef]/[0.08]"
-                          : ""
-                      }`}
+                      key={piece}
+                      className="grid grid-cols-[auto_1fr_auto] items-center gap-3 rounded-[var(--marketing-radius-apple)] border border-[#f4f3ef]/12 bg-[#f4f3ef]/8 px-3 py-2"
                     >
-                      <p className="font-sans text-[9px] uppercase tracking-[0.2em] text-[#7a7a7a] dark:text-[#8a8a86]">
-                        {col.k}
-                      </p>
-                      <p className="mt-1 font-sans text-[10px] leading-snug text-[#3d3d3d] dark:text-[#d2d0ca]">
-                        {col.d}
-                      </p>
+                      <Layers3 className="h-4 w-4 text-[#c6a564]" aria-hidden />
+                      <span className="truncate font-sans text-xs uppercase tracking-[0.15em]">
+                        {piece}
+                      </span>
+                      <Check className="h-4 w-4 opacity-45" aria-hidden />
                     </div>
                   ))}
-                </div>
-
-                <div className="shrink-0 border-t border-[#0a0a0a]/[0.08] px-3 py-2.5 text-center dark:border-[#f4f3ef]/10 sm:px-4 sm:py-3">
-                  <Link
-                    href="/signup"
-                    className="font-sans text-[11px] uppercase tracking-[0.18em] text-[#ff4d00] transition-colors duration-150 hover:text-[#e04600] focus-visible:rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--marketing-focus-bmw)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--marketing-canvas-apple)] dark:text-[#c6a564] dark:hover:text-[#d4b87a] dark:focus-visible:ring-offset-[#111111]"
-                  >
-                    Start building your wardrobe
-                  </Link>
                 </div>
               </div>
-            </PhoneMockFrame>
 
-            <p className="mt-2 shrink-0 font-sans text-[10px] tabular-nums text-[#7a7a7a] sm:hidden">
-              <span className="text-[#ff4d00] dark:text-[#c6a564]">~4 min</span>{" "}
-              first outfit ·{" "}
-              <span className="text-[#0a0a0a] dark:text-[#f4f3ef]">128+</span>{" "}
-              looks
-            </p>
+              <div className="rounded-[var(--marketing-radius-apple)] border border-[#f4f3ef]/18 bg-[#0a0a0a]/58 p-4 text-[#f4f3ef] backdrop-blur-xl">
+                <p className="font-sans text-[10px] uppercase tracking-[0.24em] text-[#c6a564]">
+                  Why it works
+                </p>
+                <p className="mt-3 text-pretty font-sans text-sm leading-relaxed text-[#ebe4d7]">
+                  OutfAI explains the silhouette, color balance, weather fit,
+                  and which closet pieces are doing the work.
+                </p>
+              </div>
+            </div>
           </motion.div>
-        </motion.div>
+        </motion.section>
+
+        <section className="grid gap-4 border-t border-[#0a0a0a]/10 py-12 dark:border-[#f4f3ef]/12 lg:grid-cols-[0.72fr_1.28fr] lg:py-16">
+          <div>
+            <p className="font-sans text-[10px] uppercase tracking-[0.32em] text-[#6a6258] dark:text-[#b7ada0]">
+              The product
+            </p>
+            <h2 className="mt-4 max-w-[11ch] font-serif text-[clamp(3rem,7vw,7rem)] italic leading-[0.82] tracking-normal">
+              A stylist with memory.
+            </h2>
+          </div>
+          <div className="grid gap-3 md:grid-cols-3">
+            {productCards.map((card) => {
+              const Icon = card.icon;
+              return (
+                <article
+                  key={card.title}
+                  className="min-h-[17rem] rounded-[var(--marketing-radius-apple)] border border-[#0a0a0a]/10 bg-[#f5f5f7]/68 p-5 dark:border-[#f4f3ef]/12 dark:bg-[#111111]/68"
+                >
+                  <Icon
+                    className="h-5 w-5 text-[#ff4d00] dark:text-[#c6a564]"
+                    aria-hidden
+                  />
+                  <h3 className="mt-8 font-serif text-2xl italic leading-none">
+                    {card.title}
+                  </h3>
+                  <p className="mt-4 text-pretty font-sans text-sm leading-relaxed text-[#3f3932] dark:text-[#d8d1c4]">
+                    {card.copy}
+                  </p>
+                </article>
+              );
+            })}
+          </div>
+        </section>
+
+        <section className="grid gap-4 border-t border-[#0a0a0a]/10 py-12 dark:border-[#f4f3ef]/12 lg:grid-cols-[1fr_1fr] lg:items-center lg:py-16">
+          <div className="rounded-[var(--marketing-radius-apple)] border border-[#0a0a0a]/10 bg-[#f5f5f7]/68 p-4 dark:border-[#f4f3ef]/12 dark:bg-[#111111]/68">
+            <div className="rounded-[var(--marketing-radius-apple)] border border-[#0a0a0a]/10 bg-white p-3 dark:border-[#f4f3ef]/10 dark:bg-[#0a0a0a]/35">
+              <div className="flex items-center justify-between border-b border-[#0a0a0a]/10 pb-3 dark:border-[#f4f3ef]/10">
+                <div>
+                  <p className="font-sans text-[10px] uppercase tracking-[0.24em] text-[#6a6258] dark:text-[#b7ada0]">
+                    Today
+                  </p>
+                  <p className="mt-1 font-serif text-2xl italic">
+                    Client lunch
+                  </p>
+                </div>
+                <CalendarDays
+                  className="h-5 w-5 text-[#ff4d00] dark:text-[#c6a564]"
+                  aria-hidden
+                />
+              </div>
+              <div className="grid gap-3 pt-3 sm:grid-cols-2">
+                {[
+                  ["Weather", "54F, light rain"],
+                  ["Mood", "Quiet confidence"],
+                  ["Constraint", "Comfortable commute"],
+                  ["Output", "Layered neutral look"],
+                ].map(([label, value]) => (
+                  <div
+                    key={label}
+                    className="rounded-[var(--marketing-radius-apple)] border border-[#0a0a0a]/10 px-3 py-3 dark:border-[#f4f3ef]/10"
+                  >
+                    <p className="font-sans text-[10px] uppercase tracking-[0.2em] text-[#6a6258] dark:text-[#b7ada0]">
+                      {label}
+                    </p>
+                    <p className="mt-2 font-sans text-sm text-[#0a0a0a] dark:text-[#f4f3ef]">
+                      {value}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <p className="font-sans text-[10px] uppercase tracking-[0.32em] text-[#6a6258] dark:text-[#b7ada0]">
+              Personal, not generic
+            </p>
+            <h2 className="mt-4 max-w-[12ch] font-serif text-[clamp(3rem,7vw,7rem)] italic leading-[0.82] tracking-normal">
+              Dress from signal, not panic.
+            </h2>
+            <p className="mt-6 max-w-[38rem] text-pretty font-sans text-base leading-relaxed text-[#3f3932] dark:text-[#d8d1c4]">
+              The best recommendation is not the loudest one. It is the one that
+              understands what you own, what your day asks for, and how you
+              actually like to feel in your clothes.
+            </p>
+          </div>
+        </section>
+
+        <section className="border-t border-[#0a0a0a]/10 py-12 dark:border-[#f4f3ef]/12 lg:py-16">
+          <div className="grid gap-4 lg:grid-cols-[0.72fr_1.28fr]">
+            <div>
+              <p className="font-sans text-[10px] uppercase tracking-[0.32em] text-[#6a6258] dark:text-[#b7ada0]">
+                How it works
+              </p>
+              <h2 className="mt-4 max-w-[10ch] font-serif text-[clamp(3rem,7vw,7rem)] italic leading-[0.82] tracking-normal">
+                Four small moves.
+              </h2>
+            </div>
+            <div className="grid gap-3 md:grid-cols-2">
+              {steps.map((step, index) => (
+                <article
+                  key={step}
+                  className="rounded-[var(--marketing-radius-apple)] border border-[#0a0a0a]/10 bg-[#f5f5f7]/68 p-5 dark:border-[#f4f3ef]/12 dark:bg-[#111111]/68"
+                >
+                  <p className="font-serif text-4xl italic text-[#ff4d00] dark:text-[#c6a564]">
+                    {index + 1}
+                  </p>
+                  <h3 className="mt-8 font-serif text-2xl italic leading-none">
+                    {step}
+                  </h3>
+                  <div className="mt-8 h-px bg-[#0a0a0a]/10 dark:bg-[#f4f3ef]/12" />
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="mb-4 rounded-[var(--marketing-radius-apple)] border border-[#0a0a0a]/10 bg-[#f5f5f7]/72 p-5 dark:border-[#f4f3ef]/12 dark:bg-[#111111]/72 sm:p-8 lg:p-10">
+          <p className="font-sans text-[10px] uppercase tracking-[0.32em] text-[#6a6258] dark:text-[#b7ada0]">
+            Start with your closet
+          </p>
+          <div className="mt-4 grid gap-6 lg:grid-cols-[1fr_auto] lg:items-end">
+            <h2 className="max-w-[13ch] font-serif text-[clamp(3.2rem,8vw,8rem)] italic leading-[0.8] tracking-normal">
+              Your next outfit is already there.
+            </h2>
+            <Link
+              href="/signup"
+              className="inline-flex min-h-[50px] w-fit items-center justify-center gap-2 rounded-[var(--marketing-radius-apple)] bg-[#0a0a0a] px-6 py-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#f4f3ef] transition-colors hover:bg-[#1a1a1a] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--marketing-focus-bmw)] focus-visible:ring-offset-2 focus-visible:ring-offset-background dark:bg-[#f4f3ef] dark:text-[#0a0a0a] dark:hover:bg-[#e8e6e0] dark:focus-visible:ring-offset-[var(--marketing-void)] sm:text-xs"
+            >
+              Build your stylist
+              <ArrowRight className="h-4 w-4" aria-hidden />
+            </Link>
+          </div>
+        </section>
       </div>
     </main>
   );

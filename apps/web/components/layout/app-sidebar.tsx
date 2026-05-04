@@ -40,7 +40,7 @@ export function AppSidebar({ collapsed, onCollapsedChange }: AppSidebarProps) {
             href="/"
             className={cn(
               focusRing,
-              "rounded-sm font-medium uppercase tracking-[0.3em] text-foreground transition-colors duration-100 hover:text-[var(--signal-orange)] shrink-0 overflow-hidden",
+              "rounded-[var(--marketing-radius-apple)] font-medium uppercase tracking-[0.3em] text-foreground transition-colors duration-150 hover:text-[var(--signal-orange)] shrink-0 overflow-hidden",
               collapsed ? "flex w-6 justify-center text-[10px]" : "text-[10px]"
             )}
             title={collapsed ? "OutfAI" : undefined}
@@ -58,11 +58,11 @@ export function AppSidebar({ collapsed, onCollapsedChange }: AppSidebarProps) {
               aria-current={isActive ? "page" : undefined}
               className={cn(
                 focusRing,
-                "flex items-center gap-3 rounded-sm py-2.5 text-[11px] uppercase tracking-[0.2em] transition-colors duration-100",
+                "flex items-center gap-3 rounded-[var(--marketing-radius-apple)] py-2.5 text-[11px] uppercase tracking-[0.2em] transition-colors duration-150",
                 collapsed ? "justify-center px-0" : "px-3",
                 isActive
-                  ? "bg-secondary text-foreground"
-                  : "text-muted-foreground hover:bg-secondary/50 hover:text-foreground"
+                  ? "bg-secondary text-foreground shadow-[inset_0_0_0_1px_var(--border)]"
+                  : "text-muted-foreground hover:bg-secondary/60 hover:text-foreground"
               )}
             >
               <span className="shrink-0">{item.icon}</span>
@@ -82,7 +82,7 @@ export function AppSidebar({ collapsed, onCollapsedChange }: AppSidebarProps) {
           }
           className={cn(
             focusRing,
-            "flex items-center rounded-sm py-2.5 text-[11px] uppercase tracking-[0.2em] text-muted-foreground transition-colors duration-100 hover:bg-secondary hover:text-foreground",
+            "flex items-center rounded-[var(--marketing-radius-apple)] py-2.5 text-[11px] uppercase tracking-[0.2em] text-muted-foreground transition-colors duration-150 hover:bg-secondary hover:text-foreground",
             collapsed ? "w-full justify-center px-0" : "w-full gap-3 px-3"
           )}
           aria-label={
@@ -132,7 +132,7 @@ export function AppSidebar({ collapsed, onCollapsedChange }: AppSidebarProps) {
           title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
           className={cn(
             focusRing,
-            "mt-2 flex items-center rounded-sm py-2.5 text-[11px] uppercase tracking-[0.2em] text-muted-foreground transition-colors duration-100 hover:bg-secondary hover:text-foreground",
+            "mt-2 flex items-center rounded-[var(--marketing-radius-apple)] py-2.5 text-[11px] uppercase tracking-[0.2em] text-muted-foreground transition-colors duration-150 hover:bg-secondary hover:text-foreground",
             collapsed ? "w-full justify-center px-0" : "w-full gap-3 px-3"
           )}
           aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}

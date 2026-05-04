@@ -6,7 +6,7 @@ export const authInputClassName =
 
 /** Show/hide password control — matches field stack surface in light and dark. */
 export const authPasswordToggleClassName =
-  "absolute right-3 top-1/2 -translate-y-1/2 inline-flex h-9 w-9 min-h-9 min-w-9 items-center justify-center rounded-sm border border-[#0a0a0a]/12 bg-white text-muted-foreground transition-colors duration-150 hover:bg-[#f4f3ef] hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--marketing-focus-bmw)] focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-[0.98] dark:border-[#f4f3ef]/15 dark:bg-[#111111] dark:hover:bg-[#1a1a1a] dark:hover:text-[#f4f3ef]";
+  "absolute right-3 top-1/2 -translate-y-1/2 inline-flex h-9 w-9 min-h-9 min-w-9 items-center justify-center rounded-[var(--marketing-radius-apple)] border border-[#0a0a0a]/12 bg-white text-muted-foreground transition-colors duration-150 hover:bg-[#f4f3ef] hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--marketing-focus-bmw)] focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-[0.98] dark:border-[#f4f3ef]/15 dark:bg-[#111111] dark:hover:bg-[#1a1a1a] dark:hover:text-[#f4f3ef]";
 
 /**
  * Sharp-edged panel for auth forms — editorial surface, light and dark.
@@ -34,7 +34,7 @@ export function FormPanel({
     ? "px-4 py-3 sm:px-5 sm:py-3.5"
     : "px-5 py-5 sm:px-6 sm:py-6";
   return (
-    <div className="relative max-h-full min-h-0 overflow-hidden rounded-[var(--marketing-radius-apple)] border border-[#0a0a0a]/[0.14] bg-[#faf9f7] shadow-[0_28px_80px_-44px_rgba(10,10,10,0.38)] dark:border-[#f4f3ef]/[0.12] dark:bg-card dark:shadow-[0_28px_80px_-44px_rgba(0,0,0,0.65)]">
+    <div className="relative max-h-full min-h-0 overflow-hidden rounded-[var(--marketing-radius-apple)] border border-[#0a0a0a]/[0.12] bg-[#faf9f7]/92 shadow-[0_28px_80px_-44px_rgba(10,10,10,0.38)] backdrop-blur-md dark:border-[#f4f3ef]/[0.12] dark:bg-card/92 dark:shadow-[0_28px_80px_-44px_rgba(0,0,0,0.65)]">
       <div
         className={`flex items-start justify-between gap-3 border-b border-[#0a0a0a]/[0.08] dark:border-[#f4f3ef]/[0.1] ${headPad}`}
       >
@@ -59,7 +59,7 @@ export function FormPanel({
         </div>
         {icon ? (
           <div
-            className={`hidden shrink-0 items-center justify-center border border-[#0a0a0a]/[0.1] text-muted-foreground dark:border-[#f4f3ef]/[0.12] dark:text-[#a8a8a4] sm:flex ${
+            className={`hidden shrink-0 items-center justify-center rounded-[var(--marketing-radius-apple)] border border-[#0a0a0a]/[0.1] text-muted-foreground dark:border-[#f4f3ef]/[0.12] dark:text-[#a8a8a4] sm:flex ${
               compact ? "h-9 w-9" : "h-11 w-11"
             }`}
             aria-hidden
@@ -77,7 +77,7 @@ export function FormPanel({
 /** Grouped inputs with divide-y — label above each field. */
 export function FormFieldStack({ children }: { children: ReactNode }) {
   return (
-    <div className="border border-[#0a0a0a]/[0.12] bg-white dark:border-[#f4f3ef]/[0.12] dark:bg-[#0a0a0a]">
+    <div className="overflow-hidden rounded-[var(--marketing-radius-apple)] border border-[#0a0a0a]/[0.12] bg-white dark:border-[#f4f3ef]/[0.12] dark:bg-[#0a0a0a]">
       {children}
     </div>
   );
@@ -106,7 +106,7 @@ export function FormField({
 
 export function FormError({ message }: { message: string }) {
   return (
-    <div className="mt-3 border border-[#ff4d00]/35 bg-[#ff4d00]/[0.08] px-3 py-2 sm:mt-4 dark:border-[#ff6a2e]/45 dark:bg-[#ff4d00]/[0.14]">
+    <div className="mt-3 rounded-[var(--marketing-radius-apple)] border border-[#ff4d00]/35 bg-[#ff4d00]/[0.08] px-3 py-2 sm:mt-4 dark:border-[#ff6a2e]/45 dark:bg-[#ff4d00]/[0.14]">
       <p className="font-sans text-xs font-medium uppercase tracking-[0.14em] text-[#c43b00] dark:text-[#ffb090]">
         {message}
       </p>

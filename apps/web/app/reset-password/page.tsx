@@ -77,17 +77,24 @@ function ResetPasswordForm() {
   if (!token && !errorParam) {
     return cardWrap(
       <>
-        <p className="text-sm text-muted-foreground">
+        <div className="mb-4">
+          <p className="font-sans text-[10px] uppercase tracking-[0.2em] text-muted-foreground sm:text-[11px]">
+            Reset password
+          </p>
+          <h1 className="mt-2 font-serif text-2xl italic leading-tight tracking-tight text-foreground sm:text-3xl">
+            Reset link required
+          </h1>
+        </div>
+        <p className="text-sm leading-relaxed text-muted-foreground">
           Use the link from your email to reset your password. If you don&apos;t
-          have one,{" "}
-          <Link
-            href="/forgot-password"
-            className="font-medium text-foreground underline underline-offset-4 transition-colors hover:text-[var(--signal-orange)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-sm"
-          >
-            request a reset link
-          </Link>
-          .
+          have one, request a new reset link.
         </p>
+        <Link
+          href="/forgot-password"
+          className={authStandalonePrimaryButtonClass}
+        >
+          Request reset link
+        </Link>
         <Link
           href="/login"
           className="mt-4 inline-block text-sm text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-sm"

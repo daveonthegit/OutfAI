@@ -113,14 +113,18 @@ function LoginForm() {
           <p className="mb-1 font-sans text-[10px] uppercase tracking-[0.28em] text-muted-foreground sm:text-[11px]">
             Session
           </p>
-          <h1 className="font-serif text-[clamp(1.35rem,3vw+0.5rem,2.5rem)] font-normal italic leading-[0.95] tracking-[-0.02em] text-foreground">
+          <h1
+            aria-label="Welcome back."
+            className="font-serif text-[clamp(1.35rem,3vw+0.5rem,2.5rem)] font-normal italic leading-[0.95] tracking-[-0.02em] text-foreground"
+          >
             Welcome
-            <span className="block text-[#ff4d00] dark:text-[#c6a564]">
+            <span aria-hidden className="block">
               back.
             </span>
           </h1>
-          <p className="mt-2 line-clamp-3 max-w-[36ch] font-sans text-sm leading-snug text-muted-foreground">
-            Resume outfit planning and closet work—same session, no extra steps.
+          <p className="mt-3 line-clamp-3 max-w-[42ch] font-sans text-sm leading-relaxed text-muted-foreground">
+            Return to the stylist that already knows your closet, your saved
+            looks, and the pieces you trust.
           </p>
         </>
       }
@@ -232,7 +236,7 @@ function LoginForm() {
         </form>
 
         {unverifiedEmail ? (
-          <div className="mt-3 border border-[#0a0a0a]/[0.1] bg-white px-3 py-3 dark:border-[#f4f3ef]/[0.12] dark:bg-[#0a0a0a] sm:mt-4 sm:px-4">
+          <div className="mt-3 rounded-[var(--marketing-radius-apple)] border border-[#0a0a0a]/[0.1] bg-white px-3 py-3 dark:border-[#f4f3ef]/[0.12] dark:bg-[#0a0a0a] sm:mt-4 sm:px-4">
             <p className="font-sans text-[10px] uppercase tracking-[0.18em] text-muted-foreground sm:text-[11px]">
               Resend verification email
             </p>
@@ -245,7 +249,7 @@ function LoginForm() {
                 onSubmit={handleResendVerification}
                 className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-end"
               >
-                <div className="min-w-0 flex-1 border border-[#0a0a0a]/[0.12] bg-[#faf9f7] px-3 py-2 dark:border-[#f4f3ef]/[0.15] dark:bg-[#111111]">
+                <div className="min-w-0 flex-1 rounded-[var(--marketing-radius-apple)] border border-[#0a0a0a]/[0.12] bg-[#faf9f7] px-3 py-2 dark:border-[#f4f3ef]/[0.15] dark:bg-[#111111]">
                   <label className="block font-sans text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
                     Email
                   </label>
@@ -261,7 +265,7 @@ function LoginForm() {
                 <button
                   type="submit"
                   disabled={resendLoading}
-                  className="shrink-0 rounded-[var(--marketing-radius-engineered)] border border-[#0a0a0a]/[0.18] bg-transparent px-4 py-2.5 font-sans text-[11px] font-medium uppercase tracking-[0.16em] text-foreground transition-colors duration-150 hover:bg-[#0a0a0a]/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--marketing-focus-bmw)] focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:opacity-50 dark:border-[#f4f3ef]/25 dark:hover:bg-[#f4f3ef]/[0.06]"
+                  className="shrink-0 rounded-[var(--marketing-radius-apple)] border border-[#0a0a0a]/[0.18] bg-transparent px-4 py-2.5 font-sans text-[11px] font-medium uppercase tracking-[0.16em] text-foreground transition-colors duration-150 hover:bg-[#0a0a0a]/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--marketing-focus-bmw)] focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:opacity-50 dark:border-[#f4f3ef]/25 dark:hover:bg-[#f4f3ef]/[0.06]"
                 >
                   {resendLoading ? "Sending" : "Resend"}
                 </button>

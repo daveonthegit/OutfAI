@@ -86,6 +86,12 @@ if ! docker_running; then
     ok "Docker is ready."
 fi
 
+# ── Clean up stale Docker build artifacts ─────────────────────────────────────
+log "Cleaning old Docker build artifacts..."
+docker builder prune --force || warn "Docker builder cleanup had errors (continuing)."
+docker image prune --force --filter "dangling=true" || warn "Docker image cleanup had errors (continuing)."
+ok "Docker build cleanup done."
+
 # ── Readiness poll ────────────────────────────────────────────────────────────
 wait_for_app() {
     local url=$1 max_wait=${2:-120} waited=0

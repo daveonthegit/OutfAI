@@ -12,6 +12,7 @@
 
 import * as fs from "fs";
 import * as path from "path";
+import ts from "typescript";
 
 const ROOT = path.resolve(__dirname, "..");
 const SCHEMA_PATH = path.join(ROOT, "convex", "schema.ts");
@@ -39,14 +40,17 @@ interface TableDef {
   indexes: IndexDef[];
 }
 
+interface GenerateOptions {
+  checkOnly?: boolean;
+}
+
 // ──────────────────────────────────────────────────────────────
 // Parser
 // ──────────────────────────────────────────────────────────────
 
 /**
- * Resolve a v.* type expression into a human-readable string.
- * Handles: string, number, boolean, id("table"), array(...),
- *          optional(...), union(...), object({...})
+ * Resolve a validator expression into a human-readable string.
+ * Handles Convex primitives plus custom validators.
  */
 function resolveType(expr: string): string {
   const e = expr.trim();
@@ -67,6 +71,10 @@ function resolveType(expr: string): string {
     const inner = e.slice("v.union(".length, -1);
     const parts = splitTopLevel(inner).map(resolveType);
     return parts.join(" | ");
+  }
+  if (e.startsWith("v.literal(")) {
+    const inner = unwrapParens(e.slice("v.literal(".length, -1));
+    return inner;
   }
   if (e.startsWith("v.object(")) return "object";
   if (e === "v.string()") return "string";
@@ -106,115 +114,140 @@ function splitTopLevel(s: string): string[] {
   return parts;
 }
 
-/**
- * Extract the body of a defineTable({ ... }) call from the schema source.
- * Returns the raw content between the outermost braces of the object arg.
- */
-function extractTableBody(src: string, startIdx: number): string {
-  let depth = 0;
-  let inBody = false;
-  let body = "";
-  for (let i = startIdx; i < src.length; i++) {
-    const ch = src[i];
-    if (ch === "{") {
-      if (!inBody) {
-        inBody = true;
-        depth = 1;
-        continue;
-      }
-      depth++;
-    } else if (ch === "}") {
-      depth--;
-      if (depth === 0) break;
-    }
-    if (inBody) body += ch;
+function stripParentheses<T extends ts.Node>(node: T): ts.Node {
+  let current: ts.Node = node;
+  while (ts.isParenthesizedExpression(current)) {
+    current = current.expression;
   }
-  return body;
+  return current;
 }
 
-/**
- * Extract the full defineTable(...) call text starting at `startIdx`,
- * up to and including the matching closing paren.
- */
-function extractCallText(src: string, startIdx: number): string {
-  let depth = 0;
-  let started = false;
-  let result = "";
-  for (let i = startIdx; i < src.length; i++) {
-    const ch = src[i];
-    if (ch === "(") {
-      depth++;
-      started = true;
-    } else if (ch === ")") {
-      depth--;
-    }
-    result += ch;
-    if (started && depth === 0) break;
-  }
-  return result;
+function isDefineSchemaCall(node: ts.Node): node is ts.CallExpression {
+  return (
+    ts.isCallExpression(node) &&
+    ts.isIdentifier(node.expression) &&
+    node.expression.text === "defineSchema"
+  );
 }
 
-/**
- * Parse field definitions from the body of a defineTable({}) object.
- */
-function parseFields(body: string): FieldDef[] {
+function isDefineTableCall(node: ts.Node): node is ts.CallExpression {
+  return (
+    ts.isCallExpression(node) &&
+    ts.isIdentifier(node.expression) &&
+    node.expression.text === "defineTable"
+  );
+}
+
+function parseFields(body: ts.ObjectLiteralExpression): FieldDef[] {
   const fields: FieldDef[] = [];
 
-  // Match lines like:   fieldName: v.something(...),
-  const fieldRegex = /(\w+)\s*:\s*(v\.[^,\n]+)/g;
-  let m: RegExpExecArray | null;
+  for (const property of body.properties) {
+    if (!ts.isPropertyAssignment(property)) continue;
+    if (!ts.isIdentifier(property.name)) continue;
 
-  while ((m = fieldRegex.exec(body)) !== null) {
-    const name = m[1];
-    const rawType = m[2].trim().replace(/,$/, "").trim();
+    const rawType = property.initializer.getText().trim();
     const optional =
       rawType.startsWith("v.optional(") ||
       resolveType(rawType).includes("(optional)");
-    fields.push({ name, typeStr: resolveType(rawType), optional });
+
+    fields.push({
+      name: property.name.text,
+      typeStr: resolveType(rawType),
+      optional,
+    });
   }
 
   return fields;
 }
 
-/**
- * Parse .index("name", ["field1", "field2"]) calls from the tail of a
- * defineTable(...) chain (the text after the closing paren of the object arg).
- */
-function parseIndexes(chainText: string): IndexDef[] {
-  const indexes: IndexDef[] = [];
-  const idxRegex =
-    /\.(index|searchIndex)\(\s*["']([^"']+)["']\s*,\s*\[([^\]]+)\]/g;
-  let m: RegExpExecArray | null;
-  while ((m = idxRegex.exec(chainText)) !== null) {
-    const name = m[2];
-    const rawFields = m[3].split(",").map((f) => f.trim().replace(/['"]/g, ""));
-    indexes.push({ name, fields: rawFields, unique: false });
+function parseIndexesFromChain(node: ts.Expression): IndexDef[] {
+  const current = stripParentheses(node);
+
+  if (
+    ts.isCallExpression(current) &&
+    ts.isPropertyAccessExpression(current.expression)
+  ) {
+    const indexes = parseIndexesFromChain(current.expression.expression);
+    const method = current.expression.name.text;
+    if (method === "index" || method === "searchIndex") {
+      const nameArg = current.arguments[0];
+      const fieldsArg = current.arguments[1];
+      if (nameArg && fieldsArg && ts.isArrayLiteralExpression(fieldsArg)) {
+        const name = nameArg.getText().replace(/['"]/g, "");
+        const rawFields = fieldsArg.elements.map((field) =>
+          field.getText().replace(/['"]/g, "")
+        );
+        indexes.push({ name, fields: rawFields, unique: false });
+      }
+    }
+    return indexes;
   }
-  return indexes;
+
+  return [];
 }
 
 function parseTables(src: string): TableDef[] {
+  const sourceFile = ts.createSourceFile(
+    SCHEMA_PATH,
+    src,
+    ts.ScriptTarget.Latest,
+    true,
+    ts.ScriptKind.TS
+  );
   const tables: TableDef[] = [];
 
-  // Match:  tableName: defineTable(
-  const tableRegex = /(\w+)\s*:\s*defineTable\s*\(/g;
-  let m: RegExpExecArray | null;
+  for (const statement of sourceFile.statements) {
+    if (!ts.isExportAssignment(statement)) continue;
+    const schemaExpr = stripParentheses(statement.expression);
+    if (!isDefineSchemaCall(schemaExpr)) continue;
 
-  while ((m = tableRegex.exec(src)) !== null) {
-    const tableName = m[1];
-    if (tableName === "export" || tableName === "const") continue;
+    const schemaArg = schemaExpr.arguments[0];
+    if (!schemaArg || !ts.isObjectLiteralExpression(schemaArg)) continue;
 
-    const callStart = m.index + m[0].length - 1; // points at '('
-    const callText = extractCallText(src, callStart);
+    for (const property of schemaArg.properties) {
+      if (!ts.isPropertyAssignment(property)) continue;
+      if (!ts.isIdentifier(property.name)) continue;
 
-    const bodyStart = callText.indexOf("{");
-    if (bodyStart === -1) continue;
-    const body = extractTableBody(callText, bodyStart);
+      const tableName = property.name.text;
+      const value = stripParentheses(property.initializer);
+      if (!ts.isCallExpression(value)) continue;
 
-    const fields = parseFields(body);
-    const indexes = parseIndexes(callText);
+      let defineTableCall: ts.CallExpression | null = null;
+      let chainRoot: ts.Expression = value;
 
-    tables.push({ name: tableName, fields, indexes });
+      if (isDefineTableCall(value)) {
+        defineTableCall = value;
+      } else if (ts.isPropertyAccessExpression(value.expression)) {
+        let current: ts.Expression = value;
+        while (
+          ts.isCallExpression(current) &&
+          ts.isPropertyAccessExpression(current.expression)
+        ) {
+          if (
+            current.expression.name.text === "index" ||
+            current.expression.name.text === "searchIndex"
+          ) {
+            current = current.expression.expression;
+            continue;
+          }
+          break;
+        }
+        if (isDefineTableCall(stripParentheses(current))) {
+          defineTableCall = stripParentheses(current) as ts.CallExpression;
+          chainRoot = value;
+        }
+      }
+
+      if (!defineTableCall) continue;
+
+      const bodyArg = defineTableCall.arguments[0];
+      if (!bodyArg || !ts.isObjectLiteralExpression(bodyArg)) continue;
+
+      const fields = parseFields(bodyArg);
+      const indexes = parseIndexesFromChain(chainRoot);
+
+      tables.push({ name: tableName, fields, indexes });
+    }
   }
 
   return tables;
@@ -292,11 +325,29 @@ function generateMarkdown(tables: TableDef[]): string {
   return lines.join("\n");
 }
 
+function normalizeMarkdown(text: string): string {
+  return text
+    .replace(/\r\n/g, "\n")
+    .replace(/[ \t]+$/gm, "")
+    .replace(/\n+$/u, "\n");
+}
+
+function generateMarkdownFromSchemaSource(src: string): string {
+  const tables = parseTables(src);
+  return generateMarkdown(tables);
+}
+
+function verifyMarkdownOutput(markdown: string): boolean {
+  if (!fs.existsSync(OUTPUT_PATH)) return false;
+  const current = normalizeMarkdown(fs.readFileSync(OUTPUT_PATH, "utf-8"));
+  return current === normalizeMarkdown(markdown);
+}
+
 // ──────────────────────────────────────────────────────────────
 // Entry point
 // ──────────────────────────────────────────────────────────────
 
-function main() {
+function main(options: GenerateOptions = {}) {
   if (!fs.existsSync(SCHEMA_PATH)) {
     console.error(`✖  Schema not found at ${SCHEMA_PATH}`);
     process.exit(1);
@@ -311,12 +362,37 @@ function main() {
   }
 
   const markdown = generateMarkdown(tables);
+
+  if (options.checkOnly) {
+    if (!verifyMarkdownOutput(markdown)) {
+      console.error(
+        "✖  Generated convex schema docs differ from the checked-in file."
+      );
+      console.error("   Run `npm run db:doc` locally and commit the result.");
+      process.exit(1);
+    }
+    console.log(`✓  Convex schema docs are up to date.`);
+    return;
+  }
+
   fs.mkdirSync(path.dirname(OUTPUT_PATH), { recursive: true });
-  fs.writeFileSync(OUTPUT_PATH, markdown, "utf-8");
+  fs.writeFileSync(OUTPUT_PATH, normalizeMarkdown(markdown), "utf-8");
 
   console.log(
     `✓  Generated ${OUTPUT_PATH} with ${tables.length} collection(s) from Convex schema.`
   );
 }
 
-main();
+if (
+  process.argv[1] &&
+  path.resolve(process.argv[1]) === path.resolve(__filename)
+) {
+  main({ checkOnly: process.argv.includes("--check") });
+}
+
+export {
+  generateMarkdown,
+  generateMarkdownFromSchemaSource,
+  normalizeMarkdown,
+  parseTables,
+};

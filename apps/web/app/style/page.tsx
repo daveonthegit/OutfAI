@@ -220,21 +220,20 @@ export default function StyleDocPage() {
                 OutfAI Design System
               </p>
               <h1 className="font-serif italic text-5xl md:text-7xl lg:text-8xl mb-8 text-balance text-foreground">
-                Cybersigilism
+                Editorial Stylist
                 <br />
                 Style Reference
               </h1>
               <p className="text-sm text-muted-foreground max-w-xl leading-relaxed">
-                A brutalist, fashion-forward design language inspired by 2000s
-                editorial aesthetics, cybersigilism, and neo-brutalist digital
-                interfaces. Zero rounded corners. Maximum typographic tension.
-                This document is the single source of truth for all visual and
-                interaction patterns across OutfAI.
+                A fashion SaaS design language for a personal AI stylist:
+                editorial type, warm wardrobe photography, rounded product
+                surfaces, and calm utility. This document is the single source
+                of truth for visual and interaction patterns across OutfAI.
               </p>
               <div className="flex flex-wrap gap-3 mt-8">
-                <BrutalistBadge variant="orange">Brutalist</BrutalistBadge>
+                <BrutalistBadge variant="orange">Stylist</BrutalistBadge>
                 <BrutalistBadge variant="default">Editorial</BrutalistBadge>
-                <BrutalistBadge variant="outline">2000s</BrutalistBadge>
+                <BrutalistBadge variant="outline">Product</BrutalistBadge>
               </div>
             </section>
 
@@ -244,16 +243,16 @@ export default function StyleDocPage() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {[
                   {
-                    title: "Sharp Edges",
-                    text: "Zero border radius everywhere. No friendly curves. Every element cuts with precision. border-radius: 0 is a design choice, not an oversight.",
+                    title: "Soft precision",
+                    text: "Shared cards, buttons, inputs, and navigation use the same 8px radius. Rounded forms should feel intentional and product-ready, not pill-shaped or decorative.",
                   },
                   {
                     title: "Editorial Type",
                     text: "Oversized serif italics for mood. Tight uppercase tracking for UI. Typographic hierarchy as architecture. The font is the brand.",
                   },
                   {
-                    title: "Restrained Color",
-                    text: "Signal orange used sparingly. Most UI in monochrome. Color as punctuation, not decoration. When everything is loud, nothing is.",
+                    title: "Consistent surfaces",
+                    text: "Light and dark modes keep the same composition and hierarchy. Avoid sudden light/dark section swaps; change material values, not the entire world.",
                   },
                 ].map((item) => (
                   <div
@@ -870,7 +869,8 @@ export default function StyleDocPage() {
                     </BrutalistCardHeader>
                     <BrutalistCardContent>
                       <p className="text-xs text-muted-foreground">
-                        Hard 4px offset shadow. Use sparingly for emphasis.
+                        Soft editorial lift. Use sparingly for important product
+                        surfaces.
                       </p>
                     </BrutalistCardContent>
                   </BrutalistCard>
@@ -880,7 +880,7 @@ export default function StyleDocPage() {
                     </BrutalistCardHeader>
                     <BrutalistCardContent>
                       <p className="text-xs text-muted-foreground">
-                        Heavy 2px border. Use for interactive selections.
+                        Stronger outline. Use for interactive selections.
                       </p>
                     </BrutalistCardContent>
                   </BrutalistCard>
@@ -937,8 +937,8 @@ export default function StyleDocPage() {
                     Mood, Closet, Add, Archive) and a theme toggle. Active state
                     uses{" "}
                     <span className="text-signal-orange">signal orange</span>{" "}
-                    with a subtle scale transform. All labels are 8-9px
-                    uppercase with wide tracking.
+                    inside a rounded surface. All labels are 8-9px uppercase
+                    with wide tracking.
                   </p>
                 </div>
               </SubSection>
@@ -1029,7 +1029,7 @@ export default function StyleDocPage() {
                       </li>
                       <li className="flex items-center gap-2">
                         <span className="w-1.5 h-1.5 bg-acid-lime" />{" "}
-                        {"active:translate-y-px (button press)"}
+                        {"active:scale-[0.98] (button press)"}
                       </li>
                       <li className="flex items-center gap-2">
                         <span className="w-1.5 h-1.5 bg-acid-lime" />{" "}
@@ -1118,15 +1118,15 @@ export default function StyleDocPage() {
                   <ul className="flex flex-col gap-3 text-sm text-muted-foreground">
                     <li className="flex items-start gap-3">
                       <span className="text-foreground mt-0.5 shrink-0">-</span>
-                      Never use border-radius on any element
+                      Do not mix square cards with rounded buttons
                     </li>
                     <li className="flex items-start gap-3">
                       <span className="text-foreground mt-0.5 shrink-0">-</span>
-                      Avoid soft shadows, blur effects, or glassmorphism
+                      Avoid unrelated dark sections inside light pages
                     </li>
                     <li className="flex items-start gap-3">
                       <span className="text-foreground mt-0.5 shrink-0">-</span>
-                      {"Don't use gradients (solid colors only)"}
+                      {"Don't use gloomy imagery for product-first moments"}
                     </li>
                     <li className="flex items-start gap-3">
                       <span className="text-foreground mt-0.5 shrink-0">-</span>

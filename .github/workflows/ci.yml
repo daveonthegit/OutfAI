@@ -136,12 +136,8 @@ jobs:
         with:
           path: node_modules
           key: nm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-      - name: Regenerate docs
-        run: npm run db:doc
-      - name: Check for uncommitted doc changes
-        run: |
-          git diff --exit-code docs/ \
-            || (echo "::error::Generated docs are out of date. Run 'npm run db:doc' locally and commit the result." && exit 1)
+      - name: Verify generated docs
+        run: npm run db:doc:check
 
   # ──────────────────────────────────────────────
   # Security baseline — advisory audit
