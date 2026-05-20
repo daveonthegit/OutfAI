@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const origin = new URL(request.url).origin;
+  const origin = request.headers.get("origin") ?? new URL(request.url).origin;
   const cookie = request.headers.get("cookie") ?? "";
 
   try {
@@ -66,6 +66,8 @@ export async function POST(request: NextRequest) {
     headers: {
       "Content-Type": "application/json",
       Cookie: cookie,
+      Origin: origin,
+      Referer: `${origin}/profile/settings`,
     },
     body: JSON.stringify({ password }),
   });
