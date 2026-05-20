@@ -82,6 +82,7 @@ export default function OnboardingPage() {
   const userPrefs = useQuery(api.userPreferences.get);
   const completeOnboarding = useMutation(api.profile.completeOnboarding);
   const savePreferences = useMutation(api.userPreferences.save);
+  const seedDevCloset = useMutation(api.seed.seedDevCloset);
 
   const garments = garmentsRaw ?? [];
   const [stepIndex, setStepIndex] = useState(0);
@@ -91,6 +92,7 @@ export default function OnboardingPage() {
   const [prefsSaved, setPrefsSaved] = useState(false);
   const [selectedMood, setSelectedMood] = useState<Mood>("casual");
   const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const [seedingCloset, setSeedingCloset] = useState(false);
   const addGarmentForm = useAddGarmentForm({
     successMessage: "Garment added to onboarding closet.",
     onSaved: () => setAddDialogOpen(false),
@@ -186,6 +188,24 @@ export default function OnboardingPage() {
     prefsSaved,
     savePreferences,
   ]);
+
+  const handleSeedCloset = useCallback(async () => {
+    setSeedingCloset(true);
+    try {
+      const result = await seedDevCloset();
+      if (result.seeded) {
+        toast.success(`Added ${result.count} sample garments.`);
+      } else if (garments.length > 0) {
+        toast.info("Your closet already has items.");
+      } else {
+        toast.error("Sample closet seeding is not enabled here.");
+      }
+    } catch {
+      toast.error("Could not seed the sample closet.");
+    } finally {
+      setSeedingCloset(false);
+    }
+  }, [garments.length, seedDevCloset]);
 
   const handleTryGenerate = useCallback(async () => {
     if (garments.length === 0) {
@@ -415,6 +435,13 @@ export default function OnboardingPage() {
                   onClick={() => setAddDialogOpen(true)}
                 >
                   {garments.length === 0 ? "Add first garment" : "Add another"}
+                </BrutalistButton>
+                <BrutalistButton
+                  variant="outline"
+                  onClick={handleSeedCloset}
+                  disabled={seedingCloset}
+                >
+                  {seedingCloset ? "Seeding closet..." : "Seed sample closet"}
                 </BrutalistButton>
                 <BrutalistButton
                   onClick={handleNext}
