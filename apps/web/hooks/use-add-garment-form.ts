@@ -18,6 +18,17 @@ type UseAddGarmentFormOptions = {
   successMessage?: string;
 };
 
+type AnalysisReview = {
+  category?: AddCategory | null;
+  color?: string | null;
+  tags: string[];
+  style: string[];
+  fit?: string | null;
+  occasion: string[];
+  versatility?: string | null;
+  vibrancy?: string | null;
+};
+
 export function useAddGarmentForm({
   onSaved,
   successMessage = "Garment added",
@@ -46,6 +57,9 @@ export function useAddGarmentForm({
   const [selectedVibrancy, setSelectedVibrancy] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [analysisReview, setAnalysisReview] = useState<AnalysisReview | null>(
+    null
+  );
   const fileInputRef = useRef<HTMLInputElement>(null);
   const autoAnalyzedFileRef = useRef<File | null>(null);
 
@@ -76,6 +90,7 @@ export function useAddGarmentForm({
     setSelectedVibrancy(null);
     setSaving(false);
     setSaveError(null);
+    setAnalysisReview(null);
     autoAnalyzedFileRef.current = null;
   }, [previewUrl]);
 
@@ -102,6 +117,16 @@ export function useAddGarmentForm({
         throw new Error(data?.error ?? `Analysis failed (${res.status})`);
       }
       const result = await res.json();
+      const review: AnalysisReview = {
+        category: result.category,
+        color: result.color,
+        tags: result.tags ?? [],
+        style: result.style ?? [],
+        fit: result.fit,
+        occasion: result.occasion ?? [],
+        versatility: result.versatility,
+        vibrancy: result.vibrancy,
+      };
       setSelectedCategory(result.category);
       setSelectedColor(result.color);
       setTags(result.tags ?? []);
@@ -110,6 +135,8 @@ export function useAddGarmentForm({
       setSelectedOccasions(result.occasion ?? []);
       setSelectedVersatility(result.versatility);
       setSelectedVibrancy(result.vibrancy);
+      setAnalysisReview(review);
+      toast.success("Image suggestions are ready to review.");
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "Image analysis failed";
@@ -189,6 +216,12 @@ export function useAddGarmentForm({
     setTags(tags.filter((tag) => tag !== tagToRemove));
   };
 
+  const addTag = useCallback((tag: string) => {
+    const nextTag = tag.trim().toLowerCase();
+    if (!nextTag) return;
+    setTags((prev) => (prev.includes(nextTag) ? prev : [...prev, nextTag]));
+  }, []);
+
   const handleSave = async () => {
     if (!selectedCategory || !selectedColor) return;
     setSaving(true);
@@ -263,6 +296,7 @@ export function useAddGarmentForm({
     selectedVibrancy,
     saving,
     saveError,
+    analysisReview,
     isComplete: !!(selectedCategory && selectedColor),
     setGarmentName,
     setSelectedCategory,
@@ -277,6 +311,7 @@ export function useAddGarmentForm({
     handleAnalyzeImage,
     handleAddTag,
     handleSave,
+    addTag,
     removeTag,
     resetForm,
     toggleStyle,
@@ -286,6 +321,7 @@ export function useAddGarmentForm({
       setPreviewUrl(null);
       setSelectedFile(null);
       setAnalyzeError(null);
+      setAnalysisReview(null);
     },
   };
 }

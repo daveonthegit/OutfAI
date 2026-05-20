@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { useId } from "react";
 import type { RefObject } from "react";
 
 type AddGarmentUploadPanelProps = {
@@ -28,10 +29,17 @@ export function AddGarmentUploadPanel({
   onAnalyze,
   onClearImage,
 }: AddGarmentUploadPanelProps) {
+  const uploadHintId = useId();
+
   return (
     <section>
-      <div
-        className={`relative aspect-[3/4] border-2 border-dashed transition-all duration-100 cursor-pointer ${
+      <p id={uploadHintId} className="sr-only">
+        Drop an image file here, or activate this control to browse for a
+        garment image.
+      </p>
+      <button
+        type="button"
+        className={`relative block aspect-[3/4] w-full cursor-pointer border-2 border-dashed text-left transition-all duration-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal-orange focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
           dragActive
             ? "border-signal-orange bg-signal-orange/5"
             : previewUrl
@@ -43,11 +51,15 @@ export function AddGarmentUploadPanel({
         onDragOver={onDrag}
         onDrop={onDrop}
         onClick={() => fileInputRef.current?.click()}
+        aria-label={
+          previewUrl ? "Change garment image" : "Upload garment image"
+        }
+        aria-describedby={uploadHintId}
       >
         {previewUrl ? (
           <Image
             src={previewUrl || "/placeholder.svg"}
-            alt="Preview"
+            alt="Selected garment preview"
             fill
             className="object-cover"
           />
@@ -61,6 +73,7 @@ export function AddGarmentUploadPanel({
               stroke="currentColor"
               strokeWidth="1"
               className="text-muted-foreground mb-4"
+              aria-hidden
             >
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
               <polyline points="17 8 12 3 7 8" />
@@ -74,15 +87,16 @@ export function AddGarmentUploadPanel({
             </p>
           </div>
         )}
+      </button>
 
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*"
-          onChange={onFileInputChange}
-          className="hidden"
-        />
-      </div>
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        onChange={onFileInputChange}
+        className="sr-only"
+        tabIndex={-1}
+      />
 
       {previewUrl && (
         <div className="mt-4 flex flex-wrap items-center gap-4">
@@ -102,7 +116,9 @@ export function AddGarmentUploadPanel({
             Remove image
           </button>
           {analyzeError && (
-            <span className="text-[10px] text-destructive">{analyzeError}</span>
+            <span className="text-[10px] text-destructive" role="alert">
+              {analyzeError}
+            </span>
           )}
         </div>
       )}

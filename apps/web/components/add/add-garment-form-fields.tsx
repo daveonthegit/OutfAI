@@ -11,6 +11,8 @@ import {
   VIBRANCY_OPTIONS,
   type AddCategory,
 } from "@/components/add/add-garment-constants";
+import { TagSuggestions } from "@/components/add/tag-suggestions";
+import { getDefaultTagsForGarment } from "@shared/garment-default-tags";
 
 type AddGarmentFormFieldsProps = {
   garmentName: string;
@@ -23,6 +25,7 @@ type AddGarmentFormFieldsProps = {
   tagInput: string;
   onTagInputChange: (v: string) => void;
   onAddTagKeyDown: (e: React.KeyboardEvent) => void;
+  onAddTag: (tag: string) => void;
   onRemoveTag: (tag: string) => void;
   selectedStyles: string[];
   onToggleStyle: (s: string) => void;
@@ -34,6 +37,16 @@ type AddGarmentFormFieldsProps = {
   onSelectVersatility: (v: (typeof VERSATILITY_OPTIONS)[number]) => void;
   selectedVibrancy: string | null;
   onSelectVibrancy: (v: (typeof VIBRANCY_OPTIONS)[number]) => void;
+  analysisReview?: {
+    category?: AddCategory | null;
+    color?: string | null;
+    tags: string[];
+    style: string[];
+    fit?: string | null;
+    occasion: string[];
+    versatility?: string | null;
+    vibrancy?: string | null;
+  } | null;
 };
 
 export function AddGarmentFormFields({
@@ -47,6 +60,7 @@ export function AddGarmentFormFields({
   tagInput,
   onTagInputChange,
   onAddTagKeyDown,
+  onAddTag,
   onRemoveTag,
   selectedStyles,
   onToggleStyle,
@@ -58,9 +72,63 @@ export function AddGarmentFormFields({
   onSelectVersatility,
   selectedVibrancy,
   onSelectVibrancy,
+  analysisReview,
 }: AddGarmentFormFieldsProps) {
+  const normalizedTags = new Set(tags.map((tag) => tag.toLowerCase()));
+  const defaultSuggestions =
+    selectedCategory && selectedColor
+      ? getDefaultTagsForGarment(
+          selectedCategory,
+          selectedColor.toLowerCase(),
+          undefined
+        ).filter((tag) => !normalizedTags.has(tag.toLowerCase()))
+      : [];
+  const analysisTagSuggestions =
+    analysisReview?.tags.filter(
+      (tag) => !normalizedTags.has(tag.toLowerCase())
+    ) ?? [];
+
   return (
     <section className="flex flex-col gap-10">
+      {analysisReview && (
+        <div className="border border-foreground bg-secondary/30 px-4 py-4">
+          <p className="text-[10px] uppercase tracking-[0.24em] text-muted-foreground">
+            AI review
+          </p>
+          <p className="mt-2 text-sm leading-relaxed text-foreground">
+            Image analysis filled in the fields below. Review the suggestions,
+            remove anything that feels off, then save when the garment looks
+            right.
+          </p>
+          <div className="mt-4 grid gap-2 text-xs text-muted-foreground sm:grid-cols-2">
+            <p>
+              Category:{" "}
+              <span className="font-medium text-foreground">
+                {analysisReview.category ?? "No suggestion"}
+              </span>
+            </p>
+            <p>
+              Color:{" "}
+              <span className="font-medium text-foreground">
+                {analysisReview.color ?? "No suggestion"}
+              </span>
+            </p>
+            <p>
+              Style:{" "}
+              <span className="font-medium text-foreground">
+                {analysisReview.style.join(", ") || "No suggestion"}
+              </span>
+            </p>
+            <p>
+              Occasion:{" "}
+              <span className="font-medium text-foreground">
+                {analysisReview.occasion.join(", ") || "No suggestion"}
+              </span>
+            </p>
+          </div>
+        </div>
+      )}
+
       <BrutalistInput
         label="Name (optional)"
         type="text"
@@ -146,6 +214,24 @@ export function AddGarmentFormFields({
           onKeyDown={onAddTagKeyDown}
           placeholder="Type and press enter"
           className="bg-transparent uppercase tracking-widest text-[11px] placeholder:uppercase placeholder:tracking-wider placeholder:text-[11px]"
+        />
+
+        <TagSuggestions
+          label={
+            analysisTagSuggestions.length ? "AI tag suggestions" : undefined
+          }
+          tags={
+            analysisTagSuggestions.length
+              ? analysisTagSuggestions
+              : defaultSuggestions
+          }
+          onAddTag={onAddTag}
+          onAddAll={() =>
+            (analysisTagSuggestions.length
+              ? analysisTagSuggestions
+              : defaultSuggestions
+            ).forEach(onAddTag)
+          }
         />
       </div>
 

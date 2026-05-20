@@ -82,7 +82,7 @@ export default function OnboardingPage() {
   const userPrefs = useQuery(api.userPreferences.get);
   const completeOnboarding = useMutation(api.profile.completeOnboarding);
   const savePreferences = useMutation(api.userPreferences.save);
-  const seedDevCloset = useMutation(api.seed.seedDevCloset);
+  const seedSampleCloset = useMutation(api.seed.seedSampleCloset);
 
   const garments = garmentsRaw ?? [];
   const [stepIndex, setStepIndex] = useState(0);
@@ -192,20 +192,20 @@ export default function OnboardingPage() {
   const handleSeedCloset = useCallback(async () => {
     setSeedingCloset(true);
     try {
-      const result = await seedDevCloset();
+      const result = await seedSampleCloset();
       if (result.seeded) {
         toast.success(`Added ${result.count} sample garments.`);
       } else if (garments.length > 0) {
         toast.info("Your closet already has items.");
       } else {
-        toast.error("Sample closet seeding is not enabled here.");
+        toast.info("Sample closet is already up to date.");
       }
     } catch {
       toast.error("Could not seed the sample closet.");
     } finally {
       setSeedingCloset(false);
     }
-  }, [garments.length, seedDevCloset]);
+  }, [garments.length, seedSampleCloset]);
 
   const handleTryGenerate = useCallback(async () => {
     if (garments.length === 0) {

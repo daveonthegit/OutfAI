@@ -24,6 +24,33 @@ test.describe("Critical path", () => {
       page.getByRole("heading", { name: /forgot|reset password/i })
     ).toBeVisible();
   });
+
+  test("protected routes redirect unauthenticated users to login", async ({
+    page,
+  }) => {
+    await page.goto("/closet");
+    await expect(page).toHaveURL(/\/login\?callbackUrl=%2Fcloset/);
+    await expect(
+      page.getByRole("heading", { name: /welcome back|sign in|credentials/i })
+    ).toBeVisible();
+  });
+
+  test("login password visibility control is keyboard reachable", async ({
+    page,
+  }) => {
+    await page.goto("/login");
+    const password = page.locator('input[type="password"]').first();
+    await expect(password).toBeVisible();
+
+    const toggle = page.getByRole("button", { name: /show password/i });
+    await toggle.focus();
+    await expect(toggle).toBeFocused();
+    await page.keyboard.press("Enter");
+    await expect(page.locator('input[type="text"]').last()).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: /hide password/i })
+    ).toBeVisible();
+  });
 });
 
 test.describe("Authenticated critical path", () => {

@@ -22,6 +22,8 @@ import {
 } from "@/components/ui/breadcrumb";
 import { toast } from "sonner";
 import { LoadingState } from "@/components/loading-state";
+import { TagSuggestions } from "@/components/add/tag-suggestions";
+import { getDefaultTagsForGarment } from "@shared/garment-default-tags";
 
 type Category = "top" | "bottom" | "shoes" | "outerwear" | "accessory";
 
@@ -110,6 +112,11 @@ export default function EditGarmentPage() {
       setTagInput("");
     }
   };
+  const addTag = (tag: string) => {
+    const t = tag.trim().toLowerCase();
+    if (!t) return;
+    setTags((prev) => (prev.includes(t) ? prev : [...prev, t]));
+  };
   const removeTag = (tag: string) => setTags(tags.filter((x) => x !== tag));
 
   const handleSave = async () => {
@@ -178,6 +185,14 @@ export default function EditGarmentPage() {
   }
 
   const isComplete = category && color;
+  const tagSuggestions =
+    category && color
+      ? getDefaultTagsForGarment(
+          category,
+          color.toLowerCase(),
+          undefined
+        ).filter((tag) => !tags.includes(tag.toLowerCase()))
+      : [];
 
   return (
     <main className="min-h-screen bg-background text-foreground selection:bg-signal-orange selection:text-background">
@@ -327,6 +342,11 @@ export default function EditGarmentPage() {
                 onKeyDown={handleAddTag}
                 placeholder="Type and press enter"
                 className="uppercase tracking-widest text-[11px]"
+              />
+              <TagSuggestions
+                tags={tagSuggestions}
+                onAddTag={addTag}
+                onAddAll={() => tagSuggestions.forEach(addTag)}
               />
             </div>
 

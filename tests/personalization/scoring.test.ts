@@ -121,4 +121,47 @@ describe("scoreOutfitPersonalized", () => {
     expect(r.combinedPersonal).toBeGreaterThanOrEqual(-0.5);
     expect(r.combinedPersonal).toBeLessThanOrEqual(0.5);
   });
+
+  it("surfaces explicit preference contributors for cold-start explanations", () => {
+    const garments = [
+      g({
+        _id: "a" as Id<"garments">,
+        userId: "u",
+        category: "top",
+        primaryColor: "navy",
+        style: ["minimalist"],
+      }),
+      g({
+        _id: "b" as Id<"garments">,
+        userId: "u",
+        category: "bottom",
+        primaryColor: "black",
+        style: ["minimalist"],
+      }),
+      g({
+        _id: "c" as Id<"garments">,
+        userId: "u",
+        category: "shoes",
+        primaryColor: "white",
+      }),
+    ];
+
+    const r = scoreOutfitPersonalized(
+      garments,
+      { mood: "minimalist", weather: "cloudy", temperature: 18 },
+      undefined,
+      {
+        preferredStyles: ["minimalist"],
+        preferredColors: ["navy"],
+        avoidedColors: ["orange"],
+      },
+      0
+    );
+
+    expect(r.topContributors.length).toBeGreaterThan(0);
+    expect(r.topContributors[0]?.contribution).toBeGreaterThan(0);
+    expect(r.topContributors.map((c) => `${c.dim}:${c.value}`)).toContain(
+      "style:minimalist"
+    );
+  });
 });

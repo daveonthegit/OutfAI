@@ -19,10 +19,13 @@ export function BrutalistToggle({
   return (
     <button
       type="button"
+      role="switch"
+      aria-checked={checked}
+      aria-label={label ?? (checked ? "Turn setting off" : "Turn setting on")}
       onClick={() => !disabled && onChange(!checked)}
       disabled={disabled}
       className={cn(
-        "flex items-center gap-3 group",
+        "flex items-center gap-3 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal-orange focus-visible:ring-offset-2 focus-visible:ring-offset-background",
         disabled && "opacity-50 cursor-not-allowed"
       )}
     >

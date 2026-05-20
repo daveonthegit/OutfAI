@@ -19,10 +19,13 @@ export function BrutalistCheckbox({
   return (
     <button
       type="button"
+      role="checkbox"
+      aria-checked={checked}
+      aria-label={label ?? (checked ? "Uncheck option" : "Check option")}
       onClick={() => !disabled && onChange(!checked)}
       disabled={disabled}
       className={cn(
-        "flex items-center gap-3 group",
+        "flex items-center gap-3 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal-orange focus-visible:ring-offset-2 focus-visible:ring-offset-background",
         disabled && "opacity-50 cursor-not-allowed"
       )}
     >
@@ -43,6 +46,7 @@ export function BrutalistCheckbox({
             stroke="currentColor"
             strokeWidth="3"
             className="text-background"
+            aria-hidden
           >
             <polyline points="20 6 9 17 4 12" />
           </svg>

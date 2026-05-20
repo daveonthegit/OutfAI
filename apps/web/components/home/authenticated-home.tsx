@@ -8,6 +8,7 @@ import { useHomeWeather } from "@/hooks/use-home-weather";
 import { TrainedCounter } from "@/components/retention/TrainedCounter";
 import { StreakBadge } from "@/components/retention/StreakBadge";
 import { TasteNudge } from "@/components/retention/TasteNudge";
+import { LearningFeedbackPanel } from "@/components/retention/LearningFeedbackPanel";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@convex/_generated/api";
 import type { Doc, Id } from "@convex/_generated/dataModel";
@@ -473,6 +474,10 @@ export default function Home() {
             <TrainedCounter totalActions={ranked?.totalActions} />
             <StreakBadge streakDays={ranked?.streakDays} />
           </div>
+          <LearningFeedbackPanel
+            totalActions={ranked?.totalActions}
+            streakDays={ranked?.streakDays}
+          />
           <HomeHeroSection
             mood={mood}
             onOpenMoodModal={() => setMoodModalOpen(true)}

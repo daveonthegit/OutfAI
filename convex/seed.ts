@@ -27,8 +27,21 @@ export const seedDevCloset = mutation({
 });
 
 /**
+ * Temporary explicit sample seeding for onboarding/demo flows.
+ * Safe to call multiple times — it is a no-op when garments already exist.
+ */
+export const seedSampleCloset = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const user = await getAuthUser(ctx);
+    if (!user) throw new Error("Unauthorized");
+    return seedGarmentsForUser(ctx, user._id);
+  },
+});
+
+/**
  * Seeds garments for a specific user ID.
- * Called by seedDevCloset (client-triggered) and createTestAccount (server-triggered).
+ * Called by seedDevCloset / seedSampleCloset and createTestAccount.
  * No-op when the user already has garments.
  */
 export const seedClosetForUserId = internalMutation({

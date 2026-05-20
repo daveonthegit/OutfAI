@@ -54,6 +54,7 @@ export function AddGarmentForm({
           tagInput={form.tagInput}
           onTagInputChange={form.setTagInput}
           onAddTagKeyDown={form.handleAddTag}
+          onAddTag={form.addTag}
           onRemoveTag={form.removeTag}
           selectedStyles={form.selectedStyles}
           onToggleStyle={form.toggleStyle}
@@ -65,6 +66,7 @@ export function AddGarmentForm({
           onSelectVersatility={form.setSelectedVersatility}
           selectedVibrancy={form.selectedVibrancy}
           onSelectVibrancy={form.setSelectedVibrancy}
+          analysisReview={form.analysisReview}
         />
       </div>
 
