@@ -1,10 +1,13 @@
 "use client";
 
+import { cn } from "@/lib/utils";
+
 type AddGarmentSaveBarProps = {
   saveError: string | null;
   isComplete: boolean;
   saving: boolean;
   onSave: () => void;
+  className?: string;
 };
 
 export function AddGarmentSaveBar({
@@ -12,9 +15,15 @@ export function AddGarmentSaveBar({
   isComplete,
   saving,
   onSave,
+  className,
 }: AddGarmentSaveBarProps) {
   return (
-    <section className="mt-12 border-t border-border pt-8 sticky bottom-24 z-10 bg-background pb-4 lg:bottom-auto lg:pb-0 lg:static">
+    <section
+      className={cn(
+        "sticky bottom-24 z-10 mt-12 border-t border-border bg-background pb-4 pt-8 lg:static lg:bottom-auto lg:pb-0",
+        className
+      )}
+    >
       <div className="flex items-center justify-between">
         <span className="text-[9px] uppercase tracking-[0.2em] text-muted-foreground">
           {saveError ? (
